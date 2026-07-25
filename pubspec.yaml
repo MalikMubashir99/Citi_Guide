@@ -30,6 +30,11 @@ dependencies:
   flutter_admin_scaffold: ^1.4.0
   google_maps_flutter: ^2.5.0
   geolocator: ^10.1.0
+  geocoding: ^3.0.0
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.0
+  flutter_map_marker_popup: ^5.0.0
+
 
 dev_dependencies:
   flutter_test:
