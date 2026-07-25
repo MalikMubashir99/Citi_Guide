@@ -13,29 +13,37 @@ class AttractionCard extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-
           MaterialPageRoute(
             builder: (_) => AttractionDetailScreen(attraction: attraction),
           ),
         );
       },
-
       child: Card(
-        margin: EdgeInsets.all(10),
-
+        margin: const EdgeInsets.all(10),
         child: ListTile(
-          leading: Image.network(
-            attraction.image,
-
-            width: 70,
-
-            height: 70,
-
-            fit: BoxFit.cover,
+          leading: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.network(
+              attraction.image,
+              width: 70,
+              height: 70,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => const Icon(
+                Icons.broken_image,
+                size: 50,
+                color: Colors.grey,
+              ),
+              loadingBuilder: (_, child, progress) {
+                if (progress == null) return child;
+                return const SizedBox(
+                  width: 70,
+                  height: 70,
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              },
+            ),
           ),
-
           title: Text(attraction.name),
-
           subtitle: Text("⭐ ${attraction.rating}"),
         ),
       ),

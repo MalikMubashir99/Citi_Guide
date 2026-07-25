@@ -11,7 +11,15 @@ class EventDetailScreen extends StatelessWidget {
     required this.event,
   });
 
-  Future<void> openGoogleMaps() async {
+  // ✅ Pass context as parameter
+  Future<void> openGoogleMaps(BuildContext context) async {
+    if (event.location.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Location not available")),
+      );
+      return;
+    }
+
     final Uri url = Uri.parse(
       "https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(event.location)}",
     );
@@ -20,6 +28,11 @@ class EventDetailScreen extends StatelessWidget {
       await launchUrl(
         url,
         mode: LaunchMode.externalApplication,
+      );
+    } else {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Unable to open Google Maps")),
       );
     }
   }
@@ -30,14 +43,10 @@ class EventDetailScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(event.title),
       ),
-
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
-
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             event.image.isEmpty
                 ? Container(
                     height: 250,
@@ -53,98 +62,79 @@ class EventDetailScreen extends StatelessWidget {
                     width: double.infinity,
                     height: 250,
                     fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      height: 250,
+                      width: double.infinity,
+                      color: Colors.grey.shade300,
+                      child: const Icon(
+                        Icons.broken_image,
+                        size: 100,
+                        color: Colors.grey,
+                      ),
+                    ),
                   ),
-
             Padding(
-              padding:
-                  const EdgeInsets.all(16),
-
+              padding: const EdgeInsets.all(16),
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   Text(
                     event.title,
                     style: const TextStyle(
                       fontSize: 28,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 20),
-
                   ListTile(
-                    leading: const Icon(
-                      Icons.calendar_today,
-                    ),
+                    leading: const Icon(Icons.calendar_today),
                     title: const Text("Date"),
-                    subtitle: Text(event.date),
-                  ),
-
-                  ListTile(
-                    leading: const Icon(
-                      Icons.access_time,
+                    subtitle: Text(
+                      event.date.isEmpty ? "Not available" : event.date,
                     ),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.access_time),
                     title: const Text("Time"),
-                    subtitle: Text(event.time),
-                  ),
-
-                  ListTile(
-                    leading: const Icon(
-                      Icons.location_on,
+                    subtitle: Text(
+                      event.time.isEmpty ? "Not available" : event.time,
                     ),
-                    title: const Text("Location"),
-                    subtitle: Text(event.location),
                   ),
-
+                  ListTile(
+                    leading: const Icon(Icons.location_on),
+                    title: const Text("Location"),
+                    subtitle: Text(
+                      event.location.isEmpty ? "Not available" : event.location,
+                    ),
+                  ),
                   const SizedBox(height: 20),
-
                   const Text(
                     "Description",
                     style: TextStyle(
                       fontSize: 22,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 10),
-
                   Text(
-                    event.description,
+                    event.description.isEmpty ? "No description available" : event.description,
                     style: const TextStyle(
                       fontSize: 16,
                     ),
                   ),
-
                   const SizedBox(height: 30),
-
                   SizedBox(
                     width: double.infinity,
-
                     child: ElevatedButton.icon(
-
-                      onPressed:
-                          openGoogleMaps,
-
-                      icon: const Icon(
-                        Icons.map,
-                      ),
-
-                      label: const Text(
-                        "Open in Google Maps",
-                      ),
-
+                      // ✅ Pass context to method
+                      onPressed: () => openGoogleMaps(context),
+                      icon: const Icon(Icons.map),
+                      label: const Text("Open in Google Maps"),
                     ),
                   ),
-
                 ],
               ),
             ),
-
           ],
         ),
       ),

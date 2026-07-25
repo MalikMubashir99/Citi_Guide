@@ -1,5 +1,6 @@
 import 'package:app/model/attraction_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'package:app/widgets/home_appbar.dart';
@@ -18,11 +19,31 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int currentIndex = 0;
+  
+  // ✅ Create search controller
+  final TextEditingController searchController = TextEditingController();
+  String userName = "User";
+
+  @override
+  void dispose() {
+    // ✅ Dispose controller to prevent memory leaks
+    searchController.dispose();
+    super.dispose();
+  }
+
+   Future<void> _getUserName() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        userName = user.displayName ?? user.email?.split('@').first ?? "User";
+      });
+    }
+  }
 
   Future<List<AttractionModel>> getAttractions() async {
-    // ✅ Fix: Use FirebaseFirestore.instance instead of firestore
-    QuerySnapshot snapshot =
-        await FirebaseFirestore.instance.collection('attractions').get();
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('attractions')
+        .get();
 
     return snapshot.docs.map((doc) {
       return AttractionModel.fromFirestore(
@@ -42,17 +63,17 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const HomeAppBar(),
+              HomeAppBar(userName: userName),
               const SizedBox(height: 25),
-              const SearchBarWidget(),
+              
+              // ✅ Pass controller to SearchBarWidget
+              SearchBarWidget(controller: searchController),
+              
               const SizedBox(height: 30),
 
               const Text(
                 "Categories",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 18),
 
@@ -86,14 +107,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const Text(
                 "Popular Attractions",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 18),
 
-              // ✅ Use FutureBuilder to load attractions
               SizedBox(
                 height: 285,
                 child: FutureBuilder<List<AttractionModel>>(
@@ -118,7 +135,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       itemCount: attractions.length,
                       itemBuilder: (context, index) {
                         final attraction = attractions[index];
-                        // ✅ Pass the attraction object to AttractionCard
                         return AttractionCard(attraction: attraction);
                       },
                     );
@@ -130,10 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const Text(
                 "Top Cities",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 18),
 
@@ -145,18 +158,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     CityCard(
                       image: "assets/images/karachi.jpg",
                       city: "Karachi",
+                      cityId: "karachi_id",
                     ),
                     CityCard(
                       image: "assets/images/lahore.jpg",
                       city: "Lahore",
+                      cityId: "lahore_id",
                     ),
                     CityCard(
                       image: "assets/images/islamabad.jpg",
                       city: "Islamabad",
+                      cityId: "islamabad_id",
                     ),
                     CityCard(
                       image: "assets/images/hunza.jpg",
                       city: "Hunza",
+                      cityId: "hunza_id",
                     ),
                   ],
                 ),

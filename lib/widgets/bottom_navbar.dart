@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class BottomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
+  final Map<int, int>? badgeCounts; // ✅ Add badge support
 
   const BottomNavBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
+    this.badgeCounts,
   });
 
   @override
@@ -36,21 +38,25 @@ class BottomNavBar extends StatelessWidget {
               index: 0,
               icon: Icons.home_rounded,
               label: "Home",
+              badgeCount: badgeCounts?[0] ?? 0,
             ),
             _navItem(
               index: 1,
               icon: Icons.favorite_rounded,
               label: "Favorites",
+              badgeCount: badgeCounts?[1] ?? 0,
             ),
             _navItem(
               index: 2,
               icon: Icons.map_rounded,
               label: "Maps",
+              badgeCount: badgeCounts?[2] ?? 0,
             ),
             _navItem(
               index: 3,
               icon: Icons.person_rounded,
               label: "Profile",
+              badgeCount: badgeCounts?[3] ?? 0,
             ),
           ],
         ),
@@ -62,12 +68,15 @@ class BottomNavBar extends StatelessWidget {
     required int index,
     required IconData icon,
     required String label,
+    int badgeCount = 0,
   }) {
     final bool selected = currentIndex == index;
 
     return InkWell(
       borderRadius: BorderRadius.circular(20),
       onTap: () => onTap(index),
+      splashColor: const Color(0xff0984E3).withOpacity(0.1),
+      highlightColor: const Color(0xff0984E3).withOpacity(0.05),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
@@ -77,19 +86,49 @@ class BottomNavBar extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: selected
-              ? const Color(0xff0984E3).withOpacity(.12)
+              ? const Color(0xff0984E3).withValues(alpha: 0.12)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(18),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 28,
-              color: selected
-                  ? const Color(0xff0984E3)
-                  : Colors.grey,
+            Stack(
+              children: [
+                Icon(
+                  icon,
+                  size: 28,
+                  color: selected
+                      ? const Color(0xff0984E3)
+                      : Colors.grey,
+                ),
+                // ✅ Badge
+                if (badgeCount > 0)
+                  Positioned(
+                    right: -4,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
+                      child: Text(
+                        badgeCount > 99 ? '99+' : badgeCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 4),
             Text(

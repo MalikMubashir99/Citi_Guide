@@ -148,7 +148,7 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundImage: NetworkImage(attraction.image),
-                          onBackgroundImageError: (_, _) =>
+                          onBackgroundImageError: (_, __) =>
                               const Icon(Icons.broken_image),
                           child: const Icon(Icons.place),
                         ),

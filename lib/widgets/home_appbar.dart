@@ -1,34 +1,46 @@
 import 'package:flutter/material.dart';
 
 class HomeAppBar extends StatelessWidget {
-  const HomeAppBar({super.key});
+  final String userName; // ✅ Add this
+
+  const HomeAppBar({
+    super.key,
+    required this.userName, // ✅ Add this
+  });
 
   @override
   Widget build(BuildContext context) {
+    final hour = DateTime.now().hour;
+    String greeting = "Good Morning";
+
+    if (hour >= 12 && hour < 17) {
+      greeting = "Good Afternoon";
+    } else if (hour >= 17) {
+      greeting = "Good Evening";
+    }
+
     return Row(
       children: [
         const CircleAvatar(
           radius: 24,
           backgroundImage: AssetImage("assets/images/profile.png"),
         ),
-
         const SizedBox(width: 15),
-
-        const Expanded(
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Good Morning 👋",
-                style: TextStyle(
+                "$greeting 👋",
+                style: const TextStyle(
                   color: Colors.grey,
                   fontSize: 14,
                 ),
               ),
-              SizedBox(height: 3),
+              const SizedBox(height: 3),
               Text(
-                "Mubashir",
-                style: TextStyle(
+                userName,
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
@@ -36,7 +48,6 @@ class HomeAppBar extends StatelessWidget {
             ],
           ),
         ),
-
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(

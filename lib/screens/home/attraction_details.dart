@@ -165,6 +165,38 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                     title: const Text("Website"),
                     subtitle: Text(widget.attraction.website),
                   ),
+                  // ✅ Add this check for openingHours
+                  ListTile(
+                    leading: const Icon(Icons.access_time),
+                    title: const Text("Opening Hours"),
+                    subtitle: Text(
+                      widget.attraction.openingHours.isEmpty
+                          ? "Not available"
+                          : widget.attraction.openingHours,
+                    ),
+                  ),
+
+                  // ✅ Add check for phone
+                  ListTile(
+                    leading: const Icon(Icons.phone),
+                    title: const Text("Phone"),
+                    subtitle: Text(
+                      widget.attraction.phone.isEmpty
+                          ? "Not available"
+                          : widget.attraction.phone,
+                    ),
+                  ),
+
+                  // ✅ Add check for website
+                  ListTile(
+                    leading: const Icon(Icons.language),
+                    title: const Text("Website"),
+                    subtitle: Text(
+                      widget.attraction.website.isEmpty
+                          ? "Not available"
+                          : widget.attraction.website,
+                    ),
+                  ),
 
                   const SizedBox(height: 20),
 

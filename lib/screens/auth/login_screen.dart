@@ -23,6 +23,32 @@ class _LoginScreenState extends State<LoginScreen> {
   bool loading = false;
 
   final AuthService auth = AuthService();
+
+  // ✅ Email validator
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Email is required";
+    }
+    final emailRegex = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    );
+    if (!emailRegex.hasMatch(value)) {
+      return "Enter a valid email address";
+    }
+    return null;
+  }
+
+  // ✅ Password validator
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Password is required";
+    }
+    if (value.length < 6) {
+      return "Password must be at least 6 characters";
+    }
+    return null;
+  }
+
   Future<void> login() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -36,30 +62,61 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
+      // ✅ Check if user exists
+      if (credential.user == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Login failed. Please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() => loading = false);
+        return;
+      }
+
       final adminService = AdminService();
 
-      bool isAdmin = await adminService.isAdmin(credential.user!.uid);
+      // ✅ Check if user is admin with error handling
+      bool isAdmin = false;
+      try {
+        isAdmin = await adminService.isAdmin(credential.user!.uid);
+      } catch (e) {
+        // If admin check fails, treat as normal user
+        print("Admin check failed: $e");
+        isAdmin = false;
+      }
 
       print("UID: ${credential.user!.uid}");
-print("ADMIN: $isAdmin");
+      print("ADMIN: $isAdmin");
 
+      if (!mounted) return;
+
+      // ✅ Navigate based on admin status
       if (isAdmin) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => AdminDashboardScreen()),
+          MaterialPageRoute(
+            builder: (_) =>  AdminDashboardScreen(),
+          ),
         );
       } else {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => HomeScreen()),
+          MaterialPageRoute(
+            builder: (_) => const HomeScreen(),
+          ),
         );
       }
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
 
     if (mounted) {
@@ -68,29 +125,37 @@ print("ADMIN: $isAdmin");
   }
 
   @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
-
         children: [
-          Image.asset("assets/images/login.jpg", fit: BoxFit.cover),
-
-          Container(color: Colors.black.withValues(alpha: 0.5)),
-
+          Image.asset(
+            "assets/images/login.jpg",
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              color: const Color(0xff0984E3),
+            ),
+          ),
+          Container(
+            color: Colors.black.withValues(alpha: 0.5),
+          ),
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
-
               child: Form(
                 key: _formKey,
-
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-
                   children: [
                     const SizedBox(height: 80),
-
                     const Text(
                       "Welcome Back 👋",
                       style: TextStyle(
@@ -99,31 +164,27 @@ print("ADMIN: $isAdmin");
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-
                     const SizedBox(height: 8),
-
                     const Text(
                       "Sign in to continue exploring.",
-                      style: TextStyle(color: Colors.white70, fontSize: 17),
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 17,
+                      ),
                     ),
-
                     const SizedBox(height: 40),
 
+                    // ✅ Email with validation
                     CustomTextField(
                       controller: emailController,
                       hintText: "Email",
                       prefixIcon: Icons.email,
                       keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Email is required";
-                        }
-                        return null;
-                      },
+                      validator: _validateEmail,
                     ),
-
                     const SizedBox(height: 20),
 
+                    // ✅ Password with validation
                     CustomTextField(
                       controller: passwordController,
                       hintText: "Password",
@@ -134,6 +195,7 @@ print("ADMIN: $isAdmin");
                           hidePassword
                               ? Icons.visibility
                               : Icons.visibility_off,
+                          color: Colors.white70,
                         ),
                         onPressed: () {
                           setState(() {
@@ -141,50 +203,59 @@ print("ADMIN: $isAdmin");
                           });
                         },
                       ),
-                      validator: (value) {
-                        if (value == null || value.length < 6) {
-                          return "Minimum 6 characters";
-                        }
-                        return null;
-                      },
+                      validator: _validatePassword,
                     ),
+                    const SizedBox(height: 5),
 
+                    // ✅ Forgot Password
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () {
                           Navigator.pushNamed(context, "/forgot-password");
                         },
-                        child: const Text("Forgot Password?"),
+                        child: const Text(
+                          "Forgot Password?",
+                          style: TextStyle(
+                            color: Colors.white70,
+                          ),
+                        ),
                       ),
                     ),
-
                     const SizedBox(height: 20),
 
+                    // ✅ Login Button
                     PrimaryButton(
                       text: "Login",
                       onPressed: login,
                       isLoading: loading,
                     ),
-
                     const SizedBox(height: 20),
 
+                    // ✅ Register Link
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text(
                           "Don't have an account?",
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(
+                            color: Colors.white,
+                          ),
                         ),
-
                         TextButton(
                           onPressed: () {
                             Navigator.pushNamed(context, "/register");
                           },
-                          child: const Text("Sign Up"),
+                          child: const Text(
+                            "Sign Up",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ],
                     ),
+                    const SizedBox(height: 30),
                   ],
                 ),
               ),

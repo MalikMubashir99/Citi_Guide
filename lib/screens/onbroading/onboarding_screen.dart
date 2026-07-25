@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/onboarding_data.dart';
 
@@ -120,7 +119,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   count: onboardingData.length,
                   effect: ExpandingDotsEffect(
                     activeDotColor: AppColors.white,
-                    dotColor: Colors.white54,
+                   dotColor: Colors.white.withValues(alpha: 0.5),
                     dotHeight: 10,
                     dotWidth: 10,
                   ),

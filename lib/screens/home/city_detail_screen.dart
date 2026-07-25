@@ -15,11 +15,13 @@ import 'package:flutter/material.dart';
 class CityDetailScreen extends StatefulWidget {
   final String cityId;
   final String cityName;
+  final String? cityImage; // ✅ Optional city image
 
   const CityDetailScreen({
     super.key,
     required this.cityId,
     required this.cityName,
+    this.cityImage,
   });
 
   @override
@@ -41,35 +43,60 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // City header
-            Container(
-              height: 200,
-              width: double.infinity,
-              color: Colors.blue,
-              child: Center(
-                child: Text(
-                  widget.cityName,
-                  style: const TextStyle(
-                    fontSize: 30,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-
+            // ✅ City header with image if available
+            _buildCityHeader(),
+            
             // Attractions
             attractionSection(),
-
+            
             // Hotels
             hotelSection(),
-
+            
             // Restaurants
             restaurantSection(),
-
+            
             // Events
             eventSection(),
           ],
+        ),
+      ),
+    );
+  }
+
+  // ✅ Improved city header with image
+  Widget _buildCityHeader() {
+    return Container(
+      height: 200,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.blue,
+        image: widget.cityImage != null && widget.cityImage!.isNotEmpty
+            ? DecorationImage(
+                image: NetworkImage(widget.cityImage!),
+                fit: BoxFit.cover,
+              )
+            : null,
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.black.withValues(alpha: 0.3),
+              Colors.black.withValues(alpha: 0.6),
+            ],
+          ),
+        ),
+        child: Center(
+          child: Text(
+            widget.cityName,
+            style: const TextStyle(
+              fontSize: 36,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
       ),
     );
@@ -97,11 +124,27 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
             }
 
             if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.error_outline, size: 40, color: Colors.red),
+                      const SizedBox(height: 8),
+                      Text('Error: ${snapshot.error}'),
+                    ],
+                  ),
+                ),
+              );
             }
 
             if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text("No Attractions Found"));
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text("No Attractions Found"),
+                ),
+              );
             }
 
             return Column(
@@ -137,11 +180,21 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
             }
 
             if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text('Error: ${snapshot.error}'),
+                ),
+              );
             }
 
             if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text("No Hotels Found"));
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text("No Hotels Found"),
+                ),
+              );
             }
 
             return Column(
@@ -156,119 +209,110 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
   }
 
   Widget restaurantSection() {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-
-    children: [
-
-      const Padding(
-        padding: EdgeInsets.all(16),
-        child: Text(
-          "Restaurants",
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.all(16),
+          child: Text(
+            "Restaurants",
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
-      ),
-
-      StreamBuilder<List<RestaurantModel>>(
-        stream: restaurantService.getRestaurantsByCity(
-          widget.cityId,
-        ),
-
-        builder: (context, snapshot) {
-
-          if (snapshot.connectionState ==
-              ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-
-          if (!snapshot.hasData ||
-              snapshot.data!.isEmpty) {
-            return const Center(
-              child: Text("No Restaurants Found"),
-            );
-          }
-
-          return Column(
-            children: snapshot.data!.map((restaurant) {
-
-              return RestaurantCard(
-                restaurant: restaurant,
+        StreamBuilder<List<RestaurantModel>>(
+          stream: restaurantService.getRestaurantsByCity(widget.cityId),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(),
               );
+            }
 
-            }).toList(),
-          );
-        },
-      ),
+            if (snapshot.hasError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text('Error: ${snapshot.error}'),
+                ),
+              );
+            }
 
-    ],
-  );
-}
-  
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text("No Restaurants Found"),
+                ),
+              );
+            }
+
+            return Column(
+              children: snapshot.data!.map((restaurant) {
+                return RestaurantCard(
+                  restaurant: restaurant,
+                );
+              }).toList(),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
   Widget eventSection() {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-
-    children: [
-
-      const Padding(
-        padding: EdgeInsets.all(16),
-        child: Text(
-          "Upcoming Events",
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.all(16),
+          child: Text(
+            "Upcoming Events",
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
-      ),
-
-      StreamBuilder<List<EventModel>>(
-        stream: eventService.getEventsByCity(
-          widget.cityId,
-        ),
-
-        builder: (context, snapshot) {
-
-          if (snapshot.connectionState ==
-              ConnectionState.waiting) {
-
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-
-          }
-
-          if (!snapshot.hasData ||
-              snapshot.data!.isEmpty) {
-
-            return const Center(
-              child: Text("No Events Found"),
-            );
-
-          }
-
-          return Column(
-
-            children: snapshot.data!.map((event) {
-
-              return EventCard(
-                event: event,
+        StreamBuilder<List<EventModel>>(
+          stream: eventService.getEventsByCity(widget.cityId),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(),
               );
+            }
 
-            }).toList(),
+            if (snapshot.hasError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text('Error: ${snapshot.error}'),
+                ),
+              );
+            }
 
-          );
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text("No Events Found"),
+                ),
+              );
+            }
 
-        },
-
-      ),
-
-    ],
-
-  );
-}
+            return Column(
+              children: snapshot.data!.map((event) {
+                return EventCard(
+                  event: event,
+                );
+              }).toList(),
+            );
+          },
+        ),
+      ],
+    );
+  }
 }

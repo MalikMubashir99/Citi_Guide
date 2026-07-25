@@ -11,56 +11,84 @@ class CityScreen extends StatefulWidget {
 }
 
 class _CityScreenState extends State<CityScreen> {
-  CityService service = CityService();
+  final CityService service = CityService();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Select City")),
-
+      appBar: AppBar(title: const Text("Select City")),
       body: FutureBuilder<List<CityModel>>(
         future: service.getCities(),
-
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 60, color: Colors.red),
+                  const SizedBox(height: 10),
+                  Text('Error: ${snapshot.error}'),
+                ],
+              ),
+            );
           }
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text("No Cities Found"));
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.location_city, size: 80, color: Colors.grey),
+                  SizedBox(height: 10),
+                  Text("No Cities Found"),
+                ],
+              ),
+            );
           }
 
           final cities = snapshot.data!;
 
           return ListView.builder(
             itemCount: cities.length,
-
             itemBuilder: (context, index) {
               final city = cities[index];
 
               return Card(
-                margin: EdgeInsets.all(10),
-
+                margin: const EdgeInsets.all(10),
                 child: ListTile(
-                  leading: Image.network(
-                    city.image,
-                    width: 60,
-                    height: 60,
-                    fit: BoxFit.cover,
+                  leading: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      city.image,
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => const Icon(
+                        Icons.broken_image,
+                        size: 60,
+                      ),
+                      loadingBuilder: (_, child, progress) {
+                        if (progress == null) return child;
+                        return const SizedBox(
+                          width: 60,
+                          height: 60,
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      },
+                    ),
                   ),
-
                   title: Text(city.name),
-
                   subtitle: Text(city.description),
-
                   onTap: () {
                     Navigator.push(
                       context,
-
                       MaterialPageRoute(
                         builder: (context) => CityDetailScreen(
                           cityId: city.id,
-
                           cityName: city.name,
                         ),
                       ),

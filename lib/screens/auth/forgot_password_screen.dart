@@ -11,51 +11,55 @@ class ForgotPasswordScreen extends StatefulWidget {
       _ForgotPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState
-    extends State<ForgotPasswordScreen> {
-
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-
   final emailController = TextEditingController();
-
   bool loading = false;
-
   final AuthService auth = AuthService();
 
-  Future<void> resetPassword() async {
+  // ✅ Email validator
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Enter your email";
+    }
+    final emailRegex = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    );
+    if (!emailRegex.hasMatch(value)) {
+      return "Enter a valid email address";
+    }
+    return null;
+  }
 
+  Future<void> resetPassword() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => loading = true);
 
     try {
-
-      await auth.resetPassword(
-        emailController.text.trim(),
-      );
+      await auth.resetPassword(emailController.text.trim());
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            "Password reset email sent successfully.",
+            "Password reset email sent successfully! 📧",
           ),
+          backgroundColor: Colors.green,
         ),
       );
 
       Navigator.pop(context);
-
     } catch (e) {
-
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString()),
+          backgroundColor: Colors.red,
         ),
       );
-
     }
 
     if (mounted) {
@@ -64,38 +68,31 @@ class _ForgotPasswordScreenState
   }
 
   @override
+  void dispose() {
+    emailController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
       appBar: AppBar(
         title: const Text("Forgot Password"),
       ),
-
       body: SafeArea(
-
         child: Padding(
-
           padding: const EdgeInsets.all(24),
-
           child: Form(
-
             key: _formKey,
-
             child: Column(
-
               children: [
-
                 const SizedBox(height: 40),
-
                 const Icon(
                   Icons.lock_reset,
                   size: 90,
                   color: Color(0xff0984E3),
                 ),
-
                 const SizedBox(height: 25),
-
                 const Text(
                   "Reset Your Password",
                   style: TextStyle(
@@ -103,38 +100,44 @@ class _ForgotPasswordScreenState
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-
                 const SizedBox(height: 10),
-
                 const Text(
-                  "Enter your registered email address.",
+                  "Enter your registered email address.\nWe'll send you a reset link.",
                   textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.grey,
+                  ),
                 ),
-
                 const SizedBox(height: 40),
 
+                // ✅ Email with validation
                 CustomTextField(
                   controller: emailController,
                   hintText: "Email",
                   prefixIcon: Icons.email,
-                  keyboardType:
-                      TextInputType.emailAddress,
-                  validator: (value) {
-
-                    if (value == null || value.isEmpty) {
-                      return "Enter your email";
-                    }
-
-                    return null;
-                  },
+                  keyboardType: TextInputType.emailAddress,
+                  validator: _validateEmail,
                 ),
-
                 const SizedBox(height: 30),
 
                 PrimaryButton(
                   text: "Send Reset Link",
                   isLoading: loading,
                   onPressed: resetPassword,
+                ),
+
+                const SizedBox(height: 20),
+
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    "Back to Login",
+                    style: TextStyle(
+                      color: Color(0xff0984E3),
+                    ),
+                  ),
                 ),
               ],
             ),

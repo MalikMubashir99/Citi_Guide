@@ -25,6 +25,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   final AuthService auth = AuthService();
 
+  // ✅ Email validator
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Enter your email";
+    }
+    final emailRegex = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    );
+    if (!emailRegex.hasMatch(value)) {
+      return "Enter a valid email address";
+    }
+    return null;
+  }
+
+  // ✅ Phone validator
+  String? _validatePhone(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Enter your phone number";
+    }
+    if (value.length < 10) {
+      return "Enter a valid phone number (min 10 digits)";
+    }
+    return null;
+  }
+
+  // ✅ Password validator
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Enter your password";
+    }
+    if (value.length < 6) {
+      return "Password must be at least 6 characters";
+    }
+    // Optional: Add more password requirements
+    if (!RegExp(r'[A-Z]').hasMatch(value)) {
+      return "Password must contain at least one uppercase letter";
+    }
+    if (!RegExp(r'[0-9]').hasMatch(value)) {
+      return "Password must contain at least one number";
+    }
+    return null;
+  }
+
   Future<void> register() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -32,6 +75,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Passwords do not match"),
+          backgroundColor: Colors.red,
         ),
       );
       return;
@@ -51,7 +95,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Account Created Successfully"),
+          content: Text("Account Created Successfully 🎉"),
+          backgroundColor: Colors.green,
         ),
       );
 
@@ -62,6 +107,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString()),
+          backgroundColor: Colors.red,
         ),
       );
     }
@@ -90,13 +136,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
           Image.asset(
             "assets/images/register.jpg",
             fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              color: const Color(0xff0984E3),
+            ),
           ),
-
+          // ✅ Fixed: withOpacity → withValues(alpha:)
           Container(
-           color: Colors.black.withValues(alpha: 0.5),
-
+            color: Colors.black.withValues(alpha: 0.5),
           ),
-
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -105,9 +152,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     const SizedBox(height: 50),
-
                     const Text(
                       "Create Account",
                       style: TextStyle(
@@ -116,9 +161,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-
                     const SizedBox(height: 8),
-
                     const Text(
                       "Start your journey with Citi Guide.",
                       style: TextStyle(
@@ -126,9 +169,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         fontSize: 17,
                       ),
                     ),
-
                     const SizedBox(height: 35),
 
+                    // ✅ Full Name
                     CustomTextField(
                       controller: fullNameController,
                       hintText: "Full Name",
@@ -137,42 +180,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         if (value == null || value.isEmpty) {
                           return "Enter your full name";
                         }
+                        if (value.length < 3) {
+                          return "Name must be at least 3 characters";
+                        }
                         return null;
                       },
                     ),
-
                     const SizedBox(height: 18),
 
+                    // ✅ Phone
                     CustomTextField(
                       controller: phoneController,
                       hintText: "Phone Number",
                       prefixIcon: Icons.phone,
                       keyboardType: TextInputType.phone,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Enter phone number";
-                        }
-                        return null;
-                      },
+                      validator: _validatePhone,
                     ),
-
                     const SizedBox(height: 18),
 
+                    // ✅ Email with validation
                     CustomTextField(
                       controller: emailController,
                       hintText: "Email",
                       prefixIcon: Icons.email,
                       keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Enter email";
-                        }
-                        return null;
-                      },
+                      validator: _validateEmail,
                     ),
-
                     const SizedBox(height: 18),
 
+                    // ✅ Password with validation
                     CustomTextField(
                       controller: passwordController,
                       hintText: "Password",
@@ -183,6 +219,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           hidePassword
                               ? Icons.visibility
                               : Icons.visibility_off,
+                          color: Colors.white70,
                         ),
                         onPressed: () {
                           setState(() {
@@ -190,16 +227,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           });
                         },
                       ),
-                      validator: (value) {
-                        if (value == null || value.length < 6) {
-                          return "Minimum 6 characters";
-                        }
-                        return null;
-                      },
+                      validator: _validatePassword,
                     ),
-
                     const SizedBox(height: 18),
 
+                    // ✅ Confirm Password
                     CustomTextField(
                       controller: confirmPasswordController,
                       hintText: "Confirm Password",
@@ -210,6 +242,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           hideConfirmPassword
                               ? Icons.visibility
                               : Icons.visibility_off,
+                          color: Colors.white70,
                         ),
                         onPressed: () {
                           setState(() {
@@ -222,10 +255,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         if (value == null || value.isEmpty) {
                           return "Confirm your password";
                         }
+                        if (value != passwordController.text) {
+                          return "Passwords do not match";
+                        }
                         return null;
                       },
                     ),
-
                     const SizedBox(height: 30),
 
                     PrimaryButton(
@@ -233,7 +268,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       isLoading: loading,
                       onPressed: register,
                     ),
-
                     const SizedBox(height: 20),
 
                     Row(
@@ -249,11 +283,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           onPressed: () {
                             Navigator.pop(context);
                           },
-                          child: const Text("Login"),
+                          child: const Text(
+                            "Login",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 30),
                   ],
                 ),
