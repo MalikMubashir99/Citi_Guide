@@ -84,44 +84,69 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
       selectedImage = File(image.path);
     });
   }
+Future<void> updateRestaurant() async {
+  if (selectedCity == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Please select a city")),
+    );
+    return;
+  }
 
-  Future<void> updateRestaurant() async {
-    setState(() {
-      loading = true;
-    });
+  if (nameController.text.trim().isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Please enter restaurant name")),
+    );
+    return;
+  }
+
+  setState(() {
+    loading = true;
+  });
+
+  try {
+    String finalImageUrl = imageUrl;
 
     if (selectedImage != null) {
-      imageUrl = await storageService.uploadImage(selectedImage!);
+      finalImageUrl = await storageService.uploadImage(
+        selectedImage!,
+        folder: 'restaurants',
+      );
     }
 
     RestaurantModel restaurant = RestaurantModel(
       id: widget.restaurant.id,
-
       name: nameController.text.trim(),
-
       cityId: selectedCity!,
-
-      image: imageUrl,
-
+      image: finalImageUrl,
       description: descriptionController.text.trim(),
-
       rating: double.tryParse(ratingController.text) ?? 0,
-
       phone: phoneController.text.trim(),
-
       latitude: double.tryParse(latitudeController.text) ?? 0,
-
       longitude: double.tryParse(longitudeController.text) ?? 0,
     );
 
     await restaurantService.updateRestaurant(restaurant);
 
-    
     if (!mounted) return;
 
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Restaurant Updated Successfully ✅"),
+        backgroundColor: Colors.green,
+      ),
+    );
     Navigator.pop(context);
+  } catch (e) {
+    setState(() => loading = false);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Error: $e"),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
-
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(

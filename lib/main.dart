@@ -1,7 +1,14 @@
+import 'package:app/admin/dashboard/admin_dashboard_screen.dart';
 import 'package:app/screens/auth/forgot_password_screen.dart';
 import 'package:app/screens/auth/login_screen.dart';
 import 'package:app/screens/auth/register_screen.dart';
+import 'package:app/screens/home/home_screen.dart';
+import 'package:app/screens/home/search_screen.dart';
 import 'package:app/screens/onbroading/onboarding_screen.dart';
+import 'package:app/screens/profile/favorites_screen.dart';
+import 'package:app/screens/settings/settings_screen.dart';
+import 'package:app/services/analytics_service.dart';
+import 'package:app/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/splash/splash_screen.dart';
@@ -11,9 +18,13 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Initialize Notification Service
+  await NotificationService.initialize();
 
   runApp(const CitiGuideApp());
 }
@@ -25,14 +36,69 @@ class CitiGuideApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      title: 'Citi Guide',
+      
+      // ✅ Theme
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system, // ✅ System default, user can change
+      
+      // ✅ Analytics Observer
+      navigatorObservers: [AnalyticsService.observer],
+      
+      // ✅ Initial Route
       initialRoute: "/",
+      
+      // ✅ Routes
       routes: {
+        // Auth Routes
         "/": (context) => const SplashScreen(),
         "/onboarding": (context) => const OnboardingScreen(),
         "/register": (context) => const RegisterScreen(),
         "/login": (context) => const LoginScreen(),
         "/forgot-password": (context) => const ForgotPasswordScreen(),
+        
+        // Main App Routes
+        "/home": (context) => const HomeScreen(),
+        "/search": (context) => const SearchScreen(),
+        "/favorites": (context) => const FavoritesScreen(),
+        "/settings": (context) => const SettingsScreen(),
+        
+        // Admin Routes
+        "/admin-dashboard": (context) => const AdminDashboardScreen(),
+      },
+      
+      // ✅ Error Handler
+      onGenerateRoute: (settings) {
+        // Handle dynamic routes if needed
+        return null;
+      },
+      
+      // ✅ Unknown Route Handler
+      onUnknownRoute: (settings) {
+        return MaterialPageRoute(
+          builder: (_) => Scaffold(
+            appBar: AppBar(title: const Text('Page Not Found')),
+            body: const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 80, color: Colors.red),
+                  SizedBox(height: 16),
+                  Text(
+                    'Page Not Found',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'The page you are looking for does not exist.',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
       },
     );
   }

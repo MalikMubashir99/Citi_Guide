@@ -22,6 +22,7 @@ class UserService {
   Future<void> updateUser({
     required String name,
     required String phone,
+    String image = '',
   }) async {
     await firestore
         .collection('users')

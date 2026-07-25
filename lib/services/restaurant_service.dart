@@ -69,6 +69,18 @@ class RestaurantService {
       }).toList();
     });
   }
+   Future<List<RestaurantModel>> getAllRestaurants() async {
+    QuerySnapshot snapshot = await _firestore
+        .collection(collection)
+        .get();
+
+    return snapshot.docs.map((doc) {
+      return RestaurantModel.fromFirestore(
+               doc.data() as Map<String, dynamic>,
+        doc.id,
+      );
+    }).toList();
+  }
 
   // Get Single Restaurant
   Future<RestaurantModel?> getRestaurant(

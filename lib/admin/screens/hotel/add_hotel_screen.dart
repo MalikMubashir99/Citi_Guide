@@ -48,50 +48,61 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
       selectedImage = File(image.path);
     });
   }
+Future<void> saveHotel() async {
+  if (selectedCity == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Select City")),
+    );
+    return;
+  }
 
-  Future<void> saveHotel() async {
-    if (selectedCity == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Select City")));
+  setState(() {
+    loading = true;
+  });
 
-      return;
-    }
-
-    setState(() {
-      loading = true;
-    });
-
+  try {
     String imageUrl = "";
 
     if (selectedImage != null) {
-      imageUrl = await storageService.uploadImage(selectedImage!);
+      imageUrl = await storageService.uploadImage(
+        selectedImage!,
+        folder: 'hotels', // ✅ Specify folder
+      );
     }
 
     HotelModel hotel = HotelModel(
       id: "",
-
       cityId: selectedCity!,
-
       name: nameController.text.trim(),
-
       description: descriptionController.text.trim(),
-
       image: imageUrl,
-
       rating: double.tryParse(ratingController.text) ?? 0,
-
       phone: phoneController.text.trim(),
-
       website: websiteController.text.trim(),
     );
 
     await hotelService.addHotel(hotel);
 
-    // ignore: use_build_context_synchronously
-    Navigator.pop(context);
-  }
+    if (!mounted) return;
 
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Hotel Added Successfully ✅"),
+        backgroundColor: Colors.green,
+      ),
+    );
+    Navigator.pop(context);
+  } catch (e) {
+    setState(() => loading = false);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Error: $e"),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(

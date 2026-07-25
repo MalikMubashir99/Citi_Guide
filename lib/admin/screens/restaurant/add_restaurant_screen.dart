@@ -52,15 +52,18 @@ class _AddRestaurantScreenState extends State<AddRestaurantScreen> {
       selectedImage = File(image.path);
     });
   }
-
 Future<void> saveRestaurant() async {
   if (selectedCity == null) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Select City")),
     );
+    return;
+  }
 
+  if (nameController.text.trim().isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Please enter restaurant name")),
+    );
     return;
   }
 
@@ -68,40 +71,49 @@ Future<void> saveRestaurant() async {
     loading = true;
   });
 
-  String imageUrl = "";
+  try {
+    String imageUrl = "";
 
-  if (selectedImage != null) {
-    imageUrl = await storageService.uploadImage(selectedImage!);
+    if (selectedImage != null) {
+      imageUrl = await storageService.uploadImage(
+        selectedImage!,
+        folder: 'restaurants', // ✅ Specify folder
+      );
+    }
+
+    RestaurantModel restaurant = RestaurantModel(
+      id: "",
+      name: nameController.text.trim(),
+      cityId: selectedCity!,
+      image: imageUrl,
+      description: descriptionController.text.trim(),
+      rating: double.tryParse(ratingController.text) ?? 0,
+      phone: phoneController.text.trim(),
+      latitude: double.tryParse(latitudeController.text) ?? 0,
+      longitude: double.tryParse(longitudeController.text) ?? 0,
+    );
+
+    await restaurantService.addRestaurant(restaurant);
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Restaurant Added Successfully ✅"),
+        backgroundColor: Colors.green,
+      ),
+    );
+    Navigator.pop(context);
+  } catch (e) {
+    setState(() => loading = false);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Error: $e"),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
-
-  RestaurantModel restaurant = RestaurantModel(
-    id: "",
-
-    name: nameController.text.trim(),
-
-    cityId: selectedCity!,
-
-    image: imageUrl,
-
-    description: descriptionController.text.trim(),
-
-    rating: double.tryParse(ratingController.text) ?? 0,
-
-    phone: phoneController.text.trim(),
-
-    latitude: double.tryParse(latitudeController.text) ?? 0,
-
-    longitude: double.tryParse(longitudeController.text) ?? 0,
-  );
-
-
-  await restaurantService.addRestaurant(restaurant);
-
-
-  if (!mounted) return;
-
-
-  Navigator.pop(context);
 }
   @override
   Widget build(BuildContext context) {

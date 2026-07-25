@@ -2,9 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../model/hotel_model.dart';
 
 class HotelService {
-  final FirebaseFirestore _firestore =
-      FirebaseFirestore.instance;
-
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String collection = "hotels";
 
   // Get All Hotels
@@ -15,7 +13,7 @@ class HotelService {
         .map((snapshot) {
       return snapshot.docs.map((doc) {
         return HotelModel.fromFirestore(
-          doc.data(),
+          doc.data() as Map<String, dynamic>, // ✅ Cast
           doc.id,
         );
       }).toList();
@@ -23,8 +21,7 @@ class HotelService {
   }
 
   // Get Hotels By City
-  Stream<List<HotelModel>> getHotelsByCity(
-      String cityId) {
+  Stream<List<HotelModel>> getHotelsByCity(String cityId) {
     return _firestore
         .collection(collection)
         .where("cityId", isEqualTo: cityId)
@@ -32,7 +29,7 @@ class HotelService {
         .map((snapshot) {
       return snapshot.docs.map((doc) {
         return HotelModel.fromFirestore(
-          doc.data(),
+          doc.data() as Map<String, dynamic>, // ✅ Cast
           doc.id,
         );
       }).toList();
@@ -54,6 +51,20 @@ class HotelService {
         .update(
           hotel.toMap(),
         );
+  }
+
+  // ✅ Get All Hotels (Future)
+  Future<List<HotelModel>> getAllHotels() async {
+    QuerySnapshot snapshot = await _firestore
+        .collection(collection)
+        .get();
+
+    return snapshot.docs.map((doc) {
+      return HotelModel.fromFirestore(
+        doc.data() as Map<String, dynamic>, // ✅ Cast
+        doc.id,
+      );
+    }).toList();
   }
 
   // Delete Hotel
