@@ -1,5 +1,6 @@
-class AttractionModel {
+import 'package:cloud_firestore/cloud_firestore.dart';
 
+class AttractionModel {
   String id;
   String name;
   String cityId;
@@ -12,9 +13,7 @@ class AttractionModel {
   double latitude;
   double longitude;
 
-
   AttractionModel({
-
     required this.id,
     required this.name,
     required this.cityId,
@@ -26,50 +25,49 @@ class AttractionModel {
     required this.website,
     required this.latitude,
     required this.longitude,
-
   });
 
-
-
   factory AttractionModel.fromFirestore(
-      Map<String,dynamic> data,
-      String id
-      ){
+    Map<String, dynamic> data,
+    String id,
+  ) {
+    // ✅ Handle both String and DocumentReference for cityId
+    String cityIdValue;
+    final cityIdData = data['cityId'];
+    
+    if (cityIdData is DocumentReference) {
+      cityIdValue = cityIdData.id;
+    } else {
+      cityIdValue = cityIdData?.toString() ?? '';
+    }
 
     return AttractionModel(
-
       id: id,
-
       name: data['name'] ?? '',
-
-      cityId: data['cityId'] ?? '',
-
+      cityId: cityIdValue,
       description: data['description'] ?? '',
-
       image: data['image'] ?? '',
-
-      rating: 
-      (data['rating'] ?? 0).toDouble(),
-
-      openingHours:
-      data['openingHours'] ?? '',
-
-      phone:
-      data['phone'] ?? '',
-
-      website:
-      data['website'] ?? '',
-
-      latitude:
-      (data['latitude'] ?? 0).toDouble(),
-
-      longitude:
-      (data['longitude'] ?? 0).toDouble(),
-
+      rating: (data['rating'] ?? 0).toDouble(),
+      openingHours: data['openingHours'] ?? '',
+      phone: data['phone'] ?? '',
+      website: data['website'] ?? '',
+      latitude: (data['latitude'] ?? 0).toDouble(),
+      longitude: (data['longitude'] ?? 0).toDouble(),
     );
-
   }
 
-
-
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'cityId': cityId, // Store as String
+      'description': description,
+      'image': image,
+      'rating': rating,
+      'openingHours': openingHours,
+      'phone': phone,
+      'website': website,
+      'latitude': latitude,
+      'longitude': longitude,
+    };
+  }
 }

@@ -46,7 +46,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         password: passwordController.text.trim(),
       );
 
-      bool admin = await adminService.isAdmin("");
+      bool admin = await adminService.isAdmin("user!.uid");
 
       if (!admin) {
 

@@ -6,10 +6,7 @@ class AdminService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Admin Login
-  Future<User?> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<User?> login({required String email, required String password}) async {
     UserCredential credential = await _auth.signInWithEmailAndPassword(
       email: email,
       password: password,
@@ -20,13 +17,13 @@ class AdminService {
 
   // Check Admin Role
   Future<bool> isAdmin(String uid) async {
-    QuerySnapshot result = await _firestore
-        .collection('admins')
-        .where('email', isEqualTo: _auth.currentUser!.email)
-        .where('role', isEqualTo: 'admin')
-        .get();
+    DocumentSnapshot doc = await _firestore.collection('admins').doc(uid).get();
 
-    return result.docs.isNotEmpty;
+    if (doc.exists) {
+      return doc['role'] == 'admin';
+    }
+
+    return false;
   }
 
   // Logout

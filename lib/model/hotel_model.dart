@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class HotelModel {
   String id;
   String cityId;
@@ -23,9 +25,19 @@ class HotelModel {
     Map<String, dynamic> data,
     String id,
   ) {
+    // ✅ Handle both String and DocumentReference for cityId
+    String cityIdValue;
+    final cityIdData = data['cityId'];
+    
+    if (cityIdData is DocumentReference) {
+      cityIdValue = cityIdData.id;
+    } else {
+      cityIdValue = cityIdData?.toString() ?? '';
+    }
+
     return HotelModel(
       id: id,
-      cityId: data['cityId'] ?? '',
+      cityId: cityIdValue,
       name: data['name'] ?? '',
       description: data['description'] ?? '',
       image: data['image'] ?? '',

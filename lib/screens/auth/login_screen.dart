@@ -1,3 +1,5 @@
+import 'package:app/admin/dashboard/admin_dashboard_screen.dart';
+import 'package:app/admin/services/admin_service.dart';
 import 'package:app/screens/home/home_screen.dart';
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
@@ -21,23 +23,37 @@ class _LoginScreenState extends State<LoginScreen> {
   bool loading = false;
 
   final AuthService auth = AuthService();
-
   Future<void> login() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => loading = true);
 
     try {
-      await auth.login(
+      final credential = await auth.login(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
 
       if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
+
+      final adminService = AdminService();
+
+      bool isAdmin = await adminService.isAdmin(credential.user!.uid);
+
+      print("UID: ${credential.user!.uid}");
+print("ADMIN: $isAdmin");
+
+      if (isAdmin) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => AdminDashboardScreen()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => HomeScreen()),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
 

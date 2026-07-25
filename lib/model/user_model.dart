@@ -4,6 +4,7 @@ class UserModel {
   String email;
   String phone;
   String image;
+  String role;
 
   UserModel({
     required this.uid,
@@ -11,6 +12,7 @@ class UserModel {
     required this.email,
     required this.phone,
     required this.image,
+    required this.role
   });
 
   factory UserModel.fromFirestore(
@@ -23,6 +25,8 @@ class UserModel {
       email: data['email'] ?? '',
       phone: data['phone'] ?? '',
       image: data['image'] ?? '',
+      role: data['role'] ?? 'user',
+
     );
   }
 
@@ -32,6 +36,7 @@ class UserModel {
       'email': email,
       'phone': phone,
       'image': image,
+      'role':role,
     };
   }
 }

@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class EventModel {
   String id;
   String title;
@@ -23,10 +25,20 @@ class EventModel {
     Map<String, dynamic> data,
     String id,
   ) {
+    // ✅ Handle both String and DocumentReference for cityId
+    String cityIdValue;
+    final cityIdData = data['cityId'];
+    
+    if (cityIdData is DocumentReference) {
+      cityIdValue = cityIdData.id;
+    } else {
+      cityIdValue = cityIdData?.toString() ?? '';
+    }
+
     return EventModel(
       id: id,
       title: data['title'] ?? '',
-      cityId: data['cityId'] ?? '',
+      cityId: cityIdValue,
       image: data['image'] ?? '',
       description: data['description'] ?? '',
       date: data['date'] ?? '',
@@ -38,7 +50,7 @@ class EventModel {
   Map<String, dynamic> toMap() {
     return {
       'title': title,
-      'cityId': cityId,
+      'cityId': cityId, // Store as String
       'image': image,
       'description': description,
       'date': date,
