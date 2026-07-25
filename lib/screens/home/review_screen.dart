@@ -31,6 +31,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       rating: rating,
       comment: commentController.text.trim(),
     );
+    if (!mounted) return;
 
     commentController.clear();
 
