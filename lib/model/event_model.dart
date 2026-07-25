@@ -20,10 +20,9 @@ class EventModel {
   });
 
   factory EventModel.fromFirestore(
-      Map<String, dynamic> data,
-      String id,
-      ) {
-
+    Map<String, dynamic> data,
+    String id,
+  ) {
     return EventModel(
       id: id,
       title: data['title'] ?? '',
@@ -34,5 +33,17 @@ class EventModel {
       time: data['time'] ?? '',
       location: data['location'] ?? '',
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'title': title,
+      'cityId': cityId,
+      'image': image,
+      'description': description,
+      'date': date,
+      'time': time,
+      'location': location,
+    };
   }
 }

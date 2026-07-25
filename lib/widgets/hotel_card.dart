@@ -1,14 +1,13 @@
+import 'package:app/screens/home/hotel_detail_screen.dart';
 import 'package:flutter/material.dart';
+import '../model/hotel_model.dart';
 
-import '../model/event_model.dart';
-import '../screens/home/event_detail_screen.dart';
+class HotelCard extends StatelessWidget {
+  final HotelModel hotel;
 
-class EventCard extends StatelessWidget {
-  final EventModel event;
-
-  const EventCard({
+  const HotelCard({
     super.key,
-    required this.event,
+    required this.hotel,
   });
 
   @override
@@ -21,8 +20,8 @@ class EventCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => EventDetailScreen(
-                event: event,
+              builder: (_) => HotelDetailScreen(
+                hotel: hotel,
               ),
             ),
           );
@@ -34,26 +33,26 @@ class EventCard extends StatelessWidget {
 
           children: [
 
-            event.image.isEmpty
+            hotel.image.isEmpty
                 ? Container(
                     height: 200,
-                    width: double.infinity,
                     color: Colors.grey.shade300,
-                    child: const Icon(
-                      Icons.event,
-                      size: 80,
+                    child: const Center(
+                      child: Icon(
+                        Icons.hotel,
+                        size: 70,
+                      ),
                     ),
                   )
                 : Image.network(
-                    event.image,
+                    hotel.image,
                     height: 200,
                     width: double.infinity,
                     fit: BoxFit.cover,
                   ),
 
             Padding(
-              padding:
-                  const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
 
               child: Column(
                 crossAxisAlignment:
@@ -62,7 +61,7 @@ class EventCard extends StatelessWidget {
                 children: [
 
                   Text(
-                    event.title,
+                    hotel.name,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight:
@@ -70,10 +69,10 @@ class EventCard extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 5),
 
                   Text(
-                    event.description,
+                    hotel.description,
                     maxLines: 2,
                     overflow:
                         TextOverflow.ellipsis,
@@ -85,32 +84,16 @@ class EventCard extends StatelessWidget {
                     children: [
 
                       const Icon(
-                        Icons.calendar_today,
-                        size: 18,
-                        color: Colors.blue,
+                        Icons.star,
+                        color: Colors.amber,
                       ),
 
                       const SizedBox(width: 5),
 
-                      Text(event.date),
-
-                    ],
-                  ),
-
-                  const SizedBox(height: 5),
-
-                  Row(
-                    children: [
-
-                      const Icon(
-                        Icons.access_time,
-                        size: 18,
-                        color: Colors.green,
+                      Text(
+                        hotel.rating
+                            .toString(),
                       ),
-
-                      const SizedBox(width: 5),
-
-                      Text(event.time),
 
                     ],
                   ),

@@ -24,19 +24,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
     userFuture = userService.getUser();
   }
 
-  Future<void> logout() async {
-    await FirebaseAuth.instance.signOut();
+Future<void> logout() async {
 
-    if (!mounted) return;
+  bool? result = await showDialog(
 
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const LoginScreen(),
-      ),
-      (route) => false,
-    );
-  }
+    context: context,
+
+    builder: (context){
+
+      return AlertDialog(
+
+        title: const Text("Logout"),
+
+        content: const Text(
+          "Are you sure you want to logout?",
+        ),
+
+        actions: [
+
+          TextButton(
+
+            onPressed: (){
+              Navigator.pop(context,false);
+            },
+
+            child: const Text("Cancel"),
+
+          ),
+
+          ElevatedButton(
+
+            onPressed: (){
+              Navigator.pop(context,true);
+            },
+
+            child: const Text("Logout"),
+
+          ),
+
+        ],
+
+      );
+
+    },
+
+  );
+
+  if(result != true) return;
+
+  await FirebaseAuth.instance.signOut();
+
+  if(!mounted) return;
+
+  Navigator.pushAndRemoveUntil(
+
+    context,
+
+    MaterialPageRoute(
+      builder: (_) => const LoginScreen(),
+    ),
+
+    (route)=>false,
+
+  );
+
+}
 
   @override
   Widget build(BuildContext context) {

@@ -65,5 +65,17 @@ class RestaurantModel {
 
   }
 
+Map<String, dynamic> toMap() {
+  return {
+    'name': name,
+    'cityId': cityId,
+    'image': image,
+    'description': description,
+    'rating': rating,
+    'phone': phone,
+    'latitude': latitude,
+    'longitude': longitude,
+  };
+}
 
 }
