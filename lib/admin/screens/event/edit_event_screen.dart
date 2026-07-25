@@ -1,6 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
-
-import 'package:app/admin/services/storage_service.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:app/model/city_model.dart';
 import 'package:app/model/event_model.dart';
 import 'package:app/services/city_service.dart';
@@ -23,7 +23,6 @@ class EditEventScreen extends StatefulWidget {
 class _EditEventScreenState extends State<EditEventScreen> {
   final EventService eventService = EventService();
   final CityService cityService = CityService();
-  final StorageService storageService = StorageService();
 
   late TextEditingController titleController;
   late TextEditingController descriptionController;
@@ -32,39 +31,29 @@ class _EditEventScreenState extends State<EditEventScreen> {
   late TextEditingController timeController;
 
   String? selectedCity;
-  File? selectedImage;
   bool loading = false;
-  String imageUrl = "";
+
+  // ✅ Local image only
+  String? _imagePath;
+  File? _imageFile;
+  String? _existingImageUrl;
 
   @override
   void initState() {
     super.initState();
 
-    // Initialize controllers with event data
-    titleController = TextEditingController(
-      text: widget.event.title,
-    );
-    descriptionController = TextEditingController(
-      text: widget.event.description,
-    );
-    locationController = TextEditingController(
-      text: widget.event.location,
-    );
-    dateController = TextEditingController(
-      text: widget.event.date,
-    );
-    timeController = TextEditingController(
-      text: widget.event.time,
-    );
+    titleController = TextEditingController(text: widget.event.title);
+    descriptionController = TextEditingController(text: widget.event.description);
+    locationController = TextEditingController(text: widget.event.location);
+    dateController = TextEditingController(text: widget.event.date);
+    timeController = TextEditingController(text: widget.event.time);
 
-    // Set initial values
     selectedCity = widget.event.cityId;
-    imageUrl = widget.event.image;
+    _existingImageUrl = widget.event.image;
   }
 
   @override
   void dispose() {
-    // Dispose controllers to prevent memory leaks
     titleController.dispose();
     descriptionController.dispose();
     locationController.dispose();
@@ -73,16 +62,35 @@ class _EditEventScreenState extends State<EditEventScreen> {
     super.dispose();
   }
 
+  // ✅ Pick Image - Local only
   Future<void> pickImage() async {
     final picker = ImagePicker();
-    final XFile? image = await picker.pickImage(
-      source: ImageSource.gallery,
-    );
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
     if (image == null) return;
 
+    if (kIsWeb) {
+      final bytes = await image.readAsBytes();
+      final base64String = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+      setState(() {
+        _imagePath = base64String;
+        _imageFile = null;
+      });
+    } else {
+      final File file = File(image.path);
+      setState(() {
+        _imagePath = file.path;
+        _imageFile = file;
+      });
+    }
+  }
+
+  // ✅ Remove image
+  void removeImage() {
     setState(() {
-      selectedImage = File(image.path);
+      _imagePath = null;
+      _imageFile = null;
+      _existingImageUrl = null;
     });
   }
 
@@ -99,11 +107,11 @@ class _EditEventScreenState extends State<EditEventScreen> {
     });
 
     try {
-      String finalImageUrl = imageUrl;
-
-      // Upload new image if selected
-      if (selectedImage != null) {
-        finalImageUrl = await storageService.uploadImage(selectedImage!);
+      // ✅ Use new image if selected, otherwise keep existing
+      String finalImageUrl = _existingImageUrl ?? '';
+      
+      if (_imagePath != null) {
+        finalImageUrl = _imagePath!;
       }
 
       EventModel event = EventModel(
@@ -122,15 +130,20 @@ class _EditEventScreenState extends State<EditEventScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Event Updated Successfully")),
+        const SnackBar(
+          content: Text("Event Updated Successfully ✅"),
+          backgroundColor: Colors.green,
+        ),
       );
       Navigator.pop(context);
     } catch (e) {
-      setState(() {
-        loading = false;
-      });
+      setState(() => loading = false);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
+        SnackBar(
+          content: Text("Error: $e"),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -145,7 +158,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // ✅ Changed to FutureBuilder
             FutureBuilder<List<CityModel>>(
               future: cityService.getCities(),
               builder: (context, snapshot) {
@@ -186,7 +198,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
             const SizedBox(height: 15),
 
-            // Title
             TextField(
               controller: titleController,
               decoration: const InputDecoration(
@@ -199,7 +210,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
             const SizedBox(height: 15),
 
-            // Description
             TextField(
               controller: descriptionController,
               maxLines: 4,
@@ -213,7 +223,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
             const SizedBox(height: 15),
 
-            // Location
             TextField(
               controller: locationController,
               decoration: const InputDecoration(
@@ -226,7 +235,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
             const SizedBox(height: 15),
 
-            // Date
             TextField(
               controller: dateController,
               decoration: const InputDecoration(
@@ -239,7 +247,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
             const SizedBox(height: 15),
 
-            // Time
             TextField(
               controller: timeController,
               decoration: const InputDecoration(
@@ -252,39 +259,123 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
             const SizedBox(height: 20),
 
-            // Image preview
-            if (selectedImage != null)
-              Image.file(
-                selectedImage!,
-                height: 180,
-                fit: BoxFit.cover,
-              )
-            else if (imageUrl.isNotEmpty)
-              Image.network(
-                imageUrl,
-                height: 180,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => const Icon(
-                  Icons.broken_image,
-                  size: 180,
-                ),
+            // ✅ Image Section
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(12),
               ),
+              child: Column(
+                children: [
+                  if (_imagePath != null)
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: kIsWeb
+                              ? Image.memory(
+                                  base64Decode(_imagePath!.split(',').last),
+                                  height: 180,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                )
+                              : Image.file(
+                                  File(_imagePath!),
+                                  height: 180,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: CircleAvatar(
+                            backgroundColor: Colors.red,
+                            radius: 16,
+                            child: IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white, size: 16),
+                              onPressed: removeImage,
+                              padding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else if (_existingImageUrl != null && _existingImageUrl!.isNotEmpty)
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            _existingImageUrl!,
+                            height: 180,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              height: 180,
+                              color: Colors.grey.shade300,
+                              child: const Center(
+                                child: Icon(Icons.broken_image, color: Colors.grey, size: 40),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: CircleAvatar(
+                            backgroundColor: Colors.red,
+                            radius: 16,
+                            child: IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white, size: 16),
+                              onPressed: removeImage,
+                              padding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    Container(
+                      height: 120,
+                      width: double.infinity,
+                      color: Colors.grey.shade100,
+                      child: const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.image, size: 40, color: Colors.grey),
+                            SizedBox(height: 8),
+                            Text(
+                              "No image selected",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
 
-            const SizedBox(height: 15),
+                  const SizedBox(height: 15),
 
-            // Change Image button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: pickImage,
-                icon: const Icon(Icons.photo_library),
-                label: const Text("Change Image"),
+                  // ✅ Fixed: Removed extra semicolon
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: pickImage,
+                      icon: const Icon(Icons.photo_library),
+                      label: const Text("Change Image"),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 
             const SizedBox(height: 25),
 
-            // Update button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

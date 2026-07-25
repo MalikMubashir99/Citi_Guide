@@ -4,6 +4,7 @@ import 'package:app/admin/screens/event/events_screen.dart';
 import 'package:app/admin/screens/hotel/hotels_screen.dart';
 import 'package:app/admin/screens/restaurant/restaurants_screen.dart';
 import 'package:app/admin/services/admin_service.dart';
+import 'package:app/admin/screens/user/users_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_admin_scaffold/admin_scaffold.dart';
 
@@ -133,8 +134,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               // Already on dashboard
               break;
             case '/users':
-              // Navigate to users list
-              // Navigator.push(context, MaterialPageRoute(builder: (_) => const UsersScreen()));
+               Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => UsersScreen(),
+                ),
+              );
               break;
             case '/cities':
               Navigator.push(

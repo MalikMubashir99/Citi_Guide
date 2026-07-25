@@ -1,10 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
-
-import 'package:app/admin/services/storage_service.dart';
-import 'package:app/model/city_model.dart';
-import 'package:app/services/city_service.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:app/model/city_model.dart';
+import 'package:app/services/city_service.dart';
 import '../../services/attraction_service.dart';
 
 class AddAttractionScreen extends StatefulWidget {
@@ -14,7 +14,6 @@ class AddAttractionScreen extends StatefulWidget {
   State<AddAttractionScreen> createState() => _AddAttractionScreenState();
 
   final CityService cityService = CityService();
-  final StorageService storageService = StorageService();
 }
 
 class _AddAttractionScreenState extends State<AddAttractionScreen> {
@@ -22,7 +21,6 @@ class _AddAttractionScreenState extends State<AddAttractionScreen> {
 
   final nameController = TextEditingController();
   String? selectedCityId;
-  File? selectedImage;
   final descriptionController = TextEditingController();
   final ratingController = TextEditingController();
   final openingHoursController = TextEditingController();
@@ -30,6 +28,10 @@ class _AddAttractionScreenState extends State<AddAttractionScreen> {
   final websiteController = TextEditingController();
   final latitudeController = TextEditingController();
   final longitudeController = TextEditingController();
+
+  // ✅ Store image path only
+  String? _imagePath;  // Mobile: file path, Web: base64 or URL
+  File? _imageFile;    // Mobile only
 
   bool loading = false;
 
@@ -46,6 +48,39 @@ class _AddAttractionScreenState extends State<AddAttractionScreen> {
     super.dispose();
   }
 
+  // ✅ Pick Image - Store only path
+  Future<void> pickImage() async {
+    final picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image == null) return;
+
+    if (kIsWeb) {
+      // ✅ Web: Store as base64 string (or URL)
+      final bytes = await image.readAsBytes();
+      final base64String = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+      setState(() {
+        _imagePath = base64String;
+        _imageFile = null;
+      });
+    } else {
+      // ✅ Mobile: Store file path only
+      final File file = File(image.path);
+      setState(() {
+        _imagePath = file.path;  // ✅ Only path, not uploading anywhere
+        _imageFile = file;
+      });
+    }
+  }
+
+  // ✅ Remove image
+  void removeImage() {
+    setState(() {
+      _imagePath = null;
+      _imageFile = null;
+    });
+  }
+
   Future<void> saveAttraction() async {
     if (nameController.text.isEmpty || selectedCityId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -59,18 +94,12 @@ class _AddAttractionScreenState extends State<AddAttractionScreen> {
     });
 
     try {
-      // ✅ Upload image first (if selected)
-      String imageUrl = "";
-      if (selectedImage != null) {
-        imageUrl = await widget.storageService.uploadImage(selectedImage!);
-      }
-
-      // ✅ Then add attraction with all required parameters
+      // ✅ Store the path in database (not the actual image)
       await attractionService.addAttraction(
         name: nameController.text.trim(),
         cityId: selectedCityId!,
         description: descriptionController.text.trim(),
-        image: imageUrl,
+        image: _imagePath ?? '', // ✅ Store path only
         rating: double.tryParse(ratingController.text) ?? 0,
         openingHours: openingHoursController.text.trim(),
         phone: phoneController.text.trim(),
@@ -80,9 +109,9 @@ class _AddAttractionScreenState extends State<AddAttractionScreen> {
       );
 
       if (!mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Attraction Added Successfully")),
+        const SnackBar(content: Text("Attraction Added Successfully ✅")),
       );
       Navigator.pop(context);
     } catch (e) {
@@ -92,17 +121,6 @@ class _AddAttractionScreenState extends State<AddAttractionScreen> {
         SnackBar(content: Text("Error: $e")),
       );
     }
-  }
-
-  Future<void> pickImage() async {
-    final picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-    if (image == null) return;
-
-    setState(() {
-      selectedImage = File(image.path);
-    });
   }
 
   Widget buildField(String label, TextEditingController controller,
@@ -146,7 +164,6 @@ class _AddAttractionScreenState extends State<AddAttractionScreen> {
                 }
 
                 return DropdownButtonFormField<String>(
-                  // ✅ Fixed: initialValue instead of value
                   initialValue: selectedCityId,
                   decoration: const InputDecoration(
                     labelText: "Select City",
@@ -171,27 +188,108 @@ class _AddAttractionScreenState extends State<AddAttractionScreen> {
 
             buildField("Description", descriptionController),
 
-            Column(
-              children: [
-                if (selectedImage != null)
-                  Image.file(selectedImage!, height: 180, fit: BoxFit.cover),
-                const SizedBox(height: 15),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: pickImage,
-                    icon: const Icon(Icons.photo_library),
-                    label: const Text("Choose Image"),
+            // ✅ Image Selection (Local Path Only)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  // ✅ Image Preview
+                  if (_imagePath != null)
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: kIsWeb
+                              ? Image.memory(
+                                  base64Decode(_imagePath!.split(',').last),
+                                  height: 180,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                )
+                              : Image.file(
+                                  File(_imagePath!),
+                                  height: 180,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: CircleAvatar(
+                            backgroundColor: Colors.red,
+                            radius: 16,
+                            child: IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white, size: 16),
+                              onPressed: removeImage,
+                              padding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    Container(
+                      height: 120,
+                      width: double.infinity,
+                      color: Colors.grey.shade100,
+                      child: const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.image, size: 40, color: Colors.grey),
+                            SizedBox(height: 8),
+                            Text(
+                              "No image selected",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                  const SizedBox(height: 15),
+
+                  // ✅ Choose Image Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: pickImage,
+                      icon: const Icon(Icons.photo_library),
+                      label: const Text("Choose Image"),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
                   ),
-                ),
-              ],
+
+                  // ✅ Show path (for debugging)
+                  if (_imagePath != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        "Path: ${_imagePath!.length > 50 ? _imagePath!.substring(0, 50) + '...' : _imagePath!}",
+                        style: const TextStyle(fontSize: 10, color: Colors.grey),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                ],
+              ),
             ),
+
+            const SizedBox(height: 15),
 
             buildField("Rating", ratingController,
                 keyboardType: TextInputType.number),
             buildField("Opening Hours", openingHoursController),
             buildField("Phone", phoneController),
-            buildField("Website", websiteController),
+            buildField("Website", websiteController,
+                keyboardType: TextInputType.url),
             buildField("Latitude", latitudeController,
                 keyboardType: TextInputType.number),
             buildField("Longitude", longitudeController,

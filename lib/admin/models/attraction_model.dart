@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class AttractionModel {
   String id;
   String name;
@@ -26,13 +28,23 @@ class AttractionModel {
   });
 
   factory AttractionModel.fromFirestore(
-      Map<String, dynamic> data,
-      String id,
-      ) {
+    Map<String, dynamic> data,
+    String id,
+  ) {
+    // ✅ Handle both String and DocumentReference for cityId
+    String cityIdValue;
+    final cityIdData = data['cityId'];
+    
+    if (cityIdData is DocumentReference) {
+      cityIdValue = cityIdData.id;  // ✅ Extract ID from DocumentReference
+    } else {
+      cityIdValue = cityIdData?.toString() ?? '';
+    }
+
     return AttractionModel(
       id: id,
       name: data['name'] ?? '',
-      cityId: data['cityId'] ?? '',
+      cityId: cityIdValue,  // ✅ Always String
       description: data['description'] ?? '',
       image: data['image'] ?? '',
       rating: (data['rating'] ?? 0).toDouble(),
@@ -46,9 +58,8 @@ class AttractionModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'name': name,
-      'cityId': cityId,
+      'name': name,  // ✅ Remove 'id' from map (auto-generated)
+      'cityId': cityId,  // ✅ Store as String
       'description': description,
       'image': image,
       'rating': rating,

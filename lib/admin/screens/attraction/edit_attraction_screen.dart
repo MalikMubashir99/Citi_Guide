@@ -1,8 +1,12 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:app/admin/models/attraction_model.dart';
 import 'package:app/admin/services/attraction_service.dart';
 import 'package:app/admin/services/city_service.dart';
 import 'package:app/model/city_model.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class EditAttractionScreen extends StatefulWidget {
   final AttractionModel attraction;
@@ -13,8 +17,7 @@ class EditAttractionScreen extends StatefulWidget {
   });
 
   @override
-  State<EditAttractionScreen> createState() =>
-      _EditAttractionScreenState();
+  State<EditAttractionScreen> createState() => _EditAttractionScreenState();
 }
 
 class _EditAttractionScreenState extends State<EditAttractionScreen> {
@@ -23,7 +26,6 @@ class _EditAttractionScreenState extends State<EditAttractionScreen> {
 
   late TextEditingController nameController;
   late TextEditingController descriptionController;
-  late TextEditingController imageController;
   late TextEditingController ratingController;
   late TextEditingController openingHoursController;
   late TextEditingController phoneController;
@@ -34,15 +36,20 @@ class _EditAttractionScreenState extends State<EditAttractionScreen> {
   String? selectedCityId;
   bool loading = false;
 
+  // ✅ Image state
+  String? _imagePath;
+  File? _imageFile;
+  String? _existingImageUrl;
+
   @override
   void initState() {
     super.initState();
 
     selectedCityId = widget.attraction.cityId;
+    _existingImageUrl = widget.attraction.image;
 
     nameController = TextEditingController(text: widget.attraction.name);
     descriptionController = TextEditingController(text: widget.attraction.description);
-    imageController = TextEditingController(text: widget.attraction.image);
     ratingController = TextEditingController(
       text: widget.attraction.rating.toString(),
     );
@@ -63,7 +70,6 @@ class _EditAttractionScreenState extends State<EditAttractionScreen> {
   void dispose() {
     nameController.dispose();
     descriptionController.dispose();
-    imageController.dispose();
     ratingController.dispose();
     openingHoursController.dispose();
     phoneController.dispose();
@@ -71,6 +77,38 @@ class _EditAttractionScreenState extends State<EditAttractionScreen> {
     latitudeController.dispose();
     longitudeController.dispose();
     super.dispose();
+  }
+
+  // ✅ Pick Image - Store only path
+  Future<void> pickImage() async {
+    final picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image == null) return;
+
+    if (kIsWeb) {
+      final bytes = await image.readAsBytes();
+      final base64String = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+      setState(() {
+        _imagePath = base64String;
+        _imageFile = null;
+      });
+    } else {
+      final File file = File(image.path);
+      setState(() {
+        _imagePath = file.path;
+        _imageFile = file;
+      });
+    }
+  }
+
+  // ✅ Remove image
+  void removeImage() {
+    setState(() {
+      _imagePath = null;
+      _imageFile = null;
+      _existingImageUrl = null;
+    });
   }
 
   Future<void> updateAttraction() async {
@@ -84,7 +122,6 @@ class _EditAttractionScreenState extends State<EditAttractionScreen> {
       return;
     }
 
-    // ✅ Validate name
     if (nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -100,12 +137,20 @@ class _EditAttractionScreenState extends State<EditAttractionScreen> {
     });
 
     try {
+      // ✅ Use new image if selected, otherwise keep existing
+      String finalImageUrl = _existingImageUrl ?? '';
+      
+      if (_imagePath != null) {
+        // If new image selected, use it
+        finalImageUrl = _imagePath!;
+      }
+
       AttractionModel attraction = AttractionModel(
         id: widget.attraction.id,
         name: nameController.text.trim(),
         cityId: selectedCityId!,
         description: descriptionController.text.trim(),
-        image: imageController.text.trim(),
+        image: finalImageUrl,
         rating: double.tryParse(ratingController.text) ?? 0,
         openingHours: openingHoursController.text.trim(),
         phone: phoneController.text.trim(),
@@ -170,12 +215,12 @@ class _EditAttractionScreenState extends State<EditAttractionScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // ✅ Name Field
+            // Name Field
             buildField("Name", nameController),
 
             const SizedBox(height: 15),
 
-            // ✅ City Dropdown
+            // City Dropdown
             StreamBuilder<List<CityModel>>(
               stream: cityService.getCities(),
               builder: (context, snapshot) {
@@ -218,36 +263,173 @@ class _EditAttractionScreenState extends State<EditAttractionScreen> {
 
             const SizedBox(height: 15),
 
-            // ✅ Description
+            // ✅ Image Section (Like AddAttractionScreen)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  // ✅ Image Preview
+                  if (_imagePath != null)
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: kIsWeb
+                              ? Image.memory(
+                                  base64Decode(_imagePath!.split(',').last),
+                                  height: 180,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                )
+                              : Image.file(
+                                  File(_imagePath!),
+                                  height: 180,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: CircleAvatar(
+                            backgroundColor: Colors.red,
+                            radius: 16,
+                            child: IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white, size: 16),
+                              onPressed: removeImage,
+                              padding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else if (_existingImageUrl != null && _existingImageUrl!.isNotEmpty)
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            _existingImageUrl!,
+                            height: 180,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              height: 180,
+                              color: Colors.grey.shade300,
+                              child: const Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.broken_image, color: Colors.grey, size: 40),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      "Image not available",
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: CircleAvatar(
+                            backgroundColor: Colors.red,
+                            radius: 16,
+                            child: IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white, size: 16),
+                              onPressed: removeImage,
+                              padding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    Container(
+                      height: 120,
+                      width: double.infinity,
+                      color: Colors.grey.shade100,
+                      child: const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.image, size: 40, color: Colors.grey),
+                            SizedBox(height: 8),
+                            Text(
+                              "No image selected",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                  const SizedBox(height: 15),
+
+                  // ✅ Choose Image Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: pickImage,
+                      icon: const Icon(Icons.photo_library),
+                      label: const Text("Change Image"),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+
+                  // ✅ Show path (for debugging)
+                  if (_imagePath != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        "Path: ${_imagePath!.length > 50 ? _imagePath!.substring(0, 50) + '...' : _imagePath!}",
+                        style: const TextStyle(fontSize: 10, color: Colors.grey),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            // Description
             buildField("Description", descriptionController),
 
-            // ✅ Image URL
-            buildField("Image URL", imageController),
-
-            // ✅ Rating
+            // Rating
             buildField(
               "Rating",
               ratingController,
               keyboardType: TextInputType.number,
             ),
 
-            // ✅ Opening Hours
+            // Opening Hours
             buildField("Opening Hours", openingHoursController),
 
-            // ✅ Phone
+            // Phone
             buildField("Phone", phoneController),
 
-            // ✅ Website
+            // Website
             buildField("Website", websiteController),
 
-            // ✅ Latitude
+            // Latitude
             buildField(
               "Latitude",
               latitudeController,
               keyboardType: TextInputType.number,
             ),
 
-            // ✅ Longitude
+            // Longitude
             buildField(
               "Longitude",
               longitudeController,
@@ -256,7 +438,7 @@ class _EditAttractionScreenState extends State<EditAttractionScreen> {
 
             const SizedBox(height: 20),
 
-            // ✅ Update Button
+            // Update Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

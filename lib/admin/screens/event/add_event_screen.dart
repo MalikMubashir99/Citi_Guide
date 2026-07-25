@@ -1,6 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
-
-import 'package:app/admin/services/storage_service.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:app/model/city_model.dart';
 import 'package:app/model/event_model.dart';
 import 'package:app/services/city_service.dart';
@@ -18,7 +18,6 @@ class AddEventScreen extends StatefulWidget {
 class _AddEventScreenState extends State<AddEventScreen> {
   final EventService eventService = EventService();
   final CityService cityService = CityService();
-  final StorageService storageService = StorageService();
 
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
@@ -27,7 +26,11 @@ class _AddEventScreenState extends State<AddEventScreen> {
   final timeController = TextEditingController();
 
   String? selectedCity;
-  File? selectedImage;
+
+  // ✅ Local image only
+  String? _imagePath;
+  File? _imageFile;
+
   bool loading = false;
 
   @override
@@ -40,14 +43,34 @@ class _AddEventScreenState extends State<AddEventScreen> {
     super.dispose();
   }
 
+  // ✅ Pick Image - Local only
   Future<void> pickImage() async {
     final picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
     if (image == null) return;
 
+    if (kIsWeb) {
+      final bytes = await image.readAsBytes();
+      final base64String = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+      setState(() {
+        _imagePath = base64String;
+        _imageFile = null;
+      });
+    } else {
+      final File file = File(image.path);
+      setState(() {
+        _imagePath = file.path;
+        _imageFile = file;
+      });
+    }
+  }
+
+  // ✅ Remove image
+  void removeImage() {
     setState(() {
-      selectedImage = File(image.path);
+      _imagePath = null;
+      _imageFile = null;
     });
   }
 
@@ -64,17 +87,14 @@ class _AddEventScreenState extends State<AddEventScreen> {
     });
 
     try {
-      String imageUrl = "";
-
-      if (selectedImage != null) {
-        imageUrl = await storageService.uploadImage(selectedImage!);
-      }
+      // ✅ Store local path only
+      String finalImage = _imagePath ?? '';
 
       EventModel event = EventModel(
         id: "",
         title: titleController.text.trim(),
         cityId: selectedCity!,
-        image: imageUrl,
+        image: finalImage,
         description: descriptionController.text.trim(),
         date: dateController.text.trim(),
         time: timeController.text.trim(),
@@ -86,15 +106,20 @@ class _AddEventScreenState extends State<AddEventScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Event Added Successfully")),
+        const SnackBar(
+          content: Text("Event Added Successfully ✅"),
+          backgroundColor: Colors.green,
+        ),
       );
       Navigator.pop(context);
     } catch (e) {
-      setState(() {
-        loading = false;
-      });
+      setState(() => loading = false);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
+        SnackBar(
+          content: Text("Error: $e"),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -107,7 +132,6 @@ class _AddEventScreenState extends State<AddEventScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // ✅ Changed to FutureBuilder
             FutureBuilder<List<CityModel>>(
               future: cityService.getCities(),
               builder: (context, snapshot) {
@@ -209,29 +233,88 @@ class _AddEventScreenState extends State<AddEventScreen> {
 
             const SizedBox(height: 20),
 
-            // Image preview
-            if (selectedImage != null)
-              Image.file(
-                selectedImage!,
-                height: 180,
-                fit: BoxFit.cover,
+            // ✅ Image Section
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(12),
               ),
+              child: Column(
+                children: [
+                  if (_imagePath != null)
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: kIsWeb
+                              ? Image.memory(
+                                  base64Decode(_imagePath!.split(',').last),
+                                  height: 180,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                )
+                              : Image.file(
+                                  File(_imagePath!),
+                                  height: 180,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: CircleAvatar(
+                            backgroundColor: Colors.red,
+                            radius: 16,
+                            child: IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white, size: 16),
+                              onPressed: removeImage,
+                              padding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    Container(
+                      height: 120,
+                      width: double.infinity,
+                      color: Colors.grey.shade100,
+                      child: const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.image, size: 40, color: Colors.grey),
+                            SizedBox(height: 8),
+                            Text(
+                              "No image selected",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
 
-            const SizedBox(height: 15),
+                  const SizedBox(height: 15),
 
-            // Choose Image button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: pickImage,
-                icon: const Icon(Icons.photo_library),
-                label: const Text("Choose Image"),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: pickImage,
+                      icon: const Icon(Icons.photo_library),
+                      label: const Text("Choose Image"),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 
             const SizedBox(height: 25),
 
-            // Save button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

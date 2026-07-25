@@ -1,13 +1,13 @@
+import 'dart:convert';
 import 'dart:io';
-
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:app/admin/services/city_service.dart';
-import 'package:app/admin/services/storage_service.dart';
 import 'package:app/model/city_model.dart';
 import 'package:app/model/hotel_model.dart';
 import 'package:app/services/hotel_service.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-
 
 class EditHotelScreen extends StatefulWidget {
   final HotelModel hotel;
@@ -24,7 +24,6 @@ class EditHotelScreen extends StatefulWidget {
 class _EditHotelScreenState extends State<EditHotelScreen> {
   final HotelService hotelService = HotelService();
   final CityService cityService = CityService();
-  final StorageService storageService = StorageService();
 
   late TextEditingController nameController;
   late TextEditingController descriptionController;
@@ -33,29 +32,29 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
   late TextEditingController websiteController;
 
   String? selectedCity;
-  File? selectedImage;
   bool loading = false;
-  String imageUrl = "";
+
+  // ✅ Local image only
+  String? _imagePath;
+  File? _imageFile;
+  String? _existingImageUrl;
 
   @override
   void initState() {
     super.initState();
-    
-    // Initialize controllers with hotel data
+
     nameController = TextEditingController(text: widget.hotel.name);
     descriptionController = TextEditingController(text: widget.hotel.description);
     ratingController = TextEditingController(text: widget.hotel.rating.toString());
     phoneController = TextEditingController(text: widget.hotel.phone);
     websiteController = TextEditingController(text: widget.hotel.website);
-    
-    // Set initial values
+
     selectedCity = widget.hotel.cityId;
-    imageUrl = widget.hotel.image;
+    _existingImageUrl = widget.hotel.image;
   }
 
   @override
   void dispose() {
-    // Dispose controllers to prevent memory leaks
     nameController.dispose();
     descriptionController.dispose();
     ratingController.dispose();
@@ -64,16 +63,35 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
     super.dispose();
   }
 
+  // ✅ Pick Image - Local only
   Future<void> pickImage() async {
     final picker = ImagePicker();
-    final XFile? image = await picker.pickImage(
-      source: ImageSource.gallery,
-    );
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
     if (image == null) return;
 
+    if (kIsWeb) {
+      final bytes = await image.readAsBytes();
+      final base64String = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+      setState(() {
+        _imagePath = base64String;
+        _imageFile = null;
+      });
+    } else {
+      final File file = File(image.path);
+      setState(() {
+        _imagePath = file.path;
+        _imageFile = file;
+      });
+    }
+  }
+
+  // ✅ Remove image
+  void removeImage() {
     setState(() {
-      selectedImage = File(image.path);
+      _imagePath = null;
+      _imageFile = null;
+      _existingImageUrl = null;
     });
   }
 
@@ -90,11 +108,11 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
     });
 
     try {
-      String finalImageUrl = imageUrl;
+      // ✅ Use new image if selected, otherwise keep existing
+      String finalImageUrl = _existingImageUrl ?? '';
       
-      // Upload new image if selected
-      if (selectedImage != null) {
-        finalImageUrl = await storageService.uploadImage(selectedImage!);
+      if (_imagePath != null) {
+        finalImageUrl = _imagePath!;
       }
 
       HotelModel hotel = HotelModel(
@@ -111,15 +129,14 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
       await hotelService.updateHotel(hotel);
 
       if (!mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Hotel Updated Successfully")),
+        const SnackBar(content: Text("Hotel Updated Successfully ✅")),
       );
       Navigator.pop(context);
     } catch (e) {
-      setState(() {
-        loading = false;
-      });
+      setState(() => loading = false);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e")),
       );
@@ -143,7 +160,7 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const CircularProgressIndicator();
                 }
-                
+
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Text("No cities available");
                 }
@@ -173,7 +190,6 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
 
             const SizedBox(height: 15),
 
-            // Name
             TextField(
               controller: nameController,
               decoration: const InputDecoration(
@@ -186,7 +202,6 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
 
             const SizedBox(height: 15),
 
-            // Description
             TextField(
               controller: descriptionController,
               maxLines: 4,
@@ -200,7 +215,6 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
 
             const SizedBox(height: 15),
 
-            // Rating
             TextField(
               controller: ratingController,
               keyboardType: TextInputType.number,
@@ -214,7 +228,6 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
 
             const SizedBox(height: 15),
 
-            // Phone
             TextField(
               controller: phoneController,
               decoration: const InputDecoration(
@@ -227,7 +240,6 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
 
             const SizedBox(height: 15),
 
-            // Website
             TextField(
               controller: websiteController,
               decoration: const InputDecoration(
@@ -240,39 +252,122 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
 
             const SizedBox(height: 20),
 
-            // Image preview
-            if (selectedImage != null)
-              Image.file(
-                selectedImage!,
-                height: 180,
-                fit: BoxFit.cover,
-              )
-            else if (imageUrl.isNotEmpty)
-              Image.network(
-                imageUrl,
-                height: 180,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => const Icon(
-                  Icons.broken_image,
-                  size: 180,
-                ),
+            // ✅ Image Section (Local only)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(12),
               ),
+              child: Column(
+                children: [
+                  if (_imagePath != null)
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: kIsWeb
+                              ? Image.memory(
+                                  base64Decode(_imagePath!.split(',').last),
+                                  height: 180,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                )
+                              : Image.file(
+                                  File(_imagePath!),
+                                  height: 180,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: CircleAvatar(
+                            backgroundColor: Colors.red,
+                            radius: 16,
+                            child: IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white, size: 16),
+                              onPressed: removeImage,
+                              padding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else if (_existingImageUrl != null && _existingImageUrl!.isNotEmpty)
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            _existingImageUrl!,
+                            height: 180,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              height: 180,
+                              color: Colors.grey.shade300,
+                              child: const Center(
+                                child: Icon(Icons.broken_image, color: Colors.grey, size: 40),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: CircleAvatar(
+                            backgroundColor: Colors.red,
+                            radius: 16,
+                            child: IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white, size: 16),
+                              onPressed: removeImage,
+                              padding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    Container(
+                      height: 120,
+                      width: double.infinity,
+                      color: Colors.grey.shade100,
+                      child: const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.image, size: 40, color: Colors.grey),
+                            SizedBox(height: 8),
+                            Text(
+                              "No image selected",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
 
-            const SizedBox(height: 15),
+                  const SizedBox(height: 15),
 
-            // Change Image button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: pickImage,
-                icon: const Icon(Icons.photo_library),
-                label: const Text("Change Image"),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: pickImage,
+                      icon: const Icon(Icons.photo_library),
+                      label: const Text("Change Image"),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 
             const SizedBox(height: 25),
 
-            // Update button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

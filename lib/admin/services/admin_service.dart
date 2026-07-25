@@ -56,8 +56,24 @@ class AdminService {
     return snapshot.docs.length;
   }
 
-  Future<int> getEventsCount() async {
-    var snapshot = await _firestore.collection("events").get();
-    return snapshot.docs.length;
+  // Future<int> getEventsCount() async {
+  //   var snapshot = await _firestore.collection("events").get();
+  //   return snapshot.docs.length;
+  // }
+    Future<int> getEventsCount() async {
+    try {
+      var snapshot = await _firestore.collection("events").get();
+      
+      // ✅ Debug - Remove after testing
+      print('📊 Events Count: ${snapshot.docs.length}');
+      if (snapshot.docs.isNotEmpty) {
+        print('📄 First event: ${snapshot.docs.first.data()}');
+      }
+      
+      return snapshot.docs.length;
+    } catch (e) {
+      print('❌ Error getting events count: $e');
+      return 0;
+    }
   }
 }
