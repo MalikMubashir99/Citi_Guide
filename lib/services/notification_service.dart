@@ -1,6 +1,7 @@
 // lib/services/notification_service.dart
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:logger/logger.dart';
 
 class NotificationService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
@@ -16,9 +17,14 @@ class NotificationService {
     );
 
     // Get token
-    String? token = await _messaging.getToken();
-    print('FCM Token: $token');
+ final logger = Logger();
 
+// Different log levels
+logger.d('Debug message');   // Debug
+logger.i('Info message');    // Info
+logger.w('Warning message'); // Warning
+logger.e('Error message');   // Error
+logger.v('Verbose');         // Verbose
     // Initialize local notifications
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
