@@ -149,7 +149,7 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
                 }
 
                 return DropdownButtonFormField<String>(
-                  value: selectedCity,
+                  initialValue: selectedCity,
                   decoration: const InputDecoration(
                     labelText: "City",
                     border: OutlineInputBorder(
@@ -252,7 +252,7 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
                 imageUrl,
                 height: 180,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Icon(
+                errorBuilder: (_, _, _) => const Icon(
                   Icons.broken_image,
                   size: 180,
                 ),

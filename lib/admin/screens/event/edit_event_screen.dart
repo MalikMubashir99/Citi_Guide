@@ -162,7 +162,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                 }
 
                 return DropdownButtonFormField<String>(
-                  value: selectedCity,
+                  initialValue: selectedCity,
                   decoration: const InputDecoration(
                     labelText: "City",
                     border: OutlineInputBorder(
@@ -264,7 +264,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                 imageUrl,
                 height: 180,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Icon(
+                errorBuilder: (_, _, _) => const Icon(
                   Icons.broken_image,
                   size: 180,
                 ),

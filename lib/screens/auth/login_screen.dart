@@ -71,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
 
           Container(
-            color: Colors.black.withOpacity(.45),
+            color: Colors.black.withValues(alpha: 0.5),
           ),
 
           SafeArea(

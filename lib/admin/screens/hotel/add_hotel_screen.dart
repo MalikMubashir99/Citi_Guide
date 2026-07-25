@@ -88,6 +88,7 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
 
     await hotelService.addHotel(hotel);
 
+    // ignore: use_build_context_synchronously
     Navigator.pop(context);
   }
 
@@ -110,7 +111,7 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
                 }
 
                 return DropdownButtonFormField<String>(
-                  value: selectedCity,
+                  initialValue: selectedCity,
 
                   decoration: const InputDecoration(labelText: "City"),
 

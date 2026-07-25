@@ -18,17 +18,13 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Restaurants"),
-      ),
+      appBar: AppBar(title: const Text("Restaurants")),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => const AddRestaurantScreen(),
-            ),
+            MaterialPageRoute(builder: (_) => const AddRestaurantScreen()),
           );
         },
       ),
@@ -56,36 +52,24 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
                 stream: restaurantService.getRestaurants(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (snapshot.hasError) {
-                    return Center(
-                      child: Text('Error: ${snapshot.error}'),
-                    );
+                    return Center(child: Text('Error: ${snapshot.error}'));
                   }
 
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(
-                      child: Text("No Restaurants Found"),
-                    );
+                    return const Center(child: Text("No Restaurants Found"));
                   }
 
                   // Filter restaurants based on search text
-                  final restaurants = snapshot.data!
-                      .where((item) {
-                        return item.name
-                            .toLowerCase()
-                            .contains(searchText);
-                      })
-                      .toList();
+                  final restaurants = snapshot.data!.where((item) {
+                    return item.name.toLowerCase().contains(searchText);
+                  }).toList();
 
                   if (restaurants.isEmpty) {
-                    return const Center(
-                      child: Text("No Matching Restaurants"),
-                    );
+                    return const Center(child: Text("No Matching Restaurants"));
                   }
 
                   return ListView.builder(
@@ -104,7 +88,7 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
                                   backgroundImage: NetworkImage(
                                     restaurant.image,
                                   ),
-                                  onBackgroundImageError: (_, __) =>
+                                  onBackgroundImageError: (_, _) =>
                                       const Icon(Icons.broken_image),
                                   child: const Icon(Icons.restaurant),
                                 ),
@@ -134,41 +118,40 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
                                   Icons.delete,
                                   color: Colors.red,
                                 ),
-                                onPressed: () async {
-                                  // Show confirmation dialog
-                                  bool? confirm = await showDialog<bool>(
-                                    context: context,
-                                    builder: (_) => AlertDialog(
-                                      title: const Text("Delete Restaurant"),
-                                      content: Text(
-                                        "Delete ${restaurant.name}?",
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, false),
-                                          child: const Text("Cancel"),
-                                        ),
-                                        ElevatedButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, true),
-                                          child: const Text("Delete"),
-                                        ),
-                                      ],
-                                    ),
-                                  );
 
-                                  if (confirm == true) {
-                                    await restaurantService.deleteRestaurant(
-                                      restaurant.id,
-                                    );
-                                    if (!mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("Restaurant Deleted"),
-                                      ),
-                                    );
-                                  }
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+
+                                    builder: (dialogContext) {
+                                      return AlertDialog(
+                                        title: const Text("Delete Restaurant"),
+
+                                        content: const Text("Are you sure?"),
+
+                                        actions: [
+                                          ElevatedButton(
+                                            onPressed: () async {
+                                              final navigator = Navigator.of(
+                                                dialogContext,
+                                              );
+
+                                              await restaurantService
+                                                  .deleteRestaurant(
+                                                    restaurant.id,
+                                                  );
+
+                                              if (!mounted) return;
+
+                                              navigator.pop();
+                                            },
+
+                                            child: const Text("Delete"),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
                                 },
                               ),
                             ],

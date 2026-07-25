@@ -165,7 +165,7 @@ class _EditAttractionScreenState
 
                 return DropdownButtonFormField<String>(
 
-                  value: selectedCityId,
+                  initialValue: selectedCityId,
 
                   decoration: const InputDecoration(
                     labelText: "City",

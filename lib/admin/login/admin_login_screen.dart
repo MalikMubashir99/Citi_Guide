@@ -50,6 +50,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
       if (!admin) {
 
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("You are not an admin"),

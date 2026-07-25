@@ -93,7 +93,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
 
           Container(
-            color: Colors.black.withOpacity(.45),
+           color: Colors.black.withValues(alpha: 0.5),
+
           ),
 
           SafeArea(

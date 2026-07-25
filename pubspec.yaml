@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # Firebase (indented with 2 spaces under dependencies)
+  # Firebase
   firebase_core: ^3.15.2
   firebase_auth: ^5.7.0
   cloud_firestore: ^5.6.12
@@ -20,29 +20,27 @@ dependencies:
 
   # UI
   cupertino_icons: ^1.0.8
-
-  #fonts
   google_fonts: ^6.3.0
+
+  image_picker: ^1.2.0
+  url_launcher: ^6.3.0
+  flutter_rating_bar: ^4.0.1
+  smooth_page_indicator: ^1.2.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  smooth_page_indicator: ^1.2.1
-  url_launcher: ^6.3.0
-  flutter_rating_bar: ^4.0.1
-  image_picker: ^1.2.0
 
 flutter:
   uses-material-design: true
 
-
   assets:
-  - assets/images/logo.jpg
-  - assets/images/splash.jpg
-  - assets/images/onboarding1.jpg
-  - assets/images/onboarding2.jpg
-  - assets/images/onboarding3.jpg
-  - assets/images/login.jpg
-  - assets/icons/
-  - assets/lottie/
+    - assets/images/logo.jpg
+    - assets/images/splash.jpg
+    - assets/images/onboarding1.jpg
+    - assets/images/onboarding2.jpg
+    - assets/images/onboarding3.jpg
+    - assets/images/login.jpg
+    - assets/icons/
+    - assets/lottie/

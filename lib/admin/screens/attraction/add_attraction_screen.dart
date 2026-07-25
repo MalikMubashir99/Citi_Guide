@@ -4,6 +4,7 @@ import 'package:app/admin/services/storage_service.dart';
 import 'package:app/model/city_model.dart';
 import 'package:app/services/city_service.dart';
 import 'package:flutter/material.dart';
+// ignore: depend_on_referenced_packages
 import 'package:image_picker/image_picker.dart';
 import '../../services/attraction_service.dart';
 
@@ -120,6 +121,7 @@ class _AddAttractionScreenState extends State<AddAttractionScreen> {
                 }
 
                 return DropdownButtonFormField<String>(
+                  // ignore: deprecated_member_use
                   value: selectedCityId,
                   decoration: const InputDecoration(
                     labelText: "Select City",

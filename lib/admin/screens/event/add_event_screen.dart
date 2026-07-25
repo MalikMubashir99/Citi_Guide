@@ -124,7 +124,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                 }
 
                 return DropdownButtonFormField<String>(
-                  value: selectedCity,
+                  initialValue: selectedCity,
                   decoration: const InputDecoration(
                     labelText: "City",
                     border: OutlineInputBorder(

@@ -68,7 +68,7 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
                 child: DropdownButtonFormField<String>(
-                  value: selectedCity,
+                     initialValue: selectedCity,
                   decoration: const InputDecoration(
                     labelText: "Filter by City",
                     border: OutlineInputBorder(
@@ -148,7 +148,7 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundImage: NetworkImage(attraction.image),
-                          onBackgroundImageError: (_, __) =>
+                          onBackgroundImageError: (_, _) =>
                               const Icon(Icons.broken_image),
                           child: const Icon(Icons.place),
                         ),
@@ -198,6 +198,7 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
                                     attraction.id,
                                   );
                                   if (!mounted) return;
+                                  // ignore: use_build_context_synchronously
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text("Attraction Deleted"),

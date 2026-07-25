@@ -53,50 +53,56 @@ class _AddRestaurantScreenState extends State<AddRestaurantScreen> {
     });
   }
 
-  Future<void> saveRestaurant() async {
-    if (selectedCity == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Select City")));
-
-      return;
-    }
-
-    setState(() {
-      loading = true;
-    });
-
-    String imageUrl = "";
-
-    if (selectedImage != null) {
-      imageUrl = await storageService.uploadImage(selectedImage!);
-    }
-
-    RestaurantModel restaurant = RestaurantModel(
-      id: "",
-
-      name: nameController.text.trim(),
-
-      cityId: selectedCity!,
-
-      image: imageUrl,
-
-      description: descriptionController.text.trim(),
-
-      rating: double.tryParse(ratingController.text) ?? 0,
-
-      phone: phoneController.text.trim(),
-
-      latitude: double.tryParse(latitudeController.text) ?? 0,
-
-      longitude: double.tryParse(longitudeController.text) ?? 0,
+Future<void> saveRestaurant() async {
+  if (selectedCity == null) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(
+      const SnackBar(content: Text("Select City")),
     );
 
-    await restaurantService.addRestaurant(restaurant);
-
-    Navigator.pop(context);
+    return;
   }
 
+  setState(() {
+    loading = true;
+  });
+
+  String imageUrl = "";
+
+  if (selectedImage != null) {
+    imageUrl = await storageService.uploadImage(selectedImage!);
+  }
+
+  RestaurantModel restaurant = RestaurantModel(
+    id: "",
+
+    name: nameController.text.trim(),
+
+    cityId: selectedCity!,
+
+    image: imageUrl,
+
+    description: descriptionController.text.trim(),
+
+    rating: double.tryParse(ratingController.text) ?? 0,
+
+    phone: phoneController.text.trim(),
+
+    latitude: double.tryParse(latitudeController.text) ?? 0,
+
+    longitude: double.tryParse(longitudeController.text) ?? 0,
+  );
+
+
+  await restaurantService.addRestaurant(restaurant);
+
+
+  if (!mounted) return;
+
+
+  Navigator.pop(context);
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -116,7 +122,7 @@ class _AddRestaurantScreenState extends State<AddRestaurantScreen> {
                 }
 
                 return DropdownButtonFormField<String>(
-                  value: selectedCity,
+                  initialValue: selectedCity,
 
                   decoration: const InputDecoration(labelText: "City"),
 

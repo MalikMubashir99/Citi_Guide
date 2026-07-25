@@ -116,6 +116,9 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
 
     await restaurantService.updateRestaurant(restaurant);
 
+    
+    if (!mounted) return;
+
     Navigator.pop(context);
   }
 
@@ -138,7 +141,7 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
                 }
 
                 return DropdownButtonFormField<String>(
-                  value: selectedCity,
+                  initialValue: selectedCity,
 
                   decoration: const InputDecoration(labelText: "City"),
 

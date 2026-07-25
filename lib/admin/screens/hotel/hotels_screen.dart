@@ -14,17 +14,14 @@ class HotelsScreen extends StatefulWidget {
 class _HotelsScreenState extends State<HotelsScreen> {
   final HotelService hotelService = HotelService();
 
-  final TextEditingController searchController =
-      TextEditingController();
+  final TextEditingController searchController = TextEditingController();
 
   String searchText = "";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Hotels"),
-      ),
+      appBar: AppBar(title: const Text("Hotels")),
 
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
@@ -32,16 +29,13 @@ class _HotelsScreenState extends State<HotelsScreen> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => const AddHotelScreen(),
-            ),
+            MaterialPageRoute(builder: (_) => const AddHotelScreen()),
           );
         },
       ),
 
       body: Column(
         children: [
-
           Padding(
             padding: const EdgeInsets.all(15),
 
@@ -51,19 +45,16 @@ class _HotelsScreenState extends State<HotelsScreen> {
               decoration: InputDecoration(
                 hintText: "Search Hotel",
 
-                prefixIcon:
-                    const Icon(Icons.search),
+                prefixIcon: const Icon(Icons.search),
 
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
 
               onChanged: (value) {
                 setState(() {
-                  searchText =
-                      value.toLowerCase();
+                  searchText = value.toLowerCase();
                 });
               },
             ),
@@ -71,228 +62,125 @@ class _HotelsScreenState extends State<HotelsScreen> {
 
           Expanded(
             child: StreamBuilder<List<HotelModel>>(
-
               stream: hotelService.getHotels(),
 
               builder: (context, snapshot) {
-
-                if (snapshot.connectionState ==
-                    ConnectionState.waiting) {
-
-                  return const Center(
-                    child:
-                        CircularProgressIndicator(),
-                  );
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
                 }
 
                 if (!snapshot.hasData) {
-
-                  return const Center(
-                    child: Text("No Hotels"),
-                  );
+                  return const Center(child: Text("No Hotels"));
                 }
 
-                final hotels = snapshot.data!
-                    .where((hotel) {
-
-                  return hotel.name
-                      .toLowerCase()
-                      .contains(searchText);
-
+                final hotels = snapshot.data!.where((hotel) {
+                  return hotel.name.toLowerCase().contains(searchText);
                 }).toList();
 
                 if (hotels.isEmpty) {
-
-                  return const Center(
-                    child:
-                        Text("No Matching Hotel"),
-                  );
+                  return const Center(child: Text("No Matching Hotel"));
                 }
 
                 return ListView.builder(
-
                   itemCount: hotels.length,
 
                   itemBuilder: (context, index) {
-
-                    HotelModel hotel =
-                        hotels[index];
+                    HotelModel hotel = hotels[index];
 
                     return Card(
-
-                      margin:
-                          const EdgeInsets.all(10),
+                      margin: const EdgeInsets.all(10),
 
                       child: ListTile(
-
                         leading: hotel.image.isEmpty
-                            ? const CircleAvatar(
-                                child:
-                                    Icon(Icons.hotel),
-                              )
+                            ? const CircleAvatar(child: Icon(Icons.hotel))
                             : CircleAvatar(
-                                backgroundImage:
-                                    NetworkImage(
-                                  hotel.image,
-                                ),
+                                backgroundImage: NetworkImage(hotel.image),
                               ),
 
                         title: Text(hotel.name),
 
                         subtitle: Column(
-
-                          crossAxisAlignment:
-                              CrossAxisAlignment
-                                  .start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
 
                           children: [
+                            Text(hotel.description),
 
-                            Text(
-                                hotel.description),
-
-                            Text(
-                              "⭐ ${hotel.rating}",
-                            ),
-
+                            Text("⭐ ${hotel.rating}"),
                           ],
                         ),
 
                         trailing: Row(
-
-                          mainAxisSize:
-                              MainAxisSize.min,
+                          mainAxisSize: MainAxisSize.min,
 
                           children: [
-
                             IconButton(
-
-                              icon: const Icon(
-                                Icons.edit,
-                                color:
-                                    Colors.blue,
-                              ),
+                              icon: const Icon(Icons.edit, color: Colors.blue),
 
                               onPressed: () {
-
                                 Navigator.push(
-
                                   context,
 
                                   MaterialPageRoute(
-
                                     builder: (_) =>
-                                        EditHotelScreen(
-                                      hotel:
-                                          hotel,
-                                    ),
-
+                                        EditHotelScreen(hotel: hotel),
                                   ),
-
                                 );
-
                               },
-
                             ),
 
                             IconButton(
-
-                              icon: const Icon(
-                                Icons.delete,
-                                color:
-                                    Colors.red,
-                              ),
+                              icon: const Icon(Icons.delete, color: Colors.red),
 
                               onPressed: () {
-
                                 showDialog(
-
-                                  context:
-                                      context,
-
-                                  builder:
-                                      (_) {
-
+                                  context: context,
+                                  builder: (dialogContext) {
                                     return AlertDialog(
+                                      title: const Text("Delete Hotel"),
 
-                                      title: const Text(
-                                        "Delete Hotel",
-                                      ),
-
-                                      content:
-                                          const Text(
-                                        "Are you sure?",
-                                      ),
+                                      content: const Text("Are you sure?"),
 
                                       actions: [
-
                                         TextButton(
-
-                                          onPressed:
-                                              () {
-
-                                            Navigator.pop(
-                                                context);
-
+                                          onPressed: () {
+                                            Navigator.pop(dialogContext);
                                           },
 
-                                          child:
-                                              const Text(
-                                            "Cancel",
-                                          ),
-
+                                          child: const Text("Cancel"),
                                         ),
 
                                         ElevatedButton(
+                                          onPressed: () async {
+                                            final navigator = Navigator.of(
+                                              dialogContext,
+                                            );
 
-                                          onPressed:
-                                              () async {
-
-                                            await hotelService
-                                                .deleteHotel(
+                                            await hotelService.deleteHotel(
                                               hotel.id,
                                             );
 
-                                            Navigator.pop(
-                                                context);
+                                            if (!mounted) return;
 
+                                            navigator.pop();
                                           },
 
-                                          child:
-                                              const Text(
-                                            "Delete",
-                                          ),
-
+                                          child: const Text("Delete"),
                                         ),
-
                                       ],
-
                                     );
-
                                   },
-
                                 );
-
                               },
-
                             ),
-
                           ],
-
                         ),
-
                       ),
-
                     );
-
                   },
-
                 );
-
               },
-
             ),
           ),
-
         ],
       ),
     );
