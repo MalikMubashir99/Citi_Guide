@@ -1,3 +1,4 @@
+import 'package:app/screens/home/home_screen.dart';
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/custom_textfield.dart';
@@ -11,7 +12,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-
   final _formKey = GlobalKey<FormState>();
 
   final emailController = TextEditingController();
@@ -23,30 +23,27 @@ class _LoginScreenState extends State<LoginScreen> {
   final AuthService auth = AuthService();
 
   Future<void> login() async {
-
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => loading = true);
 
     try {
-
       await auth.login(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
 
       if (!mounted) return;
-
-      Navigator.pushReplacementNamed(context, "/home");
-
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
     } catch (e) {
-
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
-
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     }
 
     if (mounted) {
@@ -56,40 +53,26 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
       body: Stack(
-
         fit: StackFit.expand,
 
         children: [
+          Image.asset("assets/images/login.jpg", fit: BoxFit.cover),
 
-          Image.asset(
-            "assets/images/login.jpg",
-            fit: BoxFit.cover,
-          ),
-
-          Container(
-            color: Colors.black.withValues(alpha: 0.5),
-          ),
+          Container(color: Colors.black.withValues(alpha: 0.5)),
 
           SafeArea(
-
             child: SingleChildScrollView(
-
               padding: const EdgeInsets.all(24),
 
               child: Form(
-
                 key: _formKey,
 
                 child: Column(
-
                   crossAxisAlignment: CrossAxisAlignment.start,
 
                   children: [
-
                     const SizedBox(height: 80),
 
                     const Text(
@@ -105,10 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const Text(
                       "Sign in to continue exploring.",
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 17,
-                      ),
+                      style: TextStyle(color: Colors.white70, fontSize: 17),
                     ),
 
                     const SizedBox(height: 40),
@@ -157,9 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () {
-                          Navigator.pushNamed(
-                              context,
-                              "/forgot-password");
+                          Navigator.pushNamed(context, "/forgot-password");
                         },
                         child: const Text("Forgot Password?"),
                       ),
@@ -178,7 +156,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-
                         const Text(
                           "Don't have an account?",
                           style: TextStyle(color: Colors.white),
@@ -186,19 +163,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         TextButton(
                           onPressed: () {
-                            Navigator.pushNamed(
-                                context,
-                                "/register");
+                            Navigator.pushNamed(context, "/register");
                           },
                           child: const Text("Sign Up"),
-                        )
+                        ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );

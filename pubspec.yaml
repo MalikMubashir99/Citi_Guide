@@ -41,6 +41,7 @@ flutter:
     - assets/images/onboarding1.jpg
     - assets/images/onboarding2.jpg
     - assets/images/onboarding3.jpg
+    - assets/images/register.jpg
     - assets/images/login.jpg
     - assets/icons/
     - assets/lottie/
