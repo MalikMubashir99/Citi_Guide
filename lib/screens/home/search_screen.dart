@@ -1,4 +1,5 @@
 // lib/screens/search/search_screen.dart
+import 'package:app/core/constants/app_colors.dart';
 import 'package:app/model/attraction_model.dart';
 import 'package:app/model/hotel_model.dart';
 import 'package:app/model/restaurant_model.dart';
@@ -104,7 +105,11 @@ class _SearchScreenState extends State<SearchScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error searching: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
     }
@@ -113,45 +118,92 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text("Search"),
+        title: Text(
+          "Search",
+          style: TextStyle(
+            color: AppColors.dark,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.3,
+          ),
+        ),
+        backgroundColor: AppColors.background,
         elevation: 0,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(70),
+          preferredSize: const Size.fromHeight(80),
           child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: searchController,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: "Search attractions, hotels, restaurants...",
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          searchController.clear();
-                          setState(() {
-                            searchQuery = "";
-                            attractions.clear();
-                            hotels.clear();
-                            restaurants.clear();
-                            events.clear();
-                            isSearching = false;
-                          });
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: AppColors.subtleShadow,
+                border: Border.all(
+                  color: AppColors.lightGrey,
+                  width: 1,
                 ),
-                filled: true,
-                fillColor: Colors.grey.shade100,
               ),
-              onChanged: (value) {
-                performSearch(value);
-              },
+              child: TextField(
+                controller: searchController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: "Search attractions, hotels, restaurants...",
+                  hintStyle: TextStyle(
+                    color: AppColors.grey,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search_rounded,
+                    color: AppColors.primary,
+                    size: 24,
+                  ),
+                  suffixIcon: searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(
+                            Icons.close_rounded,
+                            color: AppColors.grey,
+                          ),
+                          onPressed: () {
+                            searchController.clear();
+                            setState(() {
+                              searchQuery = "";
+                              attractions.clear();
+                              hotels.clear();
+                              restaurants.clear();
+                              events.clear();
+                              isSearching = false;
+                            });
+                          },
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                      color: AppColors.primary,
+                      width: 2,
+                    ),
+                  ),
+                  filled: true,
+                  fillColor: AppColors.white,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                ),
+                onChanged: (value) {
+                  performSearch(value);
+                },
+              ),
             ),
           ),
         ),
@@ -162,22 +214,41 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _buildBody() {
     if (!isSearching) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.search,
-              size: 80,
-              color: Colors.grey,
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.lightGrey.withValues(alpha: 0.3),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.search_rounded,
+                size: 80,
+                color: AppColors.grey,
+              ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 20),
             Text(
               "Search for attractions, hotels,\nrestaurants and events",
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey,
+                color: AppColors.darkGrey,
+                height: 1.5,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Find the best places in your city",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.grey,
+                fontWeight: FontWeight.w400,
               ),
             ),
           ],
@@ -186,8 +257,25 @@ class _SearchScreenState extends State<SearchScreen> {
     }
 
     if (isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircularProgressIndicator(
+              strokeWidth: 2,
+              color: AppColors.primary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "Searching...",
+              style: TextStyle(
+                color: AppColors.darkGrey,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       );
     }
 
@@ -195,29 +283,67 @@ class _SearchScreenState extends State<SearchScreen> {
         restaurants.length + events.length;
 
     if (totalResults == 0) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.search_off,
-              size: 80,
-              color: Colors.grey,
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.lightGrey.withValues(alpha: 0.3),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.search_off_rounded,
+                size: 80,
+                color: AppColors.grey,
+              ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 20),
             Text(
               "No results found",
               style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.dark,
               ),
             ),
-            SizedBox(height: 5),
+            const SizedBox(height: 8),
             Text(
               "Try searching with different keywords",
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey,
+                color: AppColors.grey,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.lightbulb_outline_rounded,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Try: "restaurant", "hotel", "museum"',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -230,14 +356,28 @@ class _SearchScreenState extends State<SearchScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Found $totalResults results",
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.trending_up_rounded,
+                  size: 18,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  "Found $totalResults results",
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: AppColors.darkGrey,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 8),
 
           // Attractions
           if (attractions.isNotEmpty) ...[
@@ -276,25 +416,40 @@ class _SearchScreenState extends State<SearchScreen> {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+          Container(
+            width: 4,
+            height: 24,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(2),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColors.dark,
+              letterSpacing: 0.3,
+            ),
+          ),
+          const SizedBox(width: 10),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.blue.shade100,
+              color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.2),
+              ),
             ),
             child: Text(
               count.toString(),
               style: TextStyle(
-                color: Colors.blue.shade700,
+                color: AppColors.primary,
                 fontWeight: FontWeight.bold,
+                fontSize: 13,
               ),
             ),
           ),

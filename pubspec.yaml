@@ -21,7 +21,6 @@ dependencies:
 
   # UI
   cupertino_icons: ^1.0.8
-  google_fonts: ^6.3.0
 
   # Utilities
   image_picker: ^1.2.0
@@ -39,6 +38,11 @@ dependencies:
   flutter_map: ^6.1.0
   latlong2: ^0.9.0
   flutter_map_marker_popup: ^5.0.0
+
+  # UI Dependencies
+  google_fonts: ^6.1.0
+  flutter_svg: ^2.0.9
+  shimmer: ^3.0.0
   
   # Logging
   logger: ^2.0.2

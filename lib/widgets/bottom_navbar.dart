@@ -1,9 +1,11 @@
+// lib/widgets/bottom_nav_bar.dart
+import 'package:app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class BottomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
-  final Map<int, int>? badgeCounts; // ✅ Add badge support
+  final Map<int, int>? badgeCounts;
 
   const BottomNavBar({
     super.key,
@@ -16,17 +18,17 @@ class BottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 80,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(25),
           topRight: Radius.circular(25),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black12,
-            blurRadius: 15,
-            offset: Offset(0, -3),
+            color: Colors.brown.shade900.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
           ),
         ],
       ),
@@ -75,8 +77,8 @@ class BottomNavBar extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(20),
       onTap: () => onTap(index),
-      splashColor: const Color(0xff0984E3).withOpacity(0.1),
-      highlightColor: const Color(0xff0984E3).withOpacity(0.05),
+      splashColor: AppColors.primary.withValues(alpha: 0.1),
+      highlightColor: AppColors.primary.withValues(alpha: 0.05),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
@@ -86,7 +88,7 @@ class BottomNavBar extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: selected
-              ? const Color(0xff0984E3).withValues(alpha: 0.12)
+              ? AppColors.primary.withValues(alpha: 0.12)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(18),
         ),
@@ -98,11 +100,8 @@ class BottomNavBar extends StatelessWidget {
                 Icon(
                   icon,
                   size: 28,
-                  color: selected
-                      ? const Color(0xff0984E3)
-                      : Colors.grey,
+                  color: selected ? AppColors.primary : AppColors.grey,
                 ),
-                // ✅ Badge
                 if (badgeCount > 0)
                   Positioned(
                     right: -4,
@@ -134,11 +133,9 @@ class BottomNavBar extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: selected
-                    ? const Color(0xff0984E3)
-                    : Colors.grey,
+                color: selected ? AppColors.primary : AppColors.grey,
               ),
             ),
           ],

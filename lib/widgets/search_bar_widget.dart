@@ -1,3 +1,5 @@
+// lib/widgets/search_bar_widget.dart
+import 'package:app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class SearchBarWidget extends StatelessWidget {
@@ -15,18 +17,30 @@ class SearchBarWidget extends StatelessWidget {
     return Container(
       height: 58,
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(18),
+        boxShadow: AppColors.subtleShadow,
+        border: Border.all(
+          color: AppColors.lightGrey,
+          width: 1,
+        ),
       ),
       child: TextField(
         controller: controller,
         decoration: InputDecoration(
           hintText: "Search destination...",
-          prefixIcon: const Icon(Icons.search),
+          hintStyle: TextStyle(
+            color: AppColors.grey,
+            fontSize: 15,
+          ),
+          prefixIcon: Icon(
+            Icons.search,
+            color: AppColors.primary,
+          ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 18),
           suffixIcon: IconButton(
-            icon: const Icon(Icons.close),
+            icon: Icon(Icons.close, color: AppColors.grey),
             onPressed: () {
               controller.clear();
               if (onSearch != null) onSearch!();

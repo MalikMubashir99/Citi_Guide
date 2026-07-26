@@ -1,11 +1,13 @@
+// lib/widgets/home_app_bar.dart
+import 'package:app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class HomeAppBar extends StatelessWidget {
-  final String userName; // ✅ Add this
+  final String userName;
 
   const HomeAppBar({
     super.key,
-    required this.userName, // ✅ Add this
+    required this.userName,
   });
 
   @override
@@ -21,9 +23,22 @@ class HomeAppBar extends StatelessWidget {
 
     return Row(
       children: [
-        const CircleAvatar(
-          radius: 24,
-          backgroundImage: AssetImage("assets/images/profile.png"),
+        Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: AppColors.primary,
+              width: 2,
+            ),
+          ),
+          child: const CircleAvatar(
+            radius: 26,
+            backgroundImage: AssetImage("assets/images/profile.png"),
+            child: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+          ),
         ),
         const SizedBox(width: 15),
         Expanded(
@@ -32,18 +47,23 @@ class HomeAppBar extends StatelessWidget {
             children: [
               Text(
                 "$greeting 👋",
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontSize: 14,
+                style: TextStyle(
+                  color: AppColors.grey,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 3),
+              const SizedBox(height: 2),
               Text(
                 userName,
-                style: const TextStyle(
-                  fontSize: 22,
+                style: TextStyle(
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
+                  color: AppColors.dark,
+                  letterSpacing: 0.3,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -51,10 +71,34 @@ class HomeAppBar extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(15),
+            color: AppColors.background,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: AppColors.lightGrey,
+              width: 1,
+            ),
           ),
-          child: const Icon(Icons.notifications_none),
+          child: Stack(
+            children: [
+              Icon(
+                Icons.notifications_none_rounded,
+                color: AppColors.dark,
+                size: 26,
+              ),
+              Positioned(
+                right: 0,
+                top: 0,
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
+          ),
         )
       ],
     );

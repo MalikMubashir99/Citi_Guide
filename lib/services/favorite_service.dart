@@ -63,6 +63,22 @@ class FavoriteService {
       await doc.reference.delete();
     }
   }
+    Future<void> clearAllFavorites() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final favorites = await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('favorites')
+        .get();
+
+    final batch = _firestore.batch();
+    for (var doc in favorites.docs) {
+      batch.delete(doc.reference);
+    }
+    await batch.commit();
+  }
 
   
 }

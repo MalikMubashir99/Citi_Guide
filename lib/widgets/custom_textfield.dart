@@ -1,4 +1,7 @@
+// lib/widgets/custom_text_field.dart
 import 'package:flutter/material.dart';
+import 'package:app/core/constants/app_colors.dart';
+
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -41,45 +44,61 @@ class CustomTextField extends StatelessWidget {
       onTap: onTap,
       decoration: InputDecoration(
         hintText: hintText,
+        hintStyle: TextStyle(
+          color: AppColors.grey,
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+        ),
         prefixIcon: Icon(
           prefixIcon,
-          color: const Color(0xff0984E3),
+          color: AppColors.primary,
+          size: 22,
         ),
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: Colors.white,
+        fillColor: AppColors.white,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 20,
           vertical: 18,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: AppColors.lightGrey,
+            width: 1,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(
-            color: Color(0xff0984E3),
-            width: 1.5,
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: AppColors.primary,
+            width: 2,
           ),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(
-            color: Colors.red,
-          ),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(
             color: Colors.red,
             width: 1.5,
           ),
         ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(
+            color: Colors.red,
+            width: 2,
+          ),
+        ),
+        errorStyle: TextStyle(
+          color: AppColors.error,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+        floatingLabelBehavior: FloatingLabelBehavior.never,
       ),
     );
   }
