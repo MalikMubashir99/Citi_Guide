@@ -164,6 +164,7 @@ class EventCard extends StatelessWidget {
                     child: Column(
                       children: [
                         Text(
+                          // ignore: dead_code
                           _formatDate(event.date).split(' ')[0] ?? '',
                           style: TextStyle(
                             fontSize: 16,

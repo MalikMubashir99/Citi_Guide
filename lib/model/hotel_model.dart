@@ -1,3 +1,4 @@
+// lib/model/hotel_model.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HotelModel {
@@ -21,10 +22,11 @@ class HotelModel {
     required this.website,
   });
 
-  factory HotelModel.fromFirestore(
-    Map<String, dynamic> data,
-    String id,
-  ) {
+  factory HotelModel.fromFirestore(Map<String, dynamic> data, String id) {
+    // ✅ Add debugging to see what data is coming
+    print('🔍 Parsing hotel data for ID: $id');
+    print('📦 Data: $data');
+    
     // ✅ Handle both String and DocumentReference for cityId
     String cityIdValue;
     final cityIdData = data['cityId'];
@@ -35,16 +37,20 @@ class HotelModel {
       cityIdValue = cityIdData?.toString() ?? '';
     }
 
-    return HotelModel(
+    // ✅ Handle null values with fallbacks
+    final hotel = HotelModel(
       id: id,
       cityId: cityIdValue,
-      name: data['name'] ?? '',
-      description: data['description'] ?? '',
-      image: data['image'] ?? '',
+      name: data['name']?.toString() ?? 'Unknown Hotel',
+      description: data['description']?.toString() ?? 'No description available',
+      image: data['image']?.toString() ?? '',
       rating: (data['rating'] ?? 0).toDouble(),
-      phone: data['phone'] ?? '',
-      website: data['website'] ?? '',
+      phone: data['phone']?.toString() ?? '',
+      website: data['website']?.toString() ?? '',
     );
+    
+    print('✅ Parsed hotel: ${hotel.name}');
+    return hotel;
   }
 
   Map<String, dynamic> toMap() {

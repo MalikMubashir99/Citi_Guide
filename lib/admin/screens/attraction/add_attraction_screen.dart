@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:app/admin/services/attraction_service.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:app/model/city_model.dart';
 import 'package:app/services/city_service.dart';
-import '../../services/attraction_service.dart';
 
 class AddAttractionScreen extends StatefulWidget {
    AddAttractionScreen({super.key});
@@ -272,6 +272,7 @@ class _AddAttractionScreenState extends State<AddAttractionScreen> {
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(
+                        // ignore: prefer_interpolation_to_compose_strings
                         "Path: ${_imagePath!.length > 50 ? _imagePath!.substring(0, 50) + '...' : _imagePath!}",
                         style: const TextStyle(fontSize: 10, color: Colors.grey),
                         maxLines: 2,

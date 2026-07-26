@@ -1,6 +1,5 @@
 // lib/admin/screens/user/users_screen.dart
 import 'package:app/admin/services/admin_user_service.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class UsersScreen extends StatefulWidget {

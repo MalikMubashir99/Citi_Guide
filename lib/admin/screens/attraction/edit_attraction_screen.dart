@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:app/admin/models/city_model.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:app/admin/models/attraction_model.dart';
 import 'package:app/admin/services/attraction_service.dart';
 import 'package:app/admin/services/city_service.dart';
-import 'package:app/model/city_model.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 

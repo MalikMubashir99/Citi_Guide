@@ -1,5 +1,10 @@
-import 'package:app/model/restaurant_model.dart';
-import 'package:app/services/restaurant_service.dart';
+// lib/admin/screens/restaurant/restaurants_screen.dart
+// Use RestaurantCard from admin widgets instead of the user one
+
+import 'package:app/admin/models/restaurant_model.dart';
+import 'package:app/admin/services/restaurant_service.dart';
+import 'package:app/admin/widgets/restaurant_card.dart';
+import 'package:app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'add_restaurant_screen.dart';
 import 'edit_restaurant_screen.dart';
@@ -14,13 +19,20 @@ class RestaurantsScreen extends StatefulWidget {
 class _RestaurantsScreenState extends State<RestaurantsScreen> {
   final RestaurantService restaurantService = RestaurantService();
   String searchText = "";
+  bool _isLoading = false; 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Restaurants")),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text("Restaurants"),
+        backgroundColor: AppColors.background,
+        elevation: 0,
+      ),
       floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
+        backgroundColor: AppColors.primary,
+        child: const Icon(Icons.add, color: Colors.white),
         onPressed: () {
           Navigator.push(
             context,
@@ -32,13 +44,21 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            // Search Bar
             TextField(
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: "Search Restaurant",
-                prefixIcon: Icon(Icons.search),
+                prefixIcon: Icon(Icons.search, color: AppColors.primary),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.lightGrey),
                 ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.primary, width: 2),
+                ),
+                filled: true,
+                fillColor: AppColors.white,
               ),
               onChanged: (value) {
                 setState(() {
@@ -47,116 +67,122 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
               },
             ),
             const SizedBox(height: 20),
+            // Restaurants List
             Expanded(
               child: StreamBuilder<List<RestaurantModel>>(
                 stream: restaurantService.getRestaurants(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.primary,
+                      ),
+                    );
                   }
 
                   if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline_rounded,
+                            size: 48,
+                            color: AppColors.error,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Error loading restaurants',
+                            style: TextStyle(
+                              color: AppColors.error,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
                   }
 
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text("No Restaurants Found"));
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.restaurant_rounded,
+                            size: 64,
+                            color: AppColors.grey,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            "No Restaurants Found",
+                            style: TextStyle(
+                              color: AppColors.grey,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Tap the + button to add a restaurant",
+                            style: TextStyle(
+                              color: AppColors.grey,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
                   }
 
-                  // Filter restaurants based on search text
                   final restaurants = snapshot.data!.where((item) {
                     return item.name.toLowerCase().contains(searchText);
                   }).toList();
 
                   if (restaurants.isEmpty) {
-                    return const Center(child: Text("No Matching Restaurants"));
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.search_off_rounded,
+                            size: 48,
+                            color: AppColors.grey,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "No matching restaurants",
+                            style: TextStyle(
+                              color: AppColors.grey,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
                   }
 
                   return ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     itemCount: restaurants.length,
                     itemBuilder: (context, index) {
                       final restaurant = restaurants[index];
-
-                      return Card(
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        child: ListTile(
-                          leading: restaurant.image.isEmpty
-                              ? const CircleAvatar(
-                                  child: Icon(Icons.restaurant),
-                                )
-                              : CircleAvatar(
-                                  backgroundImage: NetworkImage(
-                                    restaurant.image,
-                                  ),
-                                  onBackgroundImageError: (_, _) =>
-                                      const Icon(Icons.broken_image),
-                                  child: const Icon(Icons.restaurant),
-                                ),
-                          title: Text(restaurant.name),
-                          subtitle: Text(restaurant.phone),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.edit,
-                                  color: Colors.blue,
-                                ),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => EditRestaurantScreen(
-                                        restaurant: restaurant,
-                                      ),
-                                    ),
-                                  );
-                                },
+                      return RestaurantCard(
+                        restaurant: restaurant,
+                        onEdit: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => EditRestaurantScreen(
+                                restaurant: restaurant,
                               ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete,
-                                  color: Colors.red,
-                                ),
-
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-
-                                    builder: (dialogContext) {
-                                      return AlertDialog(
-                                        title: const Text("Delete Restaurant"),
-
-                                        content: const Text("Are you sure?"),
-
-                                        actions: [
-                                          ElevatedButton(
-                                            onPressed: () async {
-                                              final navigator = Navigator.of(
-                                                dialogContext,
-                                              );
-
-                                              await restaurantService
-                                                  .deleteRestaurant(
-                                                    restaurant.id,
-                                                  );
-
-                                              if (!mounted) return;
-
-                                              navigator.pop();
-                                            },
-
-                                            child: const Text("Delete"),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
+                            ),
+                          );
+                        },
+                        onDelete: () {
+                          _confirmDelete(restaurant);
+                        },
                       );
                     },
                   );
@@ -168,4 +194,61 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
       ),
     );
   }
+void _confirmDelete(RestaurantModel restaurant) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      // ... dialog content
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Cancel', style: TextStyle(color: AppColors.grey)),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            Navigator.pop(context);
+            setState(() => _isLoading = true);
+            try {
+              await restaurantService.deleteRestaurant(restaurant.id);
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('✅ ${restaurant.name} deleted successfully'),
+                  backgroundColor: AppColors.success,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              );
+              setState(() {});
+            } catch (e) {
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('❌ Error deleting restaurant: $e'),
+                  backgroundColor: AppColors.error,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              );
+            } finally {
+              if (mounted) setState(() => _isLoading = false);
+            }
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.error,
+            foregroundColor: AppColors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          child: const Text('Delete'),
+        ),
+      ],
+    ),
+  );
+}
 }

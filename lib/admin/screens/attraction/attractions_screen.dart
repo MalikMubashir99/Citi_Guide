@@ -1,10 +1,13 @@
-import 'package:app/admin/screens/attraction/add_attraction_screen.dart';
+// lib/admin/screens/attraction/attractions_screen.dart
 import 'package:app/admin/models/attraction_model.dart';
-import 'package:app/admin/screens/attraction/edit_attraction_screen.dart';
-import 'package:app/admin/services/city_service.dart';
-import 'package:app/model/city_model.dart';
-import 'package:flutter/material.dart';
+import 'package:app/admin/models/city_model.dart';
 import 'package:app/admin/services/attraction_service.dart';
+import 'package:app/admin/services/city_service.dart';
+import 'package:app/admin/widgets/attraction_card.dart';
+import 'package:app/core/constants/app_colors.dart';
+import 'package:flutter/material.dart';
+import 'add_attraction_screen.dart';
+import 'edit_attraction_screen.dart';
 
 class AttractionsScreen extends StatefulWidget {
   const AttractionsScreen({super.key});
@@ -18,16 +21,23 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
   final CityService cityService = CityService();
 
   final TextEditingController searchController = TextEditingController();
-
   String searchText = "";
   String? selectedCity;
+  bool _isLoading = false; 
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Attractions")),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text("Attractions"),
+        backgroundColor: AppColors.background,
+        elevation: 0,
+      ),
       floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
+        backgroundColor: AppColors.primary,
+        child: const Icon(Icons.add, color: Colors.white),
         onPressed: () {
           Navigator.push(
             context,
@@ -44,10 +54,17 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
               controller: searchController,
               decoration: InputDecoration(
                 hintText: "Search Attraction",
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: Icon(Icons.search, color: AppColors.primary),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.lightGrey),
                 ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.primary, width: 2),
+                ),
+                filled: true,
+                fillColor: AppColors.white,
               ),
               onChanged: (value) {
                 setState(() {
@@ -56,7 +73,6 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
               },
             ),
           ),
-          const SizedBox(height: 15),
           // City filter dropdown
           StreamBuilder<List<CityModel>>(
             stream: cityService.getCities(),
@@ -68,12 +84,23 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
                 child: DropdownButtonFormField<String>(
-                     initialValue: selectedCity,
-                  decoration: const InputDecoration(
+                  initialValue: selectedCity,
+                  decoration: InputDecoration(
                     labelText: "Filter by City",
+                    labelStyle: TextStyle(color: AppColors.darkGrey),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: AppColors.lightGrey),
                     ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: AppColors.primary,
+                        width: 2,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: AppColors.white,
                   ),
                   items: [
                     const DropdownMenuItem<String>(
@@ -103,119 +130,215 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
               stream: attractionService.getAttractions(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.primary,
+                    ),
+                  );
                 }
 
                 if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline_rounded,
+                          size: 48,
+                          color: AppColors.error,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Error loading attractions',
+                          style: TextStyle(
+                            color: AppColors.error,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
                 }
 
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text("No Attractions"));
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.landscape_rounded,
+                          size: 64,
+                          color: AppColors.grey,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          "No Attractions",
+                          style: TextStyle(
+                            color: AppColors.grey,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "Tap the + button to add an attraction",
+                          style: TextStyle(color: AppColors.grey, fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  );
                 }
 
                 // ✅ Combined filter: search + city
                 final filteredAttractions = snapshot.data!.where((item) {
-                  bool matchesSearch = item.name
-                      .toLowerCase()
-                      .contains(searchText);
-                  
-                  bool matchesCity = selectedCity == null ||
-                      item.cityId == selectedCity;
-                  
+                  bool matchesSearch = item.name.toLowerCase().contains(
+                    searchText,
+                  );
+
+                  bool matchesCity =
+                      selectedCity == null || item.cityId == selectedCity;
+
                   return matchesSearch && matchesCity;
                 }).toList();
 
                 if (filteredAttractions.isEmpty) {
-                  return const Center(
-                    child: Text("No matching attractions"),
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.search_off_rounded,
+                          size: 48,
+                          color: AppColors.grey,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "No matching attractions",
+                          style: TextStyle(color: AppColors.grey, fontSize: 16),
+                        ),
+                      ],
+                    ),
                   );
                 }
 
                 // ✅ Sort by rating (highest first)
                 final sortedAttractions = List.from(filteredAttractions);
-                sortedAttractions.sort(
-                  (a, b) => b.rating.compareTo(a.rating),
-                );
+                sortedAttractions.sort((a, b) => b.rating.compareTo(a.rating));
 
                 return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: sortedAttractions.length,
                   itemBuilder: (context, index) {
                     final attraction = sortedAttractions[index];
-
-                    return Card(
-                      margin: const EdgeInsets.all(10),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage: NetworkImage(attraction.image),
-                          onBackgroundImageError: (_, __) =>
-                              const Icon(Icons.broken_image),
-                          child: const Icon(Icons.place),
-                        ),
-                        title: Text(attraction.name),
-                        subtitle: Text(attraction.description),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => EditAttractionScreen(
-                                      attraction: attraction,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                            IconButton(
-                              onPressed: () async {
-                                // Show confirmation dialog
-                                bool? confirm = await showDialog<bool>(
-                                  context: context,
-                                  builder: (_) => AlertDialog(
-                                    title: const Text("Delete Attraction"),
-                                    content: Text("Delete ${attraction.name}?"),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, false),
-                                        child: const Text("Cancel"),
-                                      ),
-                                      ElevatedButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, true),
-                                        child: const Text("Delete"),
-                                      ),
-                                    ],
-                                  ),
-                                );
-
-                                if (confirm == true) {
-                                  await attractionService.deleteAttraction(
-                                    attraction.id,
-                                  );
-                                  if (!mounted) return;
-                                  // ignore: use_build_context_synchronously
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text("Attraction Deleted"),
-                                    ),
-                                  );
-                                }
-                              },
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                            ),
-                          ],
-                        ),
-                      ),
+                    return AttractionCard(
+                      attraction: attraction,
+                      onEdit: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                EditAttractionScreen(attraction: attraction),
+                          ),
+                        );
+                      },
+                      onDelete: () {
+                        _confirmDelete(attraction);
+                      },
                     );
                   },
                 );
               },
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDelete(AttractionModel attraction) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.warning_rounded, color: AppColors.error),
+            const SizedBox(width: 8),
+            Text(
+              'Delete Attraction',
+              style: TextStyle(
+                color: AppColors.dark,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to delete "${attraction.name}"? This action cannot be undone.',
+          style: TextStyle(color: AppColors.darkGrey),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: AppColors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              // ✅ Close dialog immediately
+              Navigator.pop(context);
+
+              // ✅ Show loading state
+              setState(() => _isLoading = true);
+
+              try {
+                await attractionService.deleteAttraction(attraction.id);
+
+                if (!mounted) return;
+
+                // ✅ Show success message
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('✅ ${attraction.name} deleted successfully'),
+                    backgroundColor: AppColors.success,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                );
+
+                // ✅ Refresh the list
+                setState(() {});
+              } catch (e) {
+                if (!mounted) return;
+
+                // ✅ Show error message
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('❌ Error deleting attraction: $e'),
+                    backgroundColor: AppColors.error,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                );
+              } finally {
+                if (mounted) {
+                  setState(() => _isLoading = false);
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: AppColors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text('Delete'),
           ),
         ],
       ),

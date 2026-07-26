@@ -229,7 +229,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 35),
 
-              // Hotels Section
               const Text(
                 "Top Hotels",
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
@@ -241,6 +240,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: FutureBuilder<List<HotelModel>>(
                   future: hotelService.getAllHotels(),
                   builder: (context, snapshot) {
+                    // ✅ Debug print
+                    print('🔥 Hotels FutureBuilder:');
+                    print('  - Connection: ${snapshot.connectionState}');
+                    print('  - Has Data: ${snapshot.hasData}');
+                    print('  - Data: ${snapshot.data}');
+                    print('  - Error: ${snapshot.error}');
+
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
                         child: CircularProgressIndicator(
@@ -251,6 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
 
                     if (snapshot.hasError) {
+                      print('❌ Hotels error: ${snapshot.error}');
                       return Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -262,10 +269,53 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Error: ${snapshot.error}',
+                              'Error loading hotels',
                               style: TextStyle(
                                 color: AppColors.error,
                                 fontSize: 14,
+                              ),
+                            ),
+                            Text(
+                              '${snapshot.error}',
+                              style: TextStyle(
+                                color: AppColors.grey,
+                                fontSize: 12,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    final hotels = snapshot.data ?? [];
+                    print('✅ Loaded ${hotels.length} hotels');
+
+                    if (hotels.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.hotel_rounded,
+                              size: 48,
+                              color: AppColors.grey,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'No hotels available',
+                              style: TextStyle(
+                                color: AppColors.grey,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Add hotels to Firestore to see them here',
+                              style: TextStyle(
+                                color: AppColors.lightGrey,
+                                fontSize: 13,
                               ),
                             ),
                           ],
@@ -273,22 +323,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     }
 
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'No hotels found',
-                          style: TextStyle(color: AppColors.grey, fontSize: 16),
-                        ),
-                      );
-                    }
-
-                    final hotels = snapshot.data!;
-
                     return ListView.builder(
                       scrollDirection: Axis.horizontal,
                       itemCount: hotels.length,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       itemBuilder: (context, index) {
                         final hotel = hotels[index];
+                        print('🏨 Building card for hotel: ${hotel.name}');
                         return HotelCard(hotel: hotel);
                       },
                     );
