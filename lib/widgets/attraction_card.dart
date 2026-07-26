@@ -1,8 +1,8 @@
 // lib/widgets/attraction_card.dart
 import 'package:app/core/constants/app_colors.dart';
+import 'package:app/model/attraction_model.dart';
+import 'package:app/screens/home/attraction_details.dart';
 import 'package:flutter/material.dart';
-import '../model/attraction_model.dart';
-import '../screens/home/attraction_details.dart';
 
 class AttractionCard extends StatelessWidget {
   final AttractionModel attraction;
@@ -13,7 +13,6 @@ class AttractionCard extends StatelessWidget {
   });
 
   Widget _buildRatingStars(double rating) {
-    // ✅ Handle null/empty rating
     if (rating == 0) {
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -21,13 +20,13 @@ class AttractionCard extends StatelessWidget {
           Icon(
             Icons.star_outline_rounded,
             color: AppColors.grey,
-            size: 16,
+            size: 14,
           ),
           const SizedBox(width: 4),
           Text(
             'No rating',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               color: AppColors.grey,
             ),
           ),
@@ -44,19 +43,19 @@ class AttractionCard extends StatelessWidget {
         stars.add(Icon(
           Icons.star_rounded,
           color: AppColors.secondary,
-          size: 16,
+          size: 14,
         ));
       } else if (i == fullStars && hasHalfStar) {
         stars.add(Icon(
           Icons.star_half_rounded,
           color: AppColors.secondary,
-          size: 16,
+          size: 14,
         ));
       } else {
         stars.add(Icon(
           Icons.star_outline_rounded,
           color: AppColors.secondary.withValues(alpha: 0.4),
-          size: 16,
+          size: 14,
         ));
       }
     }
@@ -68,12 +67,10 @@ class AttractionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ Handle null attraction
     if (attraction == null) {
       return const SizedBox.shrink();
     }
 
-    // ✅ Get safe values with fallbacks
     final String imageUrl = attraction.image ?? '';
     final String name = attraction.name ?? 'Unknown';
     final String description = attraction.description ?? 'No description available';
@@ -81,17 +78,16 @@ class AttractionCard extends StatelessWidget {
     final String cityId = attraction.cityId ?? '';
 
     return SizedBox(
-      width: 280,
+      width: 220, // ✅ Reduced from 280 to prevent overflow
       child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        elevation: 3,
+        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        elevation: 2,
         shadowColor: Colors.brown.shade900.withValues(alpha: 0.1),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
         ),
         child: InkWell(
           onTap: () {
-            // ✅ Check if attraction has valid data before navigating
             if (attraction.id.isEmpty) return;
             Navigator.push(
               context,
@@ -100,45 +96,45 @@ class AttractionCard extends StatelessWidget {
               ),
             );
           },
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ✅ Image
+              // Image
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(16),
+                  top: Radius.circular(14),
                 ),
                 child: imageUrl.isEmpty
                     ? Container(
-                        height: 160,
+                        height: 130, // ✅ Reduced height
                         width: double.infinity,
                         color: AppColors.lightGrey,
                         child: Icon(
                           Icons.landscape_rounded,
-                          size: 50,
+                          size: 40,
                           color: AppColors.grey,
                         ),
                       )
                     : Image.network(
                         imageUrl,
-                        height: 160,
+                        height: 130, // ✅ Reduced height
                         width: double.infinity,
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Container(
-                          height: 160,
+                          height: 130,
                           width: double.infinity,
                           color: AppColors.lightGrey,
                           child: Icon(
                             Icons.broken_image,
-                            size: 50,
+                            size: 40,
                             color: AppColors.grey,
                           ),
                         ),
                         loadingBuilder: (_, child, progress) {
                           if (progress == null) return child;
                           return Container(
-                            height: 160,
+                            height: 130,
                             width: double.infinity,
                             color: AppColors.lightGrey,
                             child: const Center(
@@ -151,75 +147,79 @@ class AttractionCard extends StatelessWidget {
                         },
                       ),
               ),
-              // ✅ Content
+              // Content
               Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       name,
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: AppColors.dark,
-                        letterSpacing: 0.3,
+                        letterSpacing: 0.2,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       description,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 11,
                         color: AppColors.darkGrey,
-                        height: 1.4,
+                        height: 1.3,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    // ✅ Rating Row - Fixed
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
+                    const SizedBox(height: 6),
+                    // ✅ Fixed Row - using mainAxisSize: min and proper spacing
+                    Wrap(
+                      spacing: 4,
+                      alignment: WrapAlignment.spaceBetween,
                       children: [
-                        _buildRatingStars(rating),
-                        const SizedBox(width: 6),
-                        if (rating > 0)
-                          Text(
-                            rating.toStringAsFixed(1),
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.dark,
-                            ),
-                          ),
-                        const Spacer(),
-                        // ✅ City Badge
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildRatingStars(rating),
+                            const SizedBox(width: 4),
+                            if (rating > 0)
+                              Text(
+                                rating.toStringAsFixed(1),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.dark,
+                                ),
+                              ),
+                          ],
+                        ),
                         if (cityId.isNotEmpty)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
+                              horizontal: 6,
+                              vertical: 2,
                             ),
                             decoration: BoxDecoration(
                               color: AppColors.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(6),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
                                   Icons.location_on_rounded,
-                                  size: 12,
+                                  size: 10,
                                   color: AppColors.primary,
                                 ),
                                 const SizedBox(width: 2),
                                 Text(
                                   cityId,
                                   style: TextStyle(
-                                    fontSize: 10,
+                                    fontSize: 9,
                                     color: AppColors.primary,
                                     fontWeight: FontWeight.w500,
                                   ),

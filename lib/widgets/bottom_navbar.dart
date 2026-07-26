@@ -50,12 +50,18 @@ class BottomNavBar extends StatelessWidget {
             ),
             _navItem(
               index: 2,
-              icon: Icons.map_rounded,
-              label: "Maps",
+              icon: Icons.search_rounded,
+              label: "Search",
               badgeCount: badgeCounts?[2] ?? 0,
             ),
             _navItem(
               index: 3,
+              icon: Icons.map_rounded,
+              label: "Maps",
+              badgeCount: badgeCounts?[3] ?? 0,
+            ),
+            _navItem(
+              index: 4,
               icon: Icons.person_rounded,
               label: "Profile",
               badgeCount: badgeCounts?[3] ?? 0,
