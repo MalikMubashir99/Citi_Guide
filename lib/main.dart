@@ -1,3 +1,4 @@
+// lib/main.dart
 import 'package:app/admin/dashboard/admin_dashboard_screen.dart';
 import 'package:app/screens/auth/forgot_password_screen.dart';
 import 'package:app/screens/auth/login_screen.dart';
@@ -23,8 +24,11 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Initialize Notification Service
-  await NotificationService.initialize();
+   try {
+    await NotificationService.initialize();
+  } catch (e) {
+    print('Notification Service Error (Web): $e');
+  }
 
   runApp(const CitiGuideApp());
 }
@@ -38,47 +42,39 @@ class CitiGuideApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Citi Guide',
       
-      // ✅ Theme
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system, // ✅ System default, user can change
+      themeMode: ThemeMode.system,
       
-      // ✅ Analytics Observer
       navigatorObservers: [AnalyticsService.observer],
       
-      // ✅ Initial Route
       initialRoute: "/",
       
-      // ✅ Routes
       routes: {
-        // Auth Routes
         "/": (context) => const SplashScreen(),
         "/onboarding": (context) => const OnboardingScreen(),
         "/register": (context) => const RegisterScreen(),
         "/login": (context) => const LoginScreen(),
         "/forgot-password": (context) => const ForgotPasswordScreen(),
-        
-        // Main App Routes
         "/home": (context) => const HomeScreen(),
         "/search": (context) => const SearchScreen(),
         "/favorites": (context) => const FavoritesScreen(),
         "/settings": (context) => const SettingsScreen(),
-        
-        // Admin Routes
         "/admin-dashboard": (context) => const AdminDashboardScreen(),
       },
       
-      // ✅ Error Handler
       onGenerateRoute: (settings) {
-        // Handle dynamic routes if needed
         return null;
       },
       
-      // ✅ Unknown Route Handler
       onUnknownRoute: (settings) {
         return MaterialPageRoute(
           builder: (_) => Scaffold(
-            appBar: AppBar(title: const Text('Page Not Found')),
+            appBar: AppBar(
+              title: const Text('Page Not Found'),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+            ),
             body: const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,

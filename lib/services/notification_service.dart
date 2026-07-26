@@ -1,68 +1,49 @@
 // lib/services/notification_service.dart
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:logger/logger.dart';
+import 'package:flutter/foundation.dart';
 
 class NotificationService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
-  static final FlutterLocalNotificationsPlugin _localNotifications =
-      FlutterLocalNotificationsPlugin();
 
+  // ✅ Static method
   static Future<void> initialize() async {
-    // Request permissions
-    await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-
-    // Get token
- final logger = Logger();
-
-// Different log levels
-logger.d('Debug message');   // Debug
-logger.i('Info message');    // Info
-logger.w('Warning message'); // Warning
-logger.e('Error message');   // Error
-logger.v('Verbose');         // Verbose
-    // Initialize local notifications
-    const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    const DarwinInitializationSettings iosSettings =
-        DarwinInitializationSettings();
-    const InitializationSettings settings = InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
-    );
-    await _localNotifications.initialize(settings);
-
-    // Handle messages
-    FirebaseMessaging.onMessage.listen(_handleMessage);
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
-  }
-
-  static void _handleMessage(RemoteMessage message) {
-    print('Message received: ${message.notification?.title}');
-    _showNotification(
-      message.notification?.title ?? 'New Notification',
-      message.notification?.body ?? '',
-    );
-  }
-
-  static Future<void> _showNotification(String title, String body) async {
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-      'main_channel',
-      'Main Channel',
-      importance: Importance.max,
-      priority: Priority.high,
-      showWhen: false,
-    );
-    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails();
-    const NotificationDetails details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-    await _localNotifications.show(0, title, body, details);
+    try {
+      if (kIsWeb) {
+        await _messaging.requestPermission();
+        final token = await _messaging.getToken();
+        debugPrint('FCM Token: $token');
+        
+        FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+          debugPrint('Got a message whilst in the foreground!');
+          debugPrint('Message data: ${message.data}');
+        });
+        
+        FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+          debugPrint('A new onMessageOpenedApp event was published!');
+        });
+      } else {
+        NotificationSettings settings = await _messaging.requestPermission(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+        
+        debugPrint('User granted permission: ${settings.authorizationStatus}');
+        
+        final token = await _messaging.getToken();
+        debugPrint('FCM Token: $token');
+        
+        FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+          debugPrint('Got a message whilst in the foreground!');
+          debugPrint('Message data: ${message.data}');
+        });
+        
+        FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+          debugPrint('A new onMessageOpenedApp event was published!');
+        });
+      }
+    } catch (e) {
+      debugPrint('Notification Service Error: $e');
+    }
   }
 }

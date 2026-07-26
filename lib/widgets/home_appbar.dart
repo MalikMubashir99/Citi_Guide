@@ -33,7 +33,7 @@ class HomeAppBar extends StatelessWidget {
           ),
           child: const CircleAvatar(
             radius: 26,
-            backgroundImage: AssetImage("assets/images/profile.png"),
+            backgroundImage: AssetImage("assets/images/profile.jpg"),
             child: Icon(
               Icons.person,
               color: Colors.white,

@@ -65,7 +65,7 @@ flutter:
     - assets/images/onboarding3.jpg
     - assets/images/register.jpg
     - assets/images/login.jpg
-    # - assets/images/profile.png
+    - assets/images/profile.jpg
     - assets/images/karachi.jpg
     - assets/images/lahore.jpg
     - assets/images/islamabad.jpg
