@@ -319,10 +319,11 @@ class HotelDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '(Excellent)',
+                        hotel.rating >= 4.5 ? '⭐ Premium' : '👍 Good',
                         style: TextStyle(
                           fontSize: 13,
-                          color: AppColors.grey,
+                          color: hotel.rating >= 4.5 ? AppColors.success : AppColors.grey,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],

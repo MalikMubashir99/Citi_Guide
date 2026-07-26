@@ -1,6 +1,7 @@
+// lib/screens/home/event_detail_screen.dart
+import 'package:app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import '../../model/event_model.dart';
 
 class EventDetailScreen extends StatelessWidget {
@@ -11,11 +12,17 @@ class EventDetailScreen extends StatelessWidget {
     required this.event,
   });
 
-  // ✅ Pass context as parameter
   Future<void> openGoogleMaps(BuildContext context) async {
     if (event.location.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Location not available")),
+        SnackBar(
+          content: const Text("Location not available"),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
       );
       return;
     }
@@ -32,7 +39,14 @@ class EventDetailScreen extends StatelessWidget {
     } else {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Unable to open Google Maps")),
+        SnackBar(
+          content: const Text("Unable to open Google Maps"),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
       );
     }
   }
@@ -40,98 +54,467 @@ class EventDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(event.title),
+        title: Text(
+          event.title,
+          style: TextStyle(
+            color: AppColors.dark,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.3,
+          ),
+        ),
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_rounded,
+            color: AppColors.dark,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.favorite_border_rounded,
+              color: AppColors.error,
+            ),
+            onPressed: () {
+              // Add to favorites
+            },
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.share_rounded,
+              color: AppColors.dark,
+            ),
+            onPressed: () {
+              // Share event
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            event.image.isEmpty
-                ? Container(
-                    height: 250,
-                    width: double.infinity,
-                    color: Colors.grey.shade300,
-                    child: const Icon(
-                      Icons.event,
-                      size: 100,
-                    ),
-                  )
-                : Image.network(
-                    event.image,
-                    width: double.infinity,
-                    height: 250,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      height: 250,
-                      width: double.infinity,
-                      color: Colors.grey.shade300,
-                      child: const Icon(
-                        Icons.broken_image,
-                        size: 100,
-                        color: Colors.grey,
+            // Image Section
+            Stack(
+              children: [
+                event.image.isEmpty
+                    ? Container(
+                        height: 280,
+                        width: double.infinity,
+                        color: AppColors.lightGrey,
+                        child: Icon(
+                          Icons.event_rounded,
+                          size: 100,
+                          color: AppColors.grey,
+                        ),
+                      )
+                    : Image.network(
+                        event.image,
+                        width: double.infinity,
+                        height: 280,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          height: 280,
+                          width: double.infinity,
+                          color: AppColors.lightGrey,
+                          child: Icon(
+                            Icons.broken_image,
+                            size: 100,
+                            color: AppColors.grey,
+                          ),
+                        ),
+                        loadingBuilder: (_, child, progress) {
+                          if (progress == null) return child;
+                          return Container(
+                            height: 280,
+                            width: double.infinity,
+                            color: AppColors.lightGrey,
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                // Gradient overlay
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    height: 80,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.5),
+                          Colors.black.withValues(alpha: 0.7),
+                        ],
                       ),
                     ),
                   ),
+                ),
+                // Event badge
+                Positioned(
+                  top: 16,
+                  right: 16,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withValues(alpha: 0.95),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.secondary.withValues(alpha: 0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.event_available_rounded,
+                          color: AppColors.white,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Upcoming',
+                          style: TextStyle(
+                            color: AppColors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Date badge on image
+                Positioned(
+                  bottom: 16,
+                  left: 16,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withValues(alpha: 0.95),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          _getDay(event.date),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        Text(
+                          _getMonth(event.date),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.darkGrey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            // Content
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Event Title
                   Text(
                     event.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
+                      color: AppColors.dark,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Event Meta Info
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.lightGrey,
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.calendar_today_rounded,
+                                color: AppColors.primary,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                event.date.isNotEmpty ? event.date : 'TBD',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.dark,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          width: 1,
+                          height: 20,
+                          color: AppColors.lightGrey,
+                        ),
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.access_time_rounded,
+                                color: AppColors.primary,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                event.time.isNotEmpty ? event.time : 'TBD',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.dark,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 20),
-                  ListTile(
-                    leading: const Icon(Icons.calendar_today),
-                    title: const Text("Date"),
-                    subtitle: Text(
-                      event.date.isEmpty ? "Not available" : event.date,
+
+                  // Description Section
+                  Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        "About this Event",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.dark,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.lightGrey,
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      event.description.isNotEmpty 
+                          ? event.description 
+                          : "No description available",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: AppColors.darkGrey,
+                        height: 1.6,
+                      ),
                     ),
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.access_time),
-                    title: const Text("Time"),
-                    subtitle: Text(
-                      event.time.isEmpty ? "Not available" : event.time,
+                  const SizedBox(height: 24),
+
+                  // Location Information
+                  Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        "Location",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.dark,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Location Card
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.lightGrey,
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.location_on_rounded,
+                            color: AppColors.primary,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Venue",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.grey,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                event.location.isNotEmpty 
+                                    ? event.location 
+                                    : "Location not available",
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: AppColors.dark,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (event.location.isNotEmpty)
+                          IconButton(
+                            icon: Icon(
+                              Icons.copy_rounded,
+                              color: AppColors.primary,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              // Copy location
+                            },
+                          ),
+                      ],
                     ),
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.location_on),
-                    title: const Text("Location"),
-                    subtitle: Text(
-                      event.location.isEmpty ? "Not available" : event.location,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    "Description",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 24),
+
+                  // Action Buttons
                   Text(
-                    event.description.isEmpty ? "No description available" : event.description,
-                    style: const TextStyle(
-                      fontSize: 16,
+                    "Actions",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.dark,
+                      letterSpacing: 0.3,
                     ),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 12),
+
+                  // Google Maps Button
                   SizedBox(
                     width: double.infinity,
+                    height: 56,
                     child: ElevatedButton.icon(
-                      // ✅ Pass context to method
                       onPressed: () => openGoogleMaps(context),
-                      icon: const Icon(Icons.map),
-                      label: const Text("Open in Google Maps"),
+                      icon: Icon(
+                        Icons.map_rounded,
+                        color: AppColors.white,
+                        size: 22,
+                      ),
+                      label: Text(
+                        "Open in Google Maps",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 2,
+                        shadowColor: AppColors.primary.withValues(alpha: 0.3),
+                      ),
                     ),
                   ),
+
+                  const SizedBox(height: 30),
                 ],
               ),
             ),
@@ -139,5 +522,32 @@ class EventDetailScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // Helper methods for date formatting
+  String _getDay(String date) {
+    try {
+      if (date.isEmpty) return '--';
+      final parts = date.split(' ');
+      if (parts.length >= 2) {
+        return parts[0];
+      }
+      return date.substring(0, 2);
+    } catch (_) {
+      return '--';
+    }
+  }
+
+  String _getMonth(String date) {
+    try {
+      if (date.isEmpty) return '---';
+      final parts = date.split(' ');
+      if (parts.length >= 2) {
+        return parts[1].substring(0, 3);
+      }
+      return date.substring(3, 6);
+    } catch (_) {
+      return '---';
+    }
   }
 }

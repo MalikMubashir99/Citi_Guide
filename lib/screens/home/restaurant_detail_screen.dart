@@ -117,6 +117,15 @@ class RestaurantDetailScreen extends StatelessWidget {
               // Add to favorites
             },
           ),
+          IconButton(
+            icon: Icon(
+              Icons.share_rounded,
+              color: AppColors.dark,
+            ),
+            onPressed: () {
+              // Share restaurant
+            },
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -281,8 +290,43 @@ class RestaurantDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
 
-                  // Description Section
+                  // Rating Stars
+                  Row(
+                    children: [
+                      ...List.generate(
+                        5,
+                        (index) => Icon(
+                          index < restaurant.rating.floor()
+                              ? Icons.star_rounded
+                              : index < restaurant.rating
+                                  ? Icons.star_half_rounded
+                                  : Icons.star_outline_rounded,
+                          color: AppColors.secondary,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        restaurant.rating.toStringAsFixed(1),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.dark,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        restaurant.rating >= 4.5 ? '(Popular)' : '(Good)',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 20),
+
+                  // Description Section
                   Row(
                     children: [
                       Container(
@@ -415,6 +459,63 @@ class RestaurantDetailScreen extends StatelessWidget {
                               // Copy phone number
                             },
                           ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Location Info
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.lightGrey,
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.location_on_rounded,
+                            color: AppColors.primary,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Location",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.grey,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                restaurant.latitude != 0 && restaurant.longitude != 0
+                                    ? "${restaurant.latitude.toStringAsFixed(4)}, ${restaurant.longitude.toStringAsFixed(4)}"
+                                    : "Location not available",
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: AppColors.dark,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
