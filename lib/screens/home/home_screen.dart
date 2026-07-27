@@ -5,6 +5,7 @@ import 'package:app/model/hotel_model.dart';
 import 'package:app/model/restaurant_model.dart';
 import 'package:app/model/event_model.dart';
 import 'package:app/model/city_model.dart';
+import 'package:app/screens/home/search_screen.dart';
 import 'package:app/screens/maps/open_street_map_screen.dart';
 import 'package:app/screens/profile/profile_screen.dart';
 import 'package:app/services/attraction_service.dart';
@@ -24,7 +25,6 @@ import 'package:app/widgets/event_card.dart';
 import 'package:app/widgets/city_card.dart';
 import 'package:app/widgets/bottom_navbar.dart';
 import 'package:app/screens/profile/favorites_screen.dart';
-import 'package:app/screens/home/search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -38,6 +38,16 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController searchController = TextEditingController();
   String userName = "User";
 
+  // ✅ Search state
+  bool isSearching = false;
+  String searchQuery = "";
+  
+  // ✅ Search results
+  List<AttractionModel> searchAttractions = [];
+  List<HotelModel> searchHotels = [];
+  List<RestaurantModel> searchRestaurants = [];
+  List<EventModel> searchEvents = [];
+
   // Services
   final AttractionService attractionService = AttractionService();
   final HotelService hotelService = HotelService();
@@ -45,19 +55,27 @@ class _HomeScreenState extends State<HomeScreen> {
   final EventService eventService = EventService();
   final CityService cityService = CityService();
 
-  // ✅ Page Controller for navigation
-  final PageController _pageController = PageController();
+  // ✅ Screens list
+  late final List<Widget> _screens;
 
   @override
   void initState() {
     super.initState();
     _getUserName();
+    
+    // ✅ Initialize screens
+    _screens = [
+      _buildHomeContent(),
+      const FavoritesScreen(),
+      const SearchScreen(),
+      const OpenStreetMapScreen(),  // Map screen
+      const ProfileScreen(),
+    ];
   }
 
   @override
   void dispose() {
     searchController.dispose();
-    _pageController.dispose();
     super.dispose();
   }
 
@@ -74,41 +92,91 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       currentIndex = index;
     });
-    _pageController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+  }
+
+  // ✅ Search Logic
+  Future<void> _performSearch(String query) async {
+    if (query.trim().isEmpty) {
+      setState(() {
+        isSearching = false;
+        searchQuery = "";
+        searchAttractions.clear();
+        searchHotels.clear();
+        searchRestaurants.clear();
+        searchEvents.clear();
+      });
+      return;
+    }
+
+    setState(() {
+      isSearching = true;
+      searchQuery = query.trim().toLowerCase();
+    });
+
+    try {
+      final results = await Future.wait([
+        attractionService.getAllAttractions(),
+        hotelService.getAllHotels(),
+        restaurantService.getAllRestaurants(),
+        eventService.getAllEvents(),
+      ]);
+
+      final allAttractions = results[0] as List<AttractionModel>;
+      final allHotels = results[1] as List<HotelModel>;
+      final allRestaurants = results[2] as List<RestaurantModel>;
+      final allEvents = results[3] as List<EventModel>;
+
+      setState(() {
+        searchAttractions = allAttractions.where((item) {
+          return item.name.toLowerCase().contains(searchQuery) ||
+              item.description.toLowerCase().contains(searchQuery);
+        }).toList();
+
+        searchHotels = allHotels.where((item) {
+          return item.name.toLowerCase().contains(searchQuery) ||
+              item.description.toLowerCase().contains(searchQuery);
+        }).toList();
+
+        searchRestaurants = allRestaurants.where((item) {
+          return item.name.toLowerCase().contains(searchQuery) ||
+              item.description.toLowerCase().contains(searchQuery);
+        }).toList();
+
+        searchEvents = allEvents.where((item) {
+          return item.title.toLowerCase().contains(searchQuery) ||
+              item.description.toLowerCase().contains(searchQuery);
+        }).toList();
+      });
+    } catch (e) {
+      print('Search error: $e');
+      setState(() {
+        isSearching = false;
+      });
+    }
+  }
+
+  void _clearSearch() {
+    setState(() {
+      isSearching = false;
+      searchQuery = "";
+      searchAttractions.clear();
+      searchHotels.clear();
+      searchRestaurants.clear();
+      searchEvents.clear();
+    });
+    searchController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: (index) {
-          setState(() {
-            currentIndex = index;
-          });
-        },
-        children: [
-          // ✅ Page 0: Home
-          _buildHomeContent(),
-          
-          // ✅ Page 1: Favorites
-          const FavoritesScreen(),
-          
-          // ✅ Page 2: Search (or Map)
-          const SearchScreen(),
-
-          // ✅ Page 3: Map
-          const OpenStreetMapScreen(),
-          
-          // ✅ Page 4: Profile 
-          const ProfileScreen(),
-        ],
-      ),
+      body: isSearching 
+          ? _buildSearchResults()
+          : IndexedStack(  // ✅ Use IndexedStack instead of PageView
+              index: currentIndex,
+              children: _screens,
+            ),
       bottomNavigationBar: BottomNavBar(
         currentIndex: currentIndex,
         onTap: _onNavTap,
@@ -116,7 +184,151 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ✅ Extract home content to a separate method
+  // ✅ Build Search Results
+  Widget _buildSearchResults() {
+    final totalResults = searchAttractions.length + 
+                         searchHotels.length + 
+                         searchRestaurants.length + 
+                         searchEvents.length;
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Search Results'),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: _clearSearch,
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: _clearSearch,
+          ),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(70),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: SearchBarWidget(
+              controller: searchController,
+              onSearch: () {
+                _performSearch(searchController.text);
+              },
+              onChanged: (value) {
+                _performSearch(value);
+              },
+            ),
+          ),
+        ),
+      ),
+      body: totalResults == 0
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.search_off_rounded,
+                    size: 80,
+                    color: AppColors.grey,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No results found for "$searchQuery"',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.dark,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Try searching with different keywords',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Found $totalResults results for "$searchQuery"',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  if (searchAttractions.isNotEmpty) ...[
+                    _buildResultSection('Attractions', searchAttractions.length),
+                    ...searchAttractions.map((item) => AttractionCard(attraction: item)),
+                    const SizedBox(height: 16),
+                  ],
+
+                  if (searchHotels.isNotEmpty) ...[
+                    _buildResultSection('Hotels', searchHotels.length),
+                    ...searchHotels.map((item) => HotelCard(hotel: item)),
+                    const SizedBox(height: 16),
+                  ],
+
+                  if (searchRestaurants.isNotEmpty) ...[
+                    _buildResultSection('Restaurants', searchRestaurants.length),
+                    ...searchRestaurants.map((item) => RestaurantCard(restaurant: item)),
+                    const SizedBox(height: 16),
+                  ],
+
+                  if (searchEvents.isNotEmpty) ...[
+                    _buildResultSection('Events', searchEvents.length),
+                    ...searchEvents.map((item) => EventCard(event: item)),
+                    const SizedBox(height: 16),
+                  ],
+                ],
+              ),
+            ),
+    );
+  }
+
+  Widget _buildResultSection(String title, int count) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              count.toString(),
+              style: TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ✅ Home Content
   Widget _buildHomeContent() {
     return SafeArea(
       child: SingleChildScrollView(
@@ -127,7 +339,15 @@ class _HomeScreenState extends State<HomeScreen> {
             HomeAppBar(userName: userName),
             const SizedBox(height: 25),
 
-            SearchBarWidget(controller: searchController),
+            SearchBarWidget(
+              controller: searchController,
+              onSearch: () {
+                _performSearch(searchController.text);
+              },
+              onChanged: (value) {
+                _performSearch(value);
+              },
+            ),
 
             const SizedBox(height: 30),
 
@@ -145,33 +365,25 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: Icons.place,
                   title: "Places",
                   color: Colors.blue,
-                  onTap: () {
-                    // Navigate to places
-                  },
+                  onTap: () {},
                 ),
                 CategoryCard(
                   icon: Icons.hotel,
                   title: "Hotels",
                   color: Colors.orange,
-                  onTap: () {
-                    // Navigate to hotels
-                  },
+                  onTap: () {},
                 ),
                 CategoryCard(
                   icon: Icons.restaurant,
                   title: "Food",
                   color: Colors.green,
-                  onTap: () {
-                    // Navigate to restaurants
-                  },
+                  onTap: () {},
                 ),
                 CategoryCard(
                   icon: Icons.event,
                   title: "Events",
                   color: Colors.purple,
-                  onTap: () {
-                    // Navigate to events
-                  },
+                  onTap: () {},
                 ),
               ],
             ),
@@ -201,67 +413,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   if (snapshot.hasError) {
                     return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.error_outline_rounded,
-                            size: 40,
-                            color: AppColors.error,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Error loading attractions',
-                            style: TextStyle(
-                              color: AppColors.error,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        'Error loading attractions',
+                        style: TextStyle(color: AppColors.error),
                       ),
                     );
                   }
 
                   final attractions = snapshot.data ?? [];
                   if (attractions.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.landscape_rounded,
-                            size: 48,
-                            color: AppColors.grey,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'No attractions available',
-                            style: TextStyle(
-                              color: AppColors.grey,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Text(
-                            'Check back later for new places',
-                            style: TextStyle(
-                              color: AppColors.lightGrey,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  final validAttractions = attractions.where((item) {
-                    return item != null && item.name.isNotEmpty;
-                  }).toList();
-
-                  if (validAttractions.isEmpty) {
                     return const Center(
                       child: Text(
-                        'No valid attractions found',
+                        'No attractions available',
                         style: TextStyle(color: AppColors.grey, fontSize: 16),
                       ),
                     );
@@ -269,10 +432,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   return ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    itemCount: validAttractions.length,
+                    itemCount: attractions.length,
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     itemBuilder: (context, index) {
-                      final attraction = validAttractions[index];
+                      final attraction = attractions[index];
                       return AttractionCard(attraction: attraction);
                     },
                   );
@@ -304,64 +467,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   if (snapshot.hasError) {
                     return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.error_outline_rounded,
-                            size: 40,
-                            color: AppColors.error,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Error loading hotels',
-                            style: TextStyle(
-                              color: AppColors.error,
-                              fontSize: 14,
-                            ),
-                          ),
-                          Text(
-                            '${snapshot.error}',
-                            style: TextStyle(
-                              color: AppColors.grey,
-                              fontSize: 12,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+                      child: Text(
+                        'Error loading hotels',
+                        style: TextStyle(color: AppColors.error),
                       ),
                     );
                   }
 
                   final hotels = snapshot.data ?? [];
                   if (hotels.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.hotel_rounded,
-                            size: 48,
-                            color: AppColors.grey,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'No hotels available',
-                            style: TextStyle(
-                              color: AppColors.grey,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Add hotels to Firestore to see them here',
-                            style: TextStyle(
-                              color: AppColors.lightGrey,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
+                    return const Center(
+                      child: Text(
+                        'No hotels available',
+                        style: TextStyle(color: AppColors.grey, fontSize: 16),
                       ),
                     );
                   }
@@ -381,7 +499,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 35),
 
-            // ✅ Restaurants Section
+            // Restaurants Section
             const Text(
               "Popular Restaurants",
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
@@ -404,23 +522,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   if (snapshot.hasError) {
                     return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.error_outline_rounded,
-                            size: 40,
-                            color: AppColors.error,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Error loading restaurants',
-                            style: TextStyle(
-                              color: AppColors.error,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        'Error loading restaurants',
+                        style: TextStyle(color: AppColors.error),
                       ),
                     );
                   }
@@ -450,7 +554,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 35),
 
-            // ✅ Upcoming Events Section
+            // Events Section
             const Text(
               "Upcoming Events",
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
@@ -473,76 +577,29 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   if (snapshot.hasError) {
                     return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.error_outline_rounded,
-                            size: 40,
-                            color: AppColors.error,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Error loading events',
-                            style: TextStyle(
-                              color: AppColors.error,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        'Error loading events',
+                        style: TextStyle(color: AppColors.error),
                       ),
                     );
                   }
 
                   final events = snapshot.data ?? [];
                   if (events.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.event_available_rounded,
-                            size: 48,
-                            color: AppColors.grey,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'No upcoming events',
-                            style: TextStyle(
-                              color: AppColors.grey,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Check back later for events',
-                            style: TextStyle(
-                              color: AppColors.lightGrey,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
+                    return const Center(
+                      child: Text(
+                        'No upcoming events',
+                        style: TextStyle(color: AppColors.grey, fontSize: 16),
                       ),
                     );
                   }
 
-                  // ✅ Sort events by date (upcoming first)
-                  final sortedEvents = List.from(events);
-                  sortedEvents.sort((a, b) {
-                    try {
-                      return a.date.compareTo(b.date);
-                    } catch (_) {
-                      return 0;
-                    }
-                  });
-
                   return ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    itemCount: sortedEvents.length,
+                    itemCount: events.length,
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     itemBuilder: (context, index) {
-                      final event = sortedEvents[index];
+                      final event = events[index];
                       return EventCard(event: event);
                     },
                   );
@@ -575,23 +632,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   if (snapshot.hasError) {
                     return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.error_outline_rounded,
-                            size: 40,
-                            color: AppColors.error,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Error loading cities',
-                            style: TextStyle(
-                              color: AppColors.error,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        'Error loading cities',
+                        style: TextStyle(color: AppColors.error),
                       ),
                     );
                   }

@@ -1,10 +1,9 @@
-// lib/screens/map/open_street_map_screen.dart
+// lib/screens/maps/open_street_map_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
-import 'dart:async';
 
 class OpenStreetMapScreen extends StatefulWidget {
   final double? latitude;
@@ -30,23 +29,29 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
   LatLng? _targetPosition;
   bool _isLoading = true;
   bool _hasLocationPermission = false;
+  bool _permissionDenied = false;
 
   static const LatLng _defaultPosition = LatLng(24.8607, 67.0011);
 
   @override
   void initState() {
     super.initState();
-    _initializePosition();
+    _initializePosition(); // ✅ Add this
   }
 
-  Future<void> _initializePosition() async {
+  // ✅ Initialize position
+  void _initializePosition() {
     if (widget.latitude != null && widget.longitude != null) {
       setState(() {
         _targetPosition = LatLng(widget.latitude!, widget.longitude!);
         _isLoading = false;
       });
     } else {
-      await _getCurrentLocation();
+      // ✅ Don't auto-request location, use default
+      setState(() {
+        _targetPosition = _defaultPosition;
+        _isLoading = false;
+      });
     }
   }
 
@@ -57,17 +62,20 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
         setState(() {
           _isLoading = false;
           _targetPosition = _defaultPosition;
+          _permissionDenied = true;
         });
         return;
       }
 
       LocationPermission permission = await Geolocator.checkPermission();
+      
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
           setState(() {
             _isLoading = false;
             _targetPosition = _defaultPosition;
+            _permissionDenied = true;
           });
           return;
         }
@@ -77,6 +85,7 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
         setState(() {
           _isLoading = false;
           _targetPosition = _defaultPosition;
+          _permissionDenied = true;
         });
         return;
       }
@@ -86,93 +95,49 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
         _currentPosition = LatLng(position.latitude, position.longitude);
         _targetPosition = _currentPosition;
         _hasLocationPermission = true;
+        _permissionDenied = false;
         _isLoading = false;
       });
     } catch (e) {
       setState(() {
         _isLoading = false;
         _targetPosition = _defaultPosition;
+        _permissionDenied = true;
       });
     }
   }
 
   Future<void> _centerOnLocation() async {
-    if (_currentPosition != null) {
+    if (_currentPosition != null && _hasLocationPermission) {
       _mapController.move(_currentPosition!, 15);
     } else {
-      await _getCurrentLocation();
-      if (_currentPosition != null) {
-        _mapController.move(_currentPosition!, 15);
-      }
+      _showPermissionDialog();
     }
   }
 
-  // ✅ Fixed: Search with proper Location handling
-  Future<void> _searchPlace(String query) async {
-    if (query.isEmpty) return;
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      List<Location> locations = await locationFromAddress(query);
-      
-      setState(() {
-        _isLoading = false;
-      });
-
-      if (locations.isNotEmpty) {
-        Location location = locations.first;
-        
-        setState(() {
-          _targetPosition = LatLng(location.latitude, location.longitude);
-        });
-        
-        _mapController.move(_targetPosition!, 14);
-        
-        // ✅ Get place name from reverse geocoding
-        String placeName = query;
-        try {
-          List<Placemark> placemarks = await placemarkFromCoordinates(
-            location.latitude,
-            location.longitude,
-          );
-          if (placemarks.isNotEmpty) {
-            placeName = placemarks.first.name ?? 
-                        placemarks.first.locality ?? 
-                        placemarks.first.administrativeArea ?? 
-                        query;
-          }
-        } catch (_) {
-          placeName = query;
-        }
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('📍 Found: $placeName'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('No location found for "$query"'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      }
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Search error: $e'),
-          backgroundColor: Colors.red,
+  void _showPermissionDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Location Permission'),
+        content: const Text(
+          'Location permission is required to show your current position on the map.',
         ),
-      );
-    }
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _getCurrentLocation();
+            },
+            child: const Text('Allow'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -188,26 +153,6 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
             tooltip: 'My Location',
           ),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search places...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(vertical: 0),
-              ),
-              onSubmitted: _searchPlace,
-            ),
-          ),
-        ),
       ),
       body: Stack(
         children: [
@@ -243,12 +188,42 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
                   children: [
                     CircularProgressIndicator(),
                     SizedBox(height: 16),
-                    Text(
-                      'Loading Map...',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
+                    Text('Loading Map...'),
+                  ],
+                ),
+              ),
+            ),
+          
+          if (_permissionDenied && !_isLoading)
+            Positioned(
+              bottom: 30,
+              left: 20,
+              right: 20,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.location_off, color: Colors.red),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Text(
+                        'Location permission denied. Please enable in settings.',
+                        style: TextStyle(fontSize: 13),
                       ),
+                    ),
+                    TextButton(
+                      onPressed: _getCurrentLocation,
+                      child: const Text('Retry'),
                     ),
                   ],
                 ),
@@ -257,7 +232,7 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
           
           Positioned(
             right: 16,
-            bottom: 30,
+            bottom: 100,
             child: Column(
               children: [
                 _buildMapControlButton(

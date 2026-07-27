@@ -17,7 +17,7 @@ class EventCard extends StatelessWidget {
     print('Building EventCard: ${event.title}');
 
     return Container(
-      width: 280,
+      width: 220,
       margin: const EdgeInsets.only(right: 15),
       child: Card(
         shape: RoundedRectangleBorder(

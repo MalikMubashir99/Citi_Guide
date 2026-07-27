@@ -1,3 +1,5 @@
+// lib/screens/profile/profile_screen.dart
+import 'dart:convert';
 import 'package:app/model/user_model.dart';
 import 'package:app/screens/auth/login_screen.dart';
 import 'package:app/screens/profile/edit_profile_screen.dart';
@@ -68,11 +70,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+  // ✅ Get image provider based on type
+  ImageProvider? _getImageProvider(String image) {
+    if (image.isEmpty) return null;
+
+    try {
+      // ✅ Check if it's Base64 (starts with data:image or long string)
+      if (image.startsWith('data:image') || image.length > 200) {
+        // ✅ For Base64 images
+        final base64String = image.contains(',') 
+            ? image.split(',').last 
+            : image;
+        final bytes = base64Decode(base64String);
+        return MemoryImage(bytes);
+      } else {
+        // ✅ For URL images
+        return NetworkImage(image);
+      }
+    } catch (e) {
+      print('Error loading image: $e');
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Profile"),
+        elevation: 0,
       ),
       body: FutureBuilder<UserModel>(
         future: userFuture,
@@ -121,10 +147,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     CircleAvatar(
                       radius: 60,
-                      backgroundImage:
-                          user.image.isNotEmpty
-                              ? NetworkImage(user.image)
-                              : null,
+                      backgroundImage: _getImageProvider(user.image),
                       backgroundColor: Colors.grey.shade200,
                       child: user.image.isEmpty
                           ? const Icon(
@@ -133,6 +156,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               color: Colors.grey,
                             )
                           : null,
+                      onBackgroundImageError: (_, __) {
+                        // ✅ Fallback if image fails to load
+                        setState(() {});
+                      },
                     ),
                     // ✅ Edit icon overlay
                     Positioned(
@@ -211,7 +238,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => FavoritesScreen(),
+                        builder: (_) => const FavoritesScreen(),
                       ),
                     );
                   },

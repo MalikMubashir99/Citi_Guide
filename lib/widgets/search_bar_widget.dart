@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 class SearchBarWidget extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback? onSearch;
+  final ValueChanged<String>? onChanged; 
 
   const SearchBarWidget({
     super.key,
     required this.controller,
     this.onSearch,
+       this.onChanged, 
   });
 
   @override
@@ -47,6 +49,7 @@ class SearchBarWidget extends StatelessWidget {
             },
           ),
         ),
+          onChanged: onChanged,
         onSubmitted: (_) {
           if (onSearch != null) onSearch!();
         },

@@ -24,13 +24,19 @@ class UserService {
     required String phone,
     String image = '',
   }) async {
+    Map<String, dynamic> data = {
+      'name': name,
+      'phone': phone,
+    };
+    
+    // ✅ Only update image if it's not empty
+    if (image.isNotEmpty) {
+      data['image'] = image;
+    }
+    
     await firestore
         .collection('users')
         .doc(auth.currentUser!.uid)
-        .update({
-      'name': name,
-      'phone': phone,
-      'image': image,
-    });
+        .update(data);
   }
 }

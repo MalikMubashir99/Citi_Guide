@@ -5,6 +5,7 @@ import 'package:app/model/user_model.dart';
 import 'package:app/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class EditProfileScreen extends StatefulWidget {
   final UserModel user;
@@ -44,20 +45,37 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
+  ImageProvider? _getImageProvider(String? base64Image) {
+    if (base64Image == null || base64Image.isEmpty) return null;
+
+    try {
+      final bytes = base64Decode(base64Image);
+      return MemoryImage(bytes);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // ✅ Pick and compress image
   Future<void> pickImage() async {
     final picker = ImagePicker();
     final XFile? image = await picker.pickImage(
       source: ImageSource.gallery,
-      maxWidth: 500,
-      maxHeight: 500,
-      imageQuality: 70,
+      maxWidth: 400, // ✅ Small size
+      maxHeight: 400,
+      imageQuality: 60, // ✅ Good quality with small size
     );
 
     if (image == null) return;
 
     try {
       final bytes = await image.readAsBytes();
-      final base64String = base64Encode(bytes);
+
+      // ✅ Compress further if needed
+      final compressedBytes = await _compressImage(bytes);
+
+      // ✅ Convert to Base64
+      final base64String = base64Encode(compressedBytes);
 
       setState(() {
         _base64Image = base64String;
@@ -71,12 +89,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error: $e"),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
       );
     }
+  }
+
+  // ✅ Compress image if too large
+  Future<List<int>> _compressImage(List<int> bytes) async {
+    // If image is already small, return as is
+    if (bytes.length < 100000) {
+      // 100KB
+      return bytes;
+    }
+
+    // ✅ Use flutter_image_compress package if available
+    // For now, just return (will work with smaller maxWidth)
+    return bytes;
+  }
+
+  // ✅ Remove image
+  void removeImage() {
+    setState(() {
+      _base64Image = null;
+    });
   }
 
   Future<void> updateProfile() async {
@@ -119,10 +154,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       setState(() => loading = false);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error: $e"),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
       );
     }
   }
@@ -130,10 +162,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Edit Profile"),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text("Edit Profile"), elevation: 0),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -145,16 +174,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 children: [
                   CircleAvatar(
                     radius: 60,
-                    backgroundImage: _base64Image != null
-                        ? MemoryImage(base64Decode(_base64Image!))
-                        : null,
+                    backgroundImage: _getImageProvider(_base64Image),
                     backgroundColor: Colors.grey.shade200,
-                    child: _base64Image == null
-                        ? const Icon(
-                            Icons.person,
-                            size: 60,
-                            color: Colors.grey,
-                          )
+                    child: _base64Image == null || _base64Image!.isEmpty
+                        ? const Icon(Icons.person, size: 55, color: Colors.grey)
                         : null,
                   ),
                   Positioned(
@@ -173,6 +196,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     ),
                   ),
+                  // ✅ Remove image button
+                  if (_base64Image != null)
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: GestureDetector(
+                        onTap: removeImage,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.close,
+                            size: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
