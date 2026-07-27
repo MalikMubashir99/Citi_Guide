@@ -46,7 +46,7 @@ class RestaurantCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 200, // ✅ Fixed width
+      width: 220, 
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         elevation: 2,

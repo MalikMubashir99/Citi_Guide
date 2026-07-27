@@ -36,7 +36,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int currentIndex = 0;
   final TextEditingController searchController = TextEditingController();
-  String userName = "User";
+  String userName = "";
 
   // ✅ Search state
   bool isSearching = false;
@@ -562,7 +562,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 18),
 
             SizedBox(
-              height: 200,
+              height: 260,
               child: FutureBuilder<List<EventModel>>(
                 future: eventService.getAllEvents(),
                 builder: (context, snapshot) {

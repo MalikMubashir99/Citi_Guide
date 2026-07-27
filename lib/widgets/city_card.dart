@@ -30,7 +30,7 @@ class CityCard extends StatelessWidget {
         );
       },
       child: Container(
-        width: 160,
+        width: 220, 
         margin: const EdgeInsets.only(right: 15),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
