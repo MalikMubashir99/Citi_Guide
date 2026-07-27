@@ -35,7 +35,7 @@ class EventService {
     await _firestore.collection(collection).doc(id).delete();
   }
 
-  // Get All Events
+  // Get Events
   Stream<List<EventModel>> getEvents() {
     return _firestore.collection(collection).snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {

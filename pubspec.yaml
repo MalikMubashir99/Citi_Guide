@@ -74,5 +74,5 @@ flutter:
     # - assets/images/attraction.jpg
     
     # ✅ Icons & Lottie
-    - assets/icons/
-    - assets/lottie/
+    # - assets/icons/
+    # - assets/lottie/

@@ -1,6 +1,6 @@
 // lib/screens/profile/edit_profile_screen.dart
+import 'dart:convert';
 import 'dart:io';
-import 'package:app/admin/services/storage_service.dart';
 import 'package:app/model/user_model.dart';
 import 'package:app/services/user_service.dart';
 import 'package:flutter/material.dart';
@@ -22,13 +22,11 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final UserService userService = UserService();
-  final StorageService storageService = StorageService();
 
   late TextEditingController nameController;
   late TextEditingController phoneController;
 
-  File? selectedImage;
-  String imageUrl = "";
+  String? _base64Image;
   bool loading = false;
 
   @override
@@ -36,7 +34,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.initState();
     nameController = TextEditingController(text: widget.user.name);
     phoneController = TextEditingController(text: widget.user.phone);
-    imageUrl = widget.user.image;
+    _base64Image = widget.user.image.isNotEmpty ? widget.user.image : null;
   }
 
   @override
@@ -50,13 +48,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final picker = ImagePicker();
     final XFile? image = await picker.pickImage(
       source: ImageSource.gallery,
+      maxWidth: 500,
+      maxHeight: 500,
+      imageQuality: 70,
     );
 
     if (image == null) return;
 
-    setState(() {
-      selectedImage = File(image.path);
-    });
+    try {
+      final bytes = await image.readAsBytes();
+      final base64String = base64Encode(bytes);
+
+      setState(() {
+        _base64Image = base64String;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Image selected ✅"),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Future<void> updateProfile() async {
@@ -65,7 +85,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     if (name.length < 3) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Name is too short")),
+        const SnackBar(
+          content: Text("Name must be at least 3 characters"),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
@@ -75,20 +98,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
 
     try {
-      String finalImageUrl = imageUrl;
-
-      // Upload new image if selected
-      if (selectedImage != null) {
-        finalImageUrl = await storageService.uploadImage(
-          selectedImage!,
-          folder: 'profiles',
-        );
-      }
-
       await userService.updateUser(
         name: name,
         phone: phone,
-        image: finalImageUrl, // ✅ Pass image
+        image: _base64Image ?? '',
       );
 
       if (!mounted) return;
@@ -132,13 +145,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 children: [
                   CircleAvatar(
                     radius: 60,
-                    backgroundImage: selectedImage != null
-                        ? FileImage(selectedImage!)
-                        : imageUrl.isNotEmpty
-                            ? NetworkImage(imageUrl) as ImageProvider
-                            : null,
+                    backgroundImage: _base64Image != null
+                        ? MemoryImage(base64Decode(_base64Image!))
+                        : null,
                     backgroundColor: Colors.grey.shade200,
-                    child: imageUrl.isEmpty && selectedImage == null
+                    child: _base64Image == null
                         ? const Icon(
                             Icons.person,
                             size: 60,
@@ -167,32 +178,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             const SizedBox(height: 30),
 
-            // Name Field
             TextField(
               controller: nameController,
               decoration: const InputDecoration(
-                labelText: "Name",
+                labelText: "Full Name",
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
+                prefixIcon: Icon(Icons.person),
               ),
             ),
             const SizedBox(height: 20),
 
-            // Phone Field
             TextField(
               controller: phoneController,
               keyboardType: TextInputType.phone,
               decoration: const InputDecoration(
-                labelText: "Phone",
+                labelText: "Phone Number",
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
+                prefixIcon: Icon(Icons.phone),
               ),
             ),
             const SizedBox(height: 30),
 
-            // Save Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

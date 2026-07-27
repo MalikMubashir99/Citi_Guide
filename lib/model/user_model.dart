@@ -1,3 +1,4 @@
+// lib/model/user_model.dart
 class UserModel {
   String uid;
   String name;
@@ -12,7 +13,7 @@ class UserModel {
     required this.email,
     required this.phone,
     required this.image,
-    required this.role
+    required this.role,
   });
 
   factory UserModel.fromFirestore(
@@ -20,13 +21,12 @@ class UserModel {
     String id,
   ) {
     return UserModel(
-      uid: id,
+      uid: id,  // ✅ Document ID as uid
       name: data['name'] ?? '',
       email: data['email'] ?? '',
       phone: data['phone'] ?? '',
       image: data['image'] ?? '',
       role: data['role'] ?? 'user',
-
     );
   }
 
@@ -36,7 +36,7 @@ class UserModel {
       'email': email,
       'phone': phone,
       'image': image,
-      'role':role,
+      'role': role,
     };
   }
 }

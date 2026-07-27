@@ -3,8 +3,10 @@ import 'package:app/core/constants/app_colors.dart';
 import 'package:app/model/attraction_model.dart';
 import 'package:app/model/hotel_model.dart';
 import 'package:app/model/restaurant_model.dart';
+import 'package:app/model/event_model.dart';
 import 'package:app/model/city_model.dart';
 import 'package:app/screens/maps/open_street_map_screen.dart';
+import 'package:app/screens/profile/profile_screen.dart';
 import 'package:app/services/attraction_service.dart';
 import 'package:app/services/hotel_service.dart';
 import 'package:app/services/restaurant_service.dart';
@@ -18,6 +20,7 @@ import 'package:app/widgets/category_card.dart';
 import 'package:app/widgets/attraction_card.dart';
 import 'package:app/widgets/hotel_card.dart';
 import 'package:app/widgets/restaurant_card.dart';
+import 'package:app/widgets/event_card.dart';
 import 'package:app/widgets/city_card.dart';
 import 'package:app/widgets/bottom_navbar.dart';
 import 'package:app/screens/profile/favorites_screen.dart';
@@ -67,7 +70,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // ✅ Handle navigation
   void _onNavTap(int index) {
     setState(() {
       currentIndex = index;
@@ -103,44 +105,13 @@ class _HomeScreenState extends State<HomeScreen> {
           // ✅ Page 3: Map
           const OpenStreetMapScreen(),
           
-          // ✅ Page 4: Profile (Placeholder)
-          Container(
-            color: AppColors.background,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.person_rounded,
-                    size: 80,
-                    color: AppColors.grey,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Profile Screen',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.dark,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'User profile will appear here',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: AppColors.grey,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          // ✅ Page 4: Profile 
+          const ProfileScreen(),
         ],
       ),
       bottomNavigationBar: BottomNavBar(
         currentIndex: currentIndex,
-        onTap: _onNavTap, // ✅ Use the navigation method
+        onTap: _onNavTap,
       ),
     );
   }
@@ -310,6 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 35),
 
+            // Top Hotels Section
             const Text(
               "Top Hotels",
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
@@ -409,7 +381,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 35),
 
-            // Restaurants Section
+            // ✅ Restaurants Section
             const Text(
               "Popular Restaurants",
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
@@ -470,6 +442,108 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemBuilder: (context, index) {
                       final restaurant = restaurants[index];
                       return RestaurantCard(restaurant: restaurant);
+                    },
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 35),
+
+            // ✅ Upcoming Events Section
+            const Text(
+              "Upcoming Events",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 18),
+
+            SizedBox(
+              height: 200,
+              child: FutureBuilder<List<EventModel>>(
+                future: eventService.getAllEvents(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.primary,
+                      ),
+                    );
+                  }
+
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline_rounded,
+                            size: 40,
+                            color: AppColors.error,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Error loading events',
+                            style: TextStyle(
+                              color: AppColors.error,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  final events = snapshot.data ?? [];
+                  if (events.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.event_available_rounded,
+                            size: 48,
+                            color: AppColors.grey,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'No upcoming events',
+                            style: TextStyle(
+                              color: AppColors.grey,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Check back later for events',
+                            style: TextStyle(
+                              color: AppColors.lightGrey,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  // ✅ Sort events by date (upcoming first)
+                  final sortedEvents = List.from(events);
+                  sortedEvents.sort((a, b) {
+                    try {
+                      return a.date.compareTo(b.date);
+                    } catch (_) {
+                      return 0;
+                    }
+                  });
+
+                  return ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: sortedEvents.length,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    itemBuilder: (context, index) {
+                      final event = sortedEvents[index];
+                      return EventCard(event: event);
                     },
                   );
                 },
