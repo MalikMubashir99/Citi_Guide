@@ -13,7 +13,7 @@ class FavoritesScreen extends StatefulWidget {
 class _FavoritesScreenState extends State<FavoritesScreen> {
   final FavoriteService favoriteService = FavoriteService();
 
-  // ✅ Get item details with type
+  // ✅ Get item details with type - Fixed order: check events FIRST
   Future<Map<String, dynamic>?> _getItemDetails(String itemId) async {
     print('🔍 Searching for item: $itemId');
 
@@ -56,21 +56,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       print('❌ Restaurant error: $e');
     }
 
-    // Try event
-    try {
-      print('📂 Checking event: $itemId');
-      var doc = await favoriteService.getEvent(itemId);
-      print('📄 Event exists: ${doc.exists}');
-      if (doc.exists) {
-        print('✅ Found as event');
-        final data = doc.data() as Map<String, dynamic>;
-        print('📦 Event data: $data');
-        return {'type': 'event', 'data': data};
-      }
-    } catch (e) {
-      print('❌ Event error: $e');
-    }
-
     print('❌ No item found for: $itemId');
     return null;
   }
@@ -107,7 +92,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("My Favorites"),
+        title: const Text(
+          "My Favorites",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        elevation: 0,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: favoriteService.getFavorites(),
@@ -126,9 +115,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   Text('Error: ${snapshot.error}'),
                   const SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: () {
-                      setState(() {});
-                    },
+                    onPressed: () => setState(() {}),
                     child: const Text("Retry"),
                   ),
                 ],
@@ -137,20 +124,27 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.favorite_border, size: 80, color: Colors.grey),
-                  SizedBox(height: 10),
+                  Icon(Icons.favorite_border, size: 80, color: Colors.grey.shade400),
+                  const SizedBox(height: 16),
                   Text(
                     "No Favorites Found",
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey.shade600,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 8),
                   Text(
                     "Start exploring and save your favorite places!",
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade500,
+                    ),
                   ),
                 ],
               ),
@@ -158,6 +152,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           }
 
           return ListView.builder(
+            padding: const EdgeInsets.all(12),
             itemCount: snapshot.data!.docs.length,
             itemBuilder: (context, index) {
               var favorite = snapshot.data!.docs[index];
@@ -169,13 +164,23 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 future: _getItemDetails(itemId),
                 builder: (context, itemSnapshot) {
                   if (itemSnapshot.connectionState == ConnectionState.waiting) {
-                    return const Card(
-                      margin: EdgeInsets.all(10),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          child: CircularProgressIndicator(),
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 25,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            SizedBox(width: 16),
+                            Text("Loading..."),
+                          ],
                         ),
-                        title: Text("Loading..."),
                       ),
                     );
                   }
@@ -184,21 +189,29 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       !itemSnapshot.hasData ||
                       itemSnapshot.data == null) {
                     return Card(
-                      margin: const EdgeInsets.all(10),
+                      margin: const EdgeInsets.only(bottom: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
-                        leading: const CircleAvatar(
-                          child: Icon(Icons.delete_outline, color: Colors.grey),
+                        leading: CircleAvatar(
+                          backgroundColor: Colors.grey.shade200,
+                          child: Icon(Icons.delete_outline, color: Colors.grey.shade500),
                         ),
-                        title: const Text("Item not available"),
+                        title: const Text(
+                          "Item not available",
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
                         subtitle: const Text("Tap to remove"),
                         trailing: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
+                          icon: Icon(Icons.delete, color: Colors.red.shade400),
                           onPressed: () async {
                             await favoriteService.removeFavorite(favorite.id);
                             if (!mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text("Removed from favorites"),
+                                behavior: SnackBarBehavior.floating,
                               ),
                             );
                           },
@@ -210,94 +223,144 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   final item = itemSnapshot.data!;
                   final data = item['data'];
                   final type = item['type'];
+                  // Handle both 'name' and 'title' fields
                   final name = data['name'] ?? data['title'] ?? 'Unknown';
                   final image = data['image'] ?? '';
-                  final rating = data['rating'] ?? 0;
+                  final rating = (data['rating'] ?? 0).toDouble();
                   final typeColor = _getColorForType(type);
 
                   return Card(
-                    margin: const EdgeInsets.all(10),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundImage: image.isNotEmpty
-                            ? NetworkImage(image)
-                            : null,
-                        backgroundColor: Colors.grey.shade200,
-                        onBackgroundImageError: (_, __) =>
-                            const Icon(Icons.broken_image, color: Colors.grey),
-                        child: image.isEmpty
-                            ? Icon(_getIconForType(type), color: Colors.grey)
-                            : null,
-                      ),
-                      title: Text(
-                        name,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Row(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
                         children: [
-                          const Icon(
-                            Icons.star_rounded,
-                            color: Colors.amber,
-                            size: 16,
+                          // Image/Avatar
+                          CircleAvatar(
+                            radius: 28,
+                            backgroundColor: Colors.grey.shade200,
+                            backgroundImage: image.isNotEmpty ? NetworkImage(image) : null,
+                            onBackgroundImageError: (_, __) {},
+                            child: image.isEmpty
+                                ? Icon(_getIconForType(type), color: typeColor, size: 24)
+                                : null,
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            rating.toStringAsFixed(1),
-                            style: const TextStyle(fontSize: 13),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: typeColor.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              type.toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: typeColor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.favorite, color: Colors.red),
-                        onPressed: () async {
-                          bool? confirm = await showDialog(
-                            context: context,
-                            builder: (_) => AlertDialog(
-                              title: const Text("Remove Favorite"),
-                              content: Text("Remove $name from favorites?"),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, false),
-                                  child: const Text("Cancel"),
+                          const SizedBox(width: 14),
+                          
+                          // Content
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  name,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                ElevatedButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  child: const Text("Remove"),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.star_rounded,
+                                      color: Colors.amber.shade600,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      rating > 0 ? rating.toStringAsFixed(1) : 'N/A',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey.shade600,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: typeColor.withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        type.toUpperCase(),
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w700,
+                                          color: typeColor,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                          );
+                          ),
+                          
+                          // Remove button
+                          IconButton(
+                            icon: Icon(
+                              Icons.favorite_rounded,
+                              color: Colors.red.shade400,
+                              size: 28,
+                            ),
+                            onPressed: () async {
+                              bool? confirm = await showDialog(
+                                context: context,
+                                builder: (_) => AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  title: const Text("Remove Favorite"),
+                                  content: Text("Remove $name from favorites?"),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, false),
+                                      child: const Text("Cancel"),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () => Navigator.pop(context, true),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.red,
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                      child: const Text("Remove"),
+                                    ),
+                                  ],
+                                ),
+                              );
 
-                          if (confirm == true) {
-                            await favoriteService.removeFavorite(favorite.id);
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Removed from favorites"),
-                              ),
-                            );
-                          }
-                        },
+                              if (confirm == true) {
+                                await favoriteService.removeFavorite(favorite.id);
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("$name removed from favorites"),
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                        ],
                       ),
                     ),
                   );

@@ -20,12 +20,6 @@ class FavoriteService {
   Future<DocumentSnapshot> getRestaurant(String restaurantId) {
     return _firestore.collection('restaurants').doc(restaurantId).get();
   }
-
- Future<DocumentSnapshot> getEvent(String eventId) {
-  print('📂 Getting event: $eventId');
-  return _firestore.collection('events').doc(eventId).get();
-}
-  // ✅ Check if favorite
   Future<bool> isFavorite(String itemId) async {
     try {
       print('🔍 Checking favorite for: $itemId');
@@ -49,28 +43,24 @@ class FavoriteService {
     }
   }
 
-  // ✅ Add Favorite
-  Future<void> addFavorite(String attractionId) async {
-    try {
-      print('❤️ Adding favorite: $attractionId');
-      final user = _auth.currentUser;
-      if (user == null) {
-        print('❌ No user logged in');
-        return;
-      }
+ Future<void> addFavorite(String attractionId) async {
+  try {
+    print("❤️ Saving favorite ID: $attractionId");
 
-      await _firestore.collection('favorites').add({
-        'userId': user.uid,
-        'attractionId': attractionId,
-        'createdAt': Timestamp.now(),
-      });
-      print('✅ Favorite added successfully');
-    } catch (e) {
-      print('❌ Error adding favorite: $e');
-      rethrow;
-    }
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    await _firestore.collection('favorites').add({
+      'userId': user.uid,
+      'attractionId': attractionId,
+      'createdAt': Timestamp.now(),
+    });
+
+    print("✅ Favorite saved");
+  } catch (e) {
+    print(e);
   }
-
+}
   // ✅ Check favorite (alternative)
   Future<QuerySnapshot> checkFavorite(String attractionId) {
     return _firestore
@@ -162,19 +152,7 @@ class FavoriteService {
           }
         } catch (_) {}
 
-        // Try event
-        try {
-          final event = await getEvent(itemId);
-          if (event.exists) {
-            items.add({
-              'id': itemId,
-              'type': 'event',
-              'data': event.data() as Map<String, dynamic>,
-              'favoriteId': doc.id,
-            });
-            continue;
-          }
-        } catch (_) {}
+        
       }
 
       return items;

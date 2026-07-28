@@ -18,90 +18,11 @@ class EventDetailScreen extends StatefulWidget {
 }
 
 class _EventDetailScreenState extends State<EventDetailScreen> {
-  final FavoriteService favoriteService = FavoriteService();
-  bool isFavorite = false;
 
   @override
   void initState() {
     super.initState();
-    loadFavorite();
   }
-// lib/screens/home/event_detail_screen.dart
-
-Future<void> loadFavorite() async {
-  try {
-    print('🔍 Event ID: ${widget.event.id}');
-    print('🔍 Event Name: ${widget.event.title}');
-    print('🔍 Event ID length: ${widget.event.id.length}');
-    
-    if (widget.event.id.isEmpty) {
-      print('❌ Event ID is EMPTY!');
-      return;
-    }
-    
-    bool favorite = await favoriteService.isFavorite(widget.event.id);
-    print('📊 Favorite status: $favorite');
-    if (mounted) {
-      setState(() {
-        isFavorite = favorite;
-      });
-    }
-  } catch (e) {
-    print('❌ Error loading favorite: $e');
-  }
-}
-
-Future<void> toggleFavorite() async {
-  try {
-    print('🔄 Toggling favorite for: ${widget.event.id}');
-    print('🔄 Event ID length: ${widget.event.id.length}');
-    
-    if (widget.event.id.isEmpty) {
-      print('❌ Cannot toggle favorite - Event ID is empty!');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Error: Event ID not found"),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    
-    if (isFavorite) {
-      print('🗑️ Removing favorite...');
-      await favoriteService.removeFavoriteByAttraction(widget.event.id);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Removed from favorites"),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } else {
-      print('❤️ Adding favorite...');
-      await favoriteService.addFavorite(widget.event.id);
-      print('✅ Favorite added successfully');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Added to favorites ❤️"),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-    await loadFavorite();
-  } catch (e) {
-    print('❌ Error toggling favorite: $e');
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Error: $e"),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-}
 
   Future<void> openGoogleMaps(BuildContext context) async {
     if (widget.event.location.isEmpty) {
@@ -165,22 +86,13 @@ Future<void> toggleFavorite() async {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          // ✅ Favorite Button
-          IconButton(
-            icon: Icon(
-              isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-              color: isFavorite ? Colors.red : AppColors.error,
-              size: 28,
-            ),
-            onPressed: toggleFavorite,
-          ),
           IconButton(
             icon: Icon(
               Icons.share_rounded,
               color: AppColors.dark,
             ),
             onPressed: () {
-              // TODO: Share event
+              
             },
           ),
         ],

@@ -25,6 +25,7 @@ dependencies:
   # Utilities
   image_picker: ^1.2.0
   url_launcher: ^6.3.0
+  file_picker: ^6.1.1
   flutter_rating_bar: ^4.0.1
   smooth_page_indicator: ^1.2.1
   flutter_admin_scaffold: ^1.4.0
