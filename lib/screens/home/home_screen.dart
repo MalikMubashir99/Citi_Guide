@@ -13,6 +13,7 @@ import 'package:app/services/hotel_service.dart';
 import 'package:app/services/restaurant_service.dart';
 import 'package:app/services/event_service.dart';
 import 'package:app/services/city_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:app/widgets/home_appbar.dart';
@@ -37,11 +38,12 @@ class _HomeScreenState extends State<HomeScreen> {
   int currentIndex = 0;
   final TextEditingController searchController = TextEditingController();
   String userName = "";
+  String userImage = "";
 
   // ✅ Search state
   bool isSearching = false;
   String searchQuery = "";
-  
+
   // ✅ Search results
   List<AttractionModel> searchAttractions = [];
   List<HotelModel> searchHotels = [];
@@ -62,14 +64,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _getUserName();
-    
+
     // ✅ Initialize screens
     _screens = [
       _buildHomeContent(),
       const FavoritesScreen(),
       const SearchScreen(),
-      const OpenStreetMapScreen(),  // Map screen
-      const ProfileScreen(),
+      const OpenStreetMapScreen(), // Map screen
+      ProfileScreen(onProfileUpdated: refreshUserName),
     ];
   }
 
@@ -80,11 +82,42 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _getUserName() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      setState(() {
-        userName = user.displayName ?? user.email?.split('@').first ?? "User";
-      });
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        try {
+          final userDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .get();
+
+          if (userDoc.exists) {
+            final data = userDoc.data();
+            String name = data?['name'] ?? '';
+            String image = data?['image'] ?? ''; // ✅ Get image
+
+            if (name.trim().isEmpty) {
+              name = user.displayName ?? user.email?.split('@').first ?? "User";
+            }
+
+            setState(() {
+              userName = name;
+              userImage = image; // ✅ Set image
+            });
+            print('✅ User name: $userName');
+            print('✅ User image length: ${userImage.length}');
+            return;
+          }
+        } catch (e) {
+          print('Firestore error: $e');
+        }
+
+        setState(() {
+          userName = user.displayName ?? user.email?.split('@').first ?? "User";
+        });
+      }
+    } catch (e) {
+      print('Error getting user data: $e');
     }
   }
 
@@ -92,6 +125,11 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       currentIndex = index;
     });
+  }
+
+  void refreshUserName() {
+    print('🔄 Refreshing user name...');
+    _getUserName();
   }
 
   // ✅ Search Logic
@@ -169,14 +207,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ Create screens dynamically so userName is always up to date
+    final screens = [
+      _buildHomeContent(),
+      const FavoritesScreen(),
+      const SearchScreen(),
+      const OpenStreetMapScreen(),
+      const ProfileScreen(),
+    ];
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: isSearching 
+      body: isSearching
           ? _buildSearchResults()
-          : IndexedStack(  // ✅ Use IndexedStack instead of PageView
-              index: currentIndex,
-              children: _screens,
-            ),
+          : IndexedStack(index: currentIndex, children: screens),
       bottomNavigationBar: BottomNavBar(
         currentIndex: currentIndex,
         onTap: _onNavTap,
@@ -186,10 +230,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ✅ Build Search Results
   Widget _buildSearchResults() {
-    final totalResults = searchAttractions.length + 
-                         searchHotels.length + 
-                         searchRestaurants.length + 
-                         searchEvents.length;
+    final totalResults =
+        searchAttractions.length +
+        searchHotels.length +
+        searchRestaurants.length +
+        searchEvents.length;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -201,10 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onPressed: _clearSearch,
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: _clearSearch,
-          ),
+          IconButton(icon: const Icon(Icons.close), onPressed: _clearSearch),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(70),
@@ -244,10 +286,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'Try searching with different keywords',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.grey,
-                    ),
+                    style: TextStyle(fontSize: 14, color: AppColors.grey),
                   ),
                 ],
               ),
@@ -259,16 +298,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(
                     'Found $totalResults results for "$searchQuery"',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: AppColors.grey,
-                    ),
+                    style: TextStyle(fontSize: 16, color: AppColors.grey),
                   ),
                   const SizedBox(height: 20),
 
                   if (searchAttractions.isNotEmpty) ...[
-                    _buildResultSection('Attractions', searchAttractions.length),
-                    ...searchAttractions.map((item) => AttractionCard(attraction: item)),
+                    _buildResultSection(
+                      'Attractions',
+                      searchAttractions.length,
+                    ),
+                    ...searchAttractions.map(
+                      (item) => AttractionCard(attraction: item),
+                    ),
                     const SizedBox(height: 16),
                   ],
 
@@ -279,8 +320,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
 
                   if (searchRestaurants.isNotEmpty) ...[
-                    _buildResultSection('Restaurants', searchRestaurants.length),
-                    ...searchRestaurants.map((item) => RestaurantCard(restaurant: item)),
+                    _buildResultSection(
+                      'Restaurants',
+                      searchRestaurants.length,
+                    ),
+                    ...searchRestaurants.map(
+                      (item) => RestaurantCard(restaurant: item),
+                    ),
                     const SizedBox(height: 16),
                   ],
 
@@ -302,10 +348,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(width: 8),
           Container(
@@ -336,7 +379,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            HomeAppBar(userName: userName),
+            HomeAppBar(userName: userName, profileImage: userImage),
             const SizedBox(height: 25),
 
             SearchBarWidget(
@@ -490,6 +533,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     itemBuilder: (context, index) {
                       final hotel = hotels[index];
+                       print('🟢 Building HotelCard for: ${hotel.name}');
                       return HotelCard(hotel: hotel);
                     },
                   );

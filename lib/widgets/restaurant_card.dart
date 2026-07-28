@@ -1,62 +1,31 @@
 // lib/widgets/restaurant_card.dart
 import 'package:app/core/constants/app_colors.dart';
 import 'package:app/model/restaurant_model.dart';
+import 'package:app/screens/home/restaurant_detail_screen.dart';
 import 'package:flutter/material.dart';
 
 class RestaurantCard extends StatelessWidget {
   final RestaurantModel restaurant;
 
-  const RestaurantCard({
-    super.key,
-    required this.restaurant,
-  });
-
-  Widget _buildRatingStars(double rating) {
-    int fullStars = rating.floor();
-    bool hasHalfStar = (rating - fullStars) >= 0.5;
-    List<Widget> stars = [];
-
-    for (int i = 0; i < 5; i++) {
-      if (i < fullStars) {
-        stars.add(Icon(
-          Icons.star_rounded,
-          color: AppColors.secondary,
-          size: 14,
-        ));
-      } else if (i == fullStars && hasHalfStar) {
-        stars.add(Icon(
-          Icons.star_half_rounded,
-          color: AppColors.secondary,
-          size: 14,
-        ));
-      } else {
-        stars.add(Icon(
-          Icons.star_outline_rounded,
-          color: AppColors.secondary.withValues(alpha: 0.5),
-          size: 14,
-        ));
-      }
-    }
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: stars,
-    );
-  }
+  const RestaurantCard({super.key, required this.restaurant});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 220, 
+      width: 220,
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         elevation: 2,
         shadowColor: Colors.brown.shade900.withValues(alpha: 0.1),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         child: InkWell(
           onTap: () {
-            // Navigate to restaurant detail
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => RestaurantDetailScreen(restaurant: restaurant),
+              ),
+            );
           },
           borderRadius: BorderRadius.circular(14),
           child: Column(
@@ -121,7 +90,6 @@ class RestaurantCard extends StatelessWidget {
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: AppColors.dark,
-                        letterSpacing: 0.2,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -161,9 +129,17 @@ class RestaurantCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Row(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        _buildRatingStars(restaurant.rating),
+                        ...List.generate(
+                          5,
+                          (index) => Icon(
+                            index < restaurant.rating.floor()
+                                ? Icons.star_rounded
+                                : Icons.star_border_rounded,
+                            color: AppColors.secondary,
+                            size: 12,
+                          ),
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           restaurant.rating.toStringAsFixed(1),
@@ -173,39 +149,6 @@ class RestaurantCard extends StatelessWidget {
                             color: AppColors.dark,
                           ),
                         ),
-                        const Spacer(),
-                        if (restaurant.phone.isNotEmpty)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.phone_rounded,
-                                  size: 8,
-                                  color: AppColors.primary,
-                                ),
-                                const SizedBox(width: 2),
-                                Text(
-                                  restaurant.phone,
-                                  style: TextStyle(
-                                    fontSize: 8,
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
                       ],
                     ),
                   ],

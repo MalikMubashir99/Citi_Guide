@@ -1,13 +1,16 @@
 // lib/widgets/home_app_bar.dart
+import 'dart:convert';
 import 'package:app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class HomeAppBar extends StatelessWidget {
   final String userName;
+  final String? profileImage; // ✅ Add this
 
   const HomeAppBar({
     super.key,
     required this.userName,
+    this.profileImage, // ✅ Optional
   });
 
   @override
@@ -23,6 +26,7 @@ class HomeAppBar extends StatelessWidget {
 
     return Row(
       children: [
+        // ✅ Dynamic Profile Image
         Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
@@ -31,13 +35,17 @@ class HomeAppBar extends StatelessWidget {
               width: 2,
             ),
           ),
-          child: const CircleAvatar(
+          child: CircleAvatar(
             radius: 26,
-            backgroundImage: AssetImage("assets/images/profile.jpg"),
-            child: Icon(
-              Icons.person,
-              color: Colors.white,
-            ),
+            backgroundColor: Colors.grey.shade200,
+            backgroundImage: _getImageProvider(profileImage),
+            child: profileImage == null || profileImage!.isEmpty
+                ? const Icon(
+                    Icons.person,
+                    color: Colors.grey,
+                    size: 30,
+                  )
+                : null,
           ),
         ),
         const SizedBox(width: 15),
@@ -55,7 +63,7 @@ class HomeAppBar extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                userName,
+                userName.isNotEmpty ? userName : "Guest",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -102,5 +110,32 @@ class HomeAppBar extends StatelessWidget {
         )
       ],
     );
+  }
+
+  // ✅ Get image provider
+  ImageProvider? _getImageProvider(String? image) {
+    if (image == null || image.isEmpty) return null;
+
+    try {
+      // ✅ Check if it's Base64
+      if (image.length > 100 && !image.startsWith('http')) {
+        String imageData = image;
+        if (imageData.startsWith('data:image')) {
+          imageData = imageData.split(',').last;
+        }
+        final bytes = base64Decode(imageData);
+        return MemoryImage(bytes);
+      }
+
+      // ✅ If it's a URL
+      if (image.startsWith('http')) {
+        return NetworkImage(image);
+      }
+
+      return null;
+    } catch (e) {
+      print('❌ Error loading profile image: $e');
+      return null;
+    }
   }
 }

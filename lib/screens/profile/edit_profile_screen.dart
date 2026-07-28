@@ -56,44 +56,42 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  // ✅ Pick and compress image
-  Future<void> pickImage() async {
-    final picker = ImagePicker();
-    final XFile? image = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 400, // ✅ Small size
-      maxHeight: 400,
-      imageQuality: 60, // ✅ Good quality with small size
+Future<void> pickImage() async {
+  final picker = ImagePicker();
+  final XFile? image = await picker.pickImage(
+    source: ImageSource.gallery,
+    maxWidth: 300,  // ✅ Smaller size
+    maxHeight: 300,
+    imageQuality: 50, // ✅ Lower quality
+  );
+
+  if (image == null) return;
+
+  try {
+    final bytes = await image.readAsBytes();
+    print('📸 Image bytes length: ${bytes.length}');
+    
+    // ✅ Convert to Base64
+    final base64String = base64Encode(bytes);
+    print('📸 Base64 length: ${base64String.length}');
+    
+    setState(() {
+      _base64Image = base64String;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Image selected ✅"),
+        backgroundColor: Colors.green,
+      ),
     );
-
-    if (image == null) return;
-
-    try {
-      final bytes = await image.readAsBytes();
-
-      // ✅ Compress further if needed
-      final compressedBytes = await _compressImage(bytes);
-
-      // ✅ Convert to Base64
-      final base64String = base64Encode(compressedBytes);
-
-      setState(() {
-        _base64Image = base64String;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Image selected ✅"),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
-      );
-    }
+  } catch (e) {
+    print('❌ Error picking image: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+    );
   }
-
+}
   // ✅ Compress image if too large
   Future<List<int>> _compressImage(List<int> bytes) async {
     // If image is already small, return as is
@@ -114,7 +112,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
   }
 
-  Future<void> updateProfile() async {
+Future<void> updateProfile() async {
     final name = nameController.text.trim();
     final phone = phoneController.text.trim();
 
@@ -133,6 +131,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
 
     try {
+      print('📸 Saving image length: ${_base64Image?.length ?? 0}');
+      
       await userService.updateUser(
         name: name,
         phone: phone,
@@ -149,8 +149,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
 
       widget.onProfileUpdated?.call();
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } catch (e) {
+      print('❌ Update error: $e');
       setState(() => loading = false);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -158,7 +159,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

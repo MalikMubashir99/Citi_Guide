@@ -13,10 +13,11 @@ class UserService {
         .doc(auth.currentUser!.uid)
         .get();
 
-    return UserModel.fromFirestore(
-      doc.data()!,
-      doc.id,
-    );
+    final data = doc.data();
+    print('📸 User image length: ${data?['image']?.length ?? 0}');
+    print('📸 Image starts with: ${data?['image']?.substring(0, 30)}');
+
+    return UserModel.fromFirestore(data!, doc.id);
   }
 
   Future<void> updateUser({
@@ -24,19 +25,16 @@ class UserService {
     required String phone,
     String image = '',
   }) async {
-    Map<String, dynamic> data = {
-      'name': name,
-      'phone': phone,
-    };
-    
-    // ✅ Only update image if it's not empty
+    Map<String, dynamic> data = {'name': name, 'phone': phone};
+
+    // ✅ Always save image if provided
     if (image.isNotEmpty) {
       data['image'] = image;
+      print('📸 Saving image to Firestore, length: ${image.length}');
     }
-    
-    await firestore
-        .collection('users')
-        .doc(auth.currentUser!.uid)
-        .update(data);
+
+    await firestore.collection('users').doc(auth.currentUser!.uid).update(data);
+
+    print('✅ User updated in Firestore');
   }
 }

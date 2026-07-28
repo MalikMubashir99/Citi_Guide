@@ -1,3 +1,4 @@
+// lib/screens/profile/favorites_screen.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../services/favorite_service.dart';
@@ -12,10 +13,53 @@ class FavoritesScreen extends StatefulWidget {
 class _FavoritesScreenState extends State<FavoritesScreen> {
   final FavoriteService favoriteService = FavoriteService();
 
+  // ✅ Get item details (attraction, hotel, or restaurant)
+  Future<Map<String, dynamic>?> _getItemDetails(String itemId) async {
+    // Try attraction first
+    try {
+      var doc = await favoriteService.getAttraction(itemId);
+      if (doc.exists) {
+        return {'type': 'attraction', 'data': doc.data() as Map<String, dynamic>};
+      }
+    } catch (_) {}
+
+    // Try hotel
+    try {
+      var doc = await favoriteService.getHotel(itemId);
+      if (doc.exists) {
+        return {'type': 'hotel', 'data': doc.data() as Map<String, dynamic>};
+      }
+    } catch (_) {}
+
+    // Try restaurant
+    try {
+      var doc = await favoriteService.getRestaurant(itemId);
+      if (doc.exists) {
+        return {'type': 'restaurant', 'data': doc.data() as Map<String, dynamic>};
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
+  // ✅ Get icon based on type
+  IconData _getIconForType(String type) {
+    switch (type) {
+      case 'hotel':
+        return Icons.hotel_rounded;
+      case 'restaurant':
+        return Icons.restaurant_rounded;
+      default:
+        return Icons.place_rounded;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("My Favorites")),
+      appBar: AppBar(
+        title: const Text("My Favorites"),
+      ),
       body: StreamBuilder<QuerySnapshot>(
         stream: favoriteService.getFavorites(),
         builder: (context, snapshot) {
@@ -33,7 +77,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   Text('Error: ${snapshot.error}'),
                   const SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      setState(() {});
+                    },
                     child: const Text("Retry"),
                   ),
                 ],
@@ -52,6 +98,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     "No Favorites Found",
                     style: TextStyle(fontSize: 18, color: Colors.grey),
                   ),
+                  SizedBox(height: 5),
+                  Text(
+                    "Start exploring and save your favorite places!",
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
                 ],
               ),
             );
@@ -61,12 +112,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             itemCount: snapshot.data!.docs.length,
             itemBuilder: (context, index) {
               var favorite = snapshot.data!.docs[index];
+              final itemId = favorite['attractionId'];
 
-              return FutureBuilder<DocumentSnapshot>(
-                future: favoriteService.getAttraction(favorite['attractionId']),
-                builder: (context, attractionSnapshot) {
-                  if (attractionSnapshot.connectionState ==
-                      ConnectionState.waiting) {
+              return FutureBuilder<Map<String, dynamic>?>(
+                future: _getItemDetails(itemId),
+                builder: (context, itemSnapshot) {
+                  if (itemSnapshot.connectionState == ConnectionState.waiting) {
                     return const Card(
                       margin: EdgeInsets.all(10),
                       child: ListTile(
@@ -78,58 +129,105 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     );
                   }
 
-                  if (attractionSnapshot.hasError) {
+                  if (itemSnapshot.hasError || !itemSnapshot.hasData || itemSnapshot.data == null) {
                     return Card(
                       margin: const EdgeInsets.all(10),
-                      child: const ListTile(
-                        leading: Icon(Icons.error),
-                        title: Text("Error loading attraction"),
+                      child: ListTile(
+                        leading: const CircleAvatar(
+                          child: Icon(Icons.delete_outline, color: Colors.grey),
+                        ),
+                        title: const Text("Item not available"),
+                        subtitle: const Text("Tap to remove"),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () async {
+                            await favoriteService.removeFavorite(favorite.id);
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Removed from favorites"),
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     );
                   }
 
-                  if (!attractionSnapshot.hasData ||
-                      !attractionSnapshot.data!.exists) {
-                    return Card(
-                      margin: const EdgeInsets.all(10),
-                      child: const ListTile(
-                        leading: Icon(Icons.delete_outline),
-                        title: Text("Attraction no longer available"),
-                        subtitle: Text("Swipe to remove"),
-                      ),
-                    );
-                  }
-
-                  var attraction =
-                      attractionSnapshot.data!.data() as Map<String, dynamic>;
+                  final item = itemSnapshot.data!;
+                  final data = item['data'];
+                  final type = item['type'];
+                  final name = data['name'] ?? data['title'] ?? 'Unknown';
+                  final image = data['image'] ?? '';
+                  final rating = data['rating'] ?? 0;
 
                   return Card(
                     margin: const EdgeInsets.all(10),
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundImage: NetworkImage(
-                          attraction['image'] ?? '',
-                        ),
-                        onBackgroundImageError: (_, _) => const Icon(
+                        backgroundImage: image.isNotEmpty
+                            ? NetworkImage(image)
+                            : null,
+                        backgroundColor: Colors.grey.shade200,
+                        onBackgroundImageError: (_, __) => const Icon(
                           Icons.broken_image,
+                          color: Colors.grey,
                         ),
-                        child: attraction['image'] == null ||
-                                attraction['image'].isEmpty
-                            ? const Icon(Icons.place)
+                        child: image.isEmpty
+                            ? Icon(
+                                _getIconForType(type),
+                                color: Colors.grey,
+                              )
                             : null,
                       ),
-                      title: Text(attraction['name'] ?? 'Unknown'),
-                      subtitle: Text("⭐ ${attraction['rating'] ?? 0}"),
+                      title: Text(
+                        name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: Row(
+                        children: [
+                          const Icon(
+                            Icons.star_rounded,
+                            color: Colors.amber,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            rating.toStringAsFixed(1),
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _getTypeColor(type).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              type.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: _getTypeColor(type),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                       trailing: IconButton(
                         icon: const Icon(Icons.favorite, color: Colors.red),
                         onPressed: () async {
-                          // ✅ Show confirmation dialog
                           bool? confirm = await showDialog(
                             context: context,
                             builder: (_) => AlertDialog(
                               title: const Text("Remove Favorite"),
                               content: Text(
-                                "Remove ${attraction['name'] ?? 'this'} from favorites?",
+                                "Remove $name from favorites?",
                               ),
                               actions: [
                                 TextButton(
@@ -164,5 +262,16 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         },
       ),
     );
+  }
+
+  Color _getTypeColor(String type) {
+    switch (type) {
+      case 'hotel':
+        return Colors.purple;
+      case 'restaurant':
+        return Colors.red;
+      default:
+        return Colors.blue;
+    }
   }
 }

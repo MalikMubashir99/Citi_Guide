@@ -1,10 +1,11 @@
 // lib/screens/home/restaurant_detail_screen.dart
 import 'package:app/core/constants/app_colors.dart';
+import 'package:app/model/restaurant_model.dart';
+import 'package:app/services/favorite_service.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../model/restaurant_model.dart';
 
-class RestaurantDetailScreen extends StatelessWidget {
+class RestaurantDetailScreen extends StatefulWidget {
   final RestaurantModel restaurant;
 
   const RestaurantDetailScreen({
@@ -12,8 +13,70 @@ class RestaurantDetailScreen extends StatelessWidget {
     required this.restaurant,
   });
 
+  @override
+  State<RestaurantDetailScreen> createState() => _RestaurantDetailScreenState();
+}
+
+class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
+  final FavoriteService favoriteService = FavoriteService();
+  bool isFavorite = false;
+
+  @override
+  void initState() {
+    super.initState();
+    loadFavorite();
+  }
+
+  Future<void> loadFavorite() async {
+    try {
+      bool favorite = await favoriteService.isFavorite(widget.restaurant.id);
+      if (mounted) {
+        setState(() {
+          isFavorite = favorite;
+        });
+      }
+    } catch (e) {
+      print('Error loading favorite: $e');
+    }
+  }
+
+  Future<void> toggleFavorite() async {
+    try {
+      if (isFavorite) {
+        await favoriteService.removeFavoriteByAttraction(widget.restaurant.id);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Removed from favorites"),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        await favoriteService.addFavorite(widget.restaurant.id);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Added to favorites ❤️"),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      await loadFavorite();
+    } catch (e) {
+      print('Error toggling favorite: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error: $e"),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   Future<void> openGoogleMaps(BuildContext context) async {
-    if (restaurant.latitude == 0 && restaurant.longitude == 0) {
+    if (widget.restaurant.latitude == 0 && widget.restaurant.longitude == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text("Location not available"),
@@ -28,7 +91,7 @@ class RestaurantDetailScreen extends StatelessWidget {
     }
 
     final Uri url = Uri.parse(
-      "https://www.google.com/maps/search/?api=1&query=${restaurant.latitude},${restaurant.longitude}",
+      "https://www.google.com/maps/search/?api=1&query=${widget.restaurant.latitude},${widget.restaurant.longitude}",
     );
 
     if (await canLaunchUrl(url)) {
@@ -52,7 +115,7 @@ class RestaurantDetailScreen extends StatelessWidget {
   }
 
   Future<void> callRestaurant(BuildContext context) async {
-    if (restaurant.phone.isEmpty) {
+    if (widget.restaurant.phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text("Phone number not available"),
@@ -66,7 +129,7 @@ class RestaurantDetailScreen extends StatelessWidget {
       return;
     }
 
-    final Uri url = Uri.parse("tel:${restaurant.phone}");
+    final Uri url = Uri.parse("tel:${widget.restaurant.phone}");
 
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
@@ -91,7 +154,7 @@ class RestaurantDetailScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          restaurant.name,
+          widget.restaurant.name,
           style: TextStyle(
             color: AppColors.dark,
             fontWeight: FontWeight.bold,
@@ -108,14 +171,14 @@ class RestaurantDetailScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          // ✅ Favorite Button
           IconButton(
             icon: Icon(
-              Icons.favorite_border_rounded,
-              color: AppColors.error,
+              isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+              color: isFavorite ? Colors.red : AppColors.error,
+              size: 28,
             ),
-            onPressed: () {
-              // Add to favorites
-            },
+            onPressed: toggleFavorite,
           ),
           IconButton(
             icon: Icon(
@@ -123,7 +186,7 @@ class RestaurantDetailScreen extends StatelessWidget {
               color: AppColors.dark,
             ),
             onPressed: () {
-              // Share restaurant
+              // TODO: Share restaurant
             },
           ),
         ],
@@ -135,7 +198,7 @@ class RestaurantDetailScreen extends StatelessWidget {
             // Image Section
             Stack(
               children: [
-                restaurant.image.isEmpty
+                widget.restaurant.image.isEmpty
                     ? Container(
                         height: 280,
                         width: double.infinity,
@@ -147,7 +210,7 @@ class RestaurantDetailScreen extends StatelessWidget {
                         ),
                       )
                     : Image.network(
-                        restaurant.image,
+                        widget.restaurant.image,
                         height: 280,
                         width: double.infinity,
                         fit: BoxFit.cover,
@@ -225,7 +288,7 @@ class RestaurantDetailScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          restaurant.rating.toStringAsFixed(1),
+                          widget.restaurant.rating.toStringAsFixed(1),
                           style: TextStyle(
                             color: AppColors.white,
                             fontSize: 16,
@@ -258,7 +321,7 @@ class RestaurantDetailScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          restaurant.cityId,
+                          widget.restaurant.cityId,
                           style: TextStyle(
                             fontSize: 12,
                             color: AppColors.dark,
@@ -280,7 +343,7 @@ class RestaurantDetailScreen extends StatelessWidget {
                 children: [
                   // Restaurant Name
                   Text(
-                    restaurant.name,
+                    widget.restaurant.name,
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -296,9 +359,9 @@ class RestaurantDetailScreen extends StatelessWidget {
                       ...List.generate(
                         5,
                         (index) => Icon(
-                          index < restaurant.rating.floor()
+                          index < widget.restaurant.rating.floor()
                               ? Icons.star_rounded
-                              : index < restaurant.rating
+                              : index < widget.restaurant.rating
                                   ? Icons.star_half_rounded
                                   : Icons.star_outline_rounded,
                           color: AppColors.secondary,
@@ -307,7 +370,7 @@ class RestaurantDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        restaurant.rating.toStringAsFixed(1),
+                        widget.restaurant.rating.toStringAsFixed(1),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -316,7 +379,7 @@ class RestaurantDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        restaurant.rating >= 4.5 ? '(Popular)' : '(Good)',
+                        widget.restaurant.rating >= 4.5 ? '(Popular)' : '(Good)',
                         style: TextStyle(
                           fontSize: 13,
                           color: AppColors.grey,
@@ -361,7 +424,7 @@ class RestaurantDetailScreen extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      restaurant.description,
+                      widget.restaurant.description,
                       style: TextStyle(
                         fontSize: 15,
                         color: AppColors.darkGrey,
@@ -436,9 +499,9 @@ class RestaurantDetailScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                restaurant.phone.isEmpty
+                                widget.restaurant.phone.isEmpty
                                     ? "Not available"
-                                    : restaurant.phone,
+                                    : widget.restaurant.phone,
                                 style: TextStyle(
                                   fontSize: 15,
                                   color: AppColors.dark,
@@ -448,7 +511,7 @@ class RestaurantDetailScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        if (restaurant.phone.isNotEmpty)
+                        if (widget.restaurant.phone.isNotEmpty)
                           IconButton(
                             icon: Icon(
                               Icons.copy_rounded,
@@ -504,8 +567,8 @@ class RestaurantDetailScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                restaurant.latitude != 0 && restaurant.longitude != 0
-                                    ? "${restaurant.latitude.toStringAsFixed(4)}, ${restaurant.longitude.toStringAsFixed(4)}"
+                                widget.restaurant.latitude != 0 && widget.restaurant.longitude != 0
+                                    ? "${widget.restaurant.latitude.toStringAsFixed(4)}, ${widget.restaurant.longitude.toStringAsFixed(4)}"
                                     : "Location not available",
                                 style: TextStyle(
                                   fontSize: 15,

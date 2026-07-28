@@ -9,7 +9,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final VoidCallback? onProfileUpdated;
+
+  const ProfileScreen({super.key, this.onProfileUpdated});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -19,6 +21,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final UserService userService = UserService();
 
   late Future<UserModel> userFuture;
+
+  void refreshProfile() {
+    setState(() {
+      userFuture = userService.getUser();
+    });
+    // ✅ Call parent callback to refresh home screen
+    widget.onProfileUpdated?.call();
+  }
 
   @override
   void initState() {
@@ -64,31 +74,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void refreshProfile() {
-    setState(() {
-      userFuture = userService.getUser();
-    });
-  }
-
-  // ✅ Get image provider based on type
   ImageProvider? _getImageProvider(String image) {
-    if (image.isEmpty) return null;
+    if (image.isEmpty) {
+      print('📸 Image is empty');
+      return null;
+    }
+
+    print('📸 Image length: ${image.length}');
+    print('📸 Image starts with: ${image.substring(0, 30)}');
 
     try {
-      // ✅ Check if it's Base64 (starts with data:image or long string)
-      if (image.startsWith('data:image') || image.length > 200) {
-        // ✅ For Base64 images
-        final base64String = image.contains(',') 
-            ? image.split(',').last 
-            : image;
-        final bytes = base64Decode(base64String);
+      // ✅ If it's Base64 string (no 'data:image' prefix)
+      if (!image.startsWith('data:image') && image.length > 100) {
+        final bytes = base64Decode(image);
+        print('📸 Decoded bytes: ${bytes.length}');
         return MemoryImage(bytes);
-      } else {
-        // ✅ For URL images
-        return NetworkImage(image);
       }
+
+      // ✅ If it has 'data:image' prefix
+      if (image.startsWith('data:image')) {
+        final base64String = image.split(',').last;
+        final bytes = base64Decode(base64String);
+        print('📸 Decoded bytes from data:image: ${bytes.length}');
+        return MemoryImage(bytes);
+      }
+
+      // ✅ If it's a URL
+      return NetworkImage(image);
     } catch (e) {
-      print('Error loading image: $e');
+      print('❌ Error decoding image: $e');
       return null;
     }
   }
@@ -96,17 +110,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Profile"),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text("Profile"), elevation: 0),
       body: FutureBuilder<UserModel>(
         future: userFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
@@ -131,9 +140,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
 
           if (!snapshot.hasData) {
-            return const Center(
-              child: Text("User not found"),
-            );
+            return const Center(child: Text("User not found"));
           }
 
           UserModel user = snapshot.data!;
@@ -195,20 +202,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 Text(
                   user.email,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
+                  style: const TextStyle(fontSize: 16, color: Colors.grey),
                 ),
 
                 const SizedBox(height: 5),
 
                 Text(
                   user.phone.isNotEmpty ? user.phone : "No phone number",
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
+                  style: const TextStyle(fontSize: 16, color: Colors.grey),
                 ),
 
                 const SizedBox(height: 30),

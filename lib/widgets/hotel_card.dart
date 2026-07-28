@@ -1,15 +1,13 @@
 // lib/widgets/hotel_card.dart
 import 'package:app/core/constants/app_colors.dart';
 import 'package:app/model/hotel_model.dart';
+import 'package:app/screens/home/hotel_detail_screen.dart';
 import 'package:flutter/material.dart';
 
 class HotelCard extends StatelessWidget {
   final HotelModel hotel;
 
-  const HotelCard({
-    super.key,
-    required this.hotel,
-  });
+  const HotelCard({super.key, required this.hotel});
 
   Widget _buildRatingStars(double rating) {
     int fullStars = rating.floor();
@@ -18,45 +16,51 @@ class HotelCard extends StatelessWidget {
 
     for (int i = 0; i < 5; i++) {
       if (i < fullStars) {
-        stars.add(Icon(
-          Icons.star_rounded,
-          color: AppColors.secondary,
-          size: 14, // ✅ Reduced size
-        ));
+        stars.add(
+          Icon(
+            Icons.star_rounded,
+            color: AppColors.secondary,
+            size: 14, // ✅ Reduced size
+          ),
+        );
       } else if (i == fullStars && hasHalfStar) {
-        stars.add(Icon(
-          Icons.star_half_rounded,
-          color: AppColors.secondary,
-          size: 14,
-        ));
+        stars.add(
+          Icon(Icons.star_half_rounded, color: AppColors.secondary, size: 14),
+        );
       } else {
-        stars.add(Icon(
-          Icons.star_outline_rounded,
-          color: AppColors.secondary.withValues(alpha: 0.5),
-          size: 14,
-        ));
+        stars.add(
+          Icon(
+            Icons.star_outline_rounded,
+            color: AppColors.secondary.withValues(alpha: 0.5),
+            size: 14,
+          ),
+        );
       }
     }
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: stars,
-    );
+    return Row(mainAxisSize: MainAxisSize.min, children: stars);
   }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 220, 
+      width: 220,
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         elevation: 2,
         shadowColor: Colors.brown.shade900.withValues(alpha: 0.1),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         child: InkWell(
           onTap: () {
-            // Navigate to hotel detail
+            // ✅ Add debug print
+            print('🟢 Tapped on hotel: ${hotel.name}');
+
+            // ✅ Correct navigation
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => HotelDetailScreen(hotel: hotel),
+              ),
+            );
           },
           borderRadius: BorderRadius.circular(14),
           child: Column(

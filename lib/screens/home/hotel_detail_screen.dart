@@ -1,10 +1,11 @@
 // lib/screens/home/hotel_detail_screen.dart
 import 'package:app/core/constants/app_colors.dart';
+import 'package:app/model/hotel_model.dart';
+import 'package:app/services/favorite_service.dart';
 import 'package:flutter/material.dart';
-import '../../model/hotel_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class HotelDetailScreen extends StatelessWidget {
+class HotelDetailScreen extends StatefulWidget {
   final HotelModel hotel;
 
   const HotelDetailScreen({
@@ -12,8 +13,70 @@ class HotelDetailScreen extends StatelessWidget {
     required this.hotel,
   });
 
+  @override
+  State<HotelDetailScreen> createState() => _HotelDetailScreenState();
+}
+
+class _HotelDetailScreenState extends State<HotelDetailScreen> {
+  final FavoriteService favoriteService = FavoriteService();
+  bool isFavorite = false;
+
+  @override
+  void initState() {
+    super.initState();
+    loadFavorite();
+  }
+
+  Future<void> loadFavorite() async {
+    try {
+      bool favorite = await favoriteService.isFavorite(widget.hotel.id);
+      if (mounted) {
+        setState(() {
+          isFavorite = favorite;
+        });
+      }
+    } catch (e) {
+      print('Error loading favorite: $e');
+    }
+  }
+
+  Future<void> toggleFavorite() async {
+    try {
+      if (isFavorite) {
+        await favoriteService.removeFavoriteByAttraction(widget.hotel.id);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Removed from favorites"),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        await favoriteService.addFavorite(widget.hotel.id);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Added to favorites ❤️"),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      await loadFavorite();
+    } catch (e) {
+      print('Error toggling favorite: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error: $e"),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   Future<void> callHotel(BuildContext context) async {
-    if (hotel.phone.isEmpty) {
+    if (widget.hotel.phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text("Phone number not available"),
@@ -27,7 +90,7 @@ class HotelDetailScreen extends StatelessWidget {
       return;
     }
 
-    final Uri url = Uri.parse("tel:${hotel.phone}");
+    final Uri url = Uri.parse("tel:${widget.hotel.phone}");
 
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
@@ -47,7 +110,7 @@ class HotelDetailScreen extends StatelessWidget {
   }
 
   Future<void> openWebsite(BuildContext context) async {
-    if (hotel.website.isEmpty) {
+    if (widget.hotel.website.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text("Website URL not available"),
@@ -61,7 +124,7 @@ class HotelDetailScreen extends StatelessWidget {
       return;
     }
 
-    String urlString = hotel.website;
+    String urlString = widget.hotel.website;
     if (!urlString.startsWith('http://') && !urlString.startsWith('https://')) {
       urlString = 'https://$urlString';
     }
@@ -94,7 +157,7 @@ class HotelDetailScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          hotel.name,
+          widget.hotel.name,
           style: TextStyle(
             color: AppColors.dark,
             fontWeight: FontWeight.bold,
@@ -111,14 +174,14 @@ class HotelDetailScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          // ✅ Favorite Button
           IconButton(
             icon: Icon(
-              Icons.favorite_border_rounded,
-              color: AppColors.error,
+              isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+              color: isFavorite ? Colors.red : AppColors.error,
+              size: 28,
             ),
-            onPressed: () {
-              // Add to favorites
-            },
+            onPressed: toggleFavorite,
           ),
           IconButton(
             icon: Icon(
@@ -126,7 +189,7 @@ class HotelDetailScreen extends StatelessWidget {
               color: AppColors.dark,
             ),
             onPressed: () {
-              // Share hotel
+              // TODO: Share hotel
             },
           ),
         ],
@@ -138,7 +201,7 @@ class HotelDetailScreen extends StatelessWidget {
             // Image Section
             Stack(
               children: [
-                hotel.image.isEmpty
+                widget.hotel.image.isEmpty
                     ? Container(
                         height: 280,
                         width: double.infinity,
@@ -150,7 +213,7 @@ class HotelDetailScreen extends StatelessWidget {
                         ),
                       )
                     : Image.network(
-                        hotel.image,
+                        widget.hotel.image,
                         width: double.infinity,
                         height: 280,
                         fit: BoxFit.cover,
@@ -228,7 +291,7 @@ class HotelDetailScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          hotel.rating.toStringAsFixed(1),
+                          widget.hotel.rating.toStringAsFixed(1),
                           style: TextStyle(
                             color: AppColors.white,
                             fontSize: 16,
@@ -261,7 +324,7 @@ class HotelDetailScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          hotel.cityId,
+                          widget.hotel.cityId,
                           style: TextStyle(
                             fontSize: 12,
                             color: AppColors.dark,
@@ -283,7 +346,7 @@ class HotelDetailScreen extends StatelessWidget {
                 children: [
                   // Hotel Name
                   Text(
-                    hotel.name,
+                    widget.hotel.name,
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -299,9 +362,9 @@ class HotelDetailScreen extends StatelessWidget {
                       ...List.generate(
                         5,
                         (index) => Icon(
-                          index < hotel.rating.floor()
+                          index < widget.hotel.rating.floor()
                               ? Icons.star_rounded
-                              : index < hotel.rating
+                              : index < widget.hotel.rating
                                   ? Icons.star_half_rounded
                                   : Icons.star_outline_rounded,
                           color: AppColors.secondary,
@@ -310,7 +373,7 @@ class HotelDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        hotel.rating.toStringAsFixed(1),
+                        widget.hotel.rating.toStringAsFixed(1),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -319,10 +382,10 @@ class HotelDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        hotel.rating >= 4.5 ? '⭐ Premium' : '👍 Good',
+                        widget.hotel.rating >= 4.5 ? '⭐ Premium' : '👍 Good',
                         style: TextStyle(
                           fontSize: 13,
-                          color: hotel.rating >= 4.5 ? AppColors.success : AppColors.grey,
+                          color: widget.hotel.rating >= 4.5 ? AppColors.success : AppColors.grey,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -365,7 +428,7 @@ class HotelDetailScreen extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      hotel.description,
+                      widget.hotel.description,
                       style: TextStyle(
                         fontSize: 15,
                         color: AppColors.darkGrey,
@@ -440,9 +503,9 @@ class HotelDetailScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                hotel.phone.isEmpty
+                                widget.hotel.phone.isEmpty
                                     ? "Not available"
-                                    : hotel.phone,
+                                    : widget.hotel.phone,
                                 style: TextStyle(
                                   fontSize: 15,
                                   color: AppColors.dark,
@@ -452,7 +515,7 @@ class HotelDetailScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        if (hotel.phone.isNotEmpty)
+                        if (widget.hotel.phone.isNotEmpty)
                           IconButton(
                             icon: Icon(
                               Icons.copy_rounded,
@@ -508,9 +571,9 @@ class HotelDetailScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                hotel.website.isEmpty
+                                widget.hotel.website.isEmpty
                                     ? "Not available"
-                                    : hotel.website,
+                                    : widget.hotel.website,
                                 style: TextStyle(
                                   fontSize: 15,
                                   color: AppColors.dark,
@@ -522,7 +585,7 @@ class HotelDetailScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        if (hotel.website.isNotEmpty)
+                        if (widget.hotel.website.isNotEmpty)
                           IconButton(
                             icon: Icon(
                               Icons.open_in_new_rounded,
