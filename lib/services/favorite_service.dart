@@ -16,19 +16,58 @@ class FavoriteService {
     return _firestore.collection('hotels').doc(hotelId).get();
   }
 
-  // ✅ Check if favorite (works for both attraction and hotel)
+  // ✅ Get restaurant
+  Future<DocumentSnapshot> getRestaurant(String restaurantId) {
+    return _firestore.collection('restaurants').doc(restaurantId).get();
+  }
+
+ Future<DocumentSnapshot> getEvent(String eventId) {
+  print('📂 Getting event: $eventId');
+  return _firestore.collection('events').doc(eventId).get();
+}
+  // ✅ Check if favorite
   Future<bool> isFavorite(String itemId) async {
     try {
+      print('🔍 Checking favorite for: $itemId');
+      final user = _auth.currentUser;
+      if (user == null) {
+        print('❌ No user logged in');
+        return false;
+      }
+
       var result = await _firestore
           .collection('favorites')
-          .where('userId', isEqualTo: _auth.currentUser!.uid)
+          .where('userId', isEqualTo: user.uid)
           .where('attractionId', isEqualTo: itemId)
           .get();
 
+      print('📊 Found ${result.docs.length} favorites');
       return result.docs.isNotEmpty;
     } catch (e) {
-      print('Error checking favorite: $e');
+      print('❌ Error checking favorite: $e');
       return false;
+    }
+  }
+
+  // ✅ Add Favorite
+  Future<void> addFavorite(String attractionId) async {
+    try {
+      print('❤️ Adding favorite: $attractionId');
+      final user = _auth.currentUser;
+      if (user == null) {
+        print('❌ No user logged in');
+        return;
+      }
+
+      await _firestore.collection('favorites').add({
+        'userId': user.uid,
+        'attractionId': attractionId,
+        'createdAt': Timestamp.now(),
+      });
+      print('✅ Favorite added successfully');
+    } catch (e) {
+      print('❌ Error adding favorite: $e');
+      rethrow;
     }
   }
 
@@ -41,21 +80,12 @@ class FavoriteService {
         .get();
   }
 
-  // ✅ Add Favorite
-  Future<void> addFavorite(String attractionId) async {
-    await _firestore.collection('favorites').add({
-      'userId': _auth.currentUser!.uid,
-      'attractionId': attractionId,
-      'createdAt': Timestamp.now(),
-    });
-  }
-
   // ✅ Remove Favorite by ID
   Future<void> removeFavorite(String favoriteId) async {
     await _firestore.collection('favorites').doc(favoriteId).delete();
   }
 
-  // ✅ Remove Favorite by Attraction/Hotel ID
+  // ✅ Remove Favorite by Attraction/Hotel/Restaurant/Event ID
   Future<void> removeFavoriteByAttraction(String attractionId) async {
     var result = await _firestore
         .collection('favorites')
@@ -76,13 +106,90 @@ class FavoriteService {
         .snapshots();
   }
 
+  // ✅ Get all favorite item details with type detection
+  Future<List<Map<String, dynamic>>> getAllFavoriteItems() async {
+    try {
+      final favorites = await _firestore
+          .collection('favorites')
+          .where('userId', isEqualTo: _auth.currentUser!.uid)
+          .get();
+
+      List<Map<String, dynamic>> items = [];
+
+      for (var doc in favorites.docs) {
+        final itemId = doc['attractionId'];
+        if (itemId == null) continue;
+
+        // Try attraction
+        try {
+          final attraction = await getAttraction(itemId);
+          if (attraction.exists) {
+            items.add({
+              'id': itemId,
+              'type': 'attraction',
+              'data': attraction.data() as Map<String, dynamic>,
+              'favoriteId': doc.id,
+            });
+            continue;
+          }
+        } catch (_) {}
+
+        // Try hotel
+        try {
+          final hotel = await getHotel(itemId);
+          if (hotel.exists) {
+            items.add({
+              'id': itemId,
+              'type': 'hotel',
+              'data': hotel.data() as Map<String, dynamic>,
+              'favoriteId': doc.id,
+            });
+            continue;
+          }
+        } catch (_) {}
+
+        // Try restaurant
+        try {
+          final restaurant = await getRestaurant(itemId);
+          if (restaurant.exists) {
+            items.add({
+              'id': itemId,
+              'type': 'restaurant',
+              'data': restaurant.data() as Map<String, dynamic>,
+              'favoriteId': doc.id,
+            });
+            continue;
+          }
+        } catch (_) {}
+
+        // Try event
+        try {
+          final event = await getEvent(itemId);
+          if (event.exists) {
+            items.add({
+              'id': itemId,
+              'type': 'event',
+              'data': event.data() as Map<String, dynamic>,
+              'favoriteId': doc.id,
+            });
+            continue;
+          }
+        } catch (_) {}
+      }
+
+      return items;
+    } catch (e) {
+      print('Error getting all favorites: $e');
+      return [];
+    }
+  }
+
   // ✅ Clear all favorites (from subcollection)
   Future<void> clearAllFavorites() async {
     try {
       final user = _auth.currentUser;
       if (user == null) return;
 
-      // ✅ If favorites are in subcollection
       final favorites = await _firestore
           .collection('users')
           .doc(user.uid)
@@ -118,9 +225,5 @@ class FavoriteService {
     } catch (e) {
       print('Error clearing favorites: $e');
     }
-  }
-
-  Future<DocumentSnapshot> getRestaurant(String restaurantId) {
-    return _firestore.collection('restaurants').doc(restaurantId).get();
   }
 }

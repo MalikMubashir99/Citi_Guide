@@ -26,6 +26,7 @@ class EventCard extends StatelessWidget {
         elevation: 3,
         child: InkWell(
           onTap: () {
+             print('🟢 Tapped on event: ${event.title}');
             Navigator.push(
               context,
               MaterialPageRoute(

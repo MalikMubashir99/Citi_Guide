@@ -1,10 +1,11 @@
 // lib/screens/home/event_detail_screen.dart
 import 'package:app/core/constants/app_colors.dart';
+import 'package:app/model/event_model.dart';
+import 'package:app/services/favorite_service.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../model/event_model.dart';
 
-class EventDetailScreen extends StatelessWidget {
+class EventDetailScreen extends StatefulWidget {
   final EventModel event;
 
   const EventDetailScreen({
@@ -12,8 +13,98 @@ class EventDetailScreen extends StatelessWidget {
     required this.event,
   });
 
+  @override
+  State<EventDetailScreen> createState() => _EventDetailScreenState();
+}
+
+class _EventDetailScreenState extends State<EventDetailScreen> {
+  final FavoriteService favoriteService = FavoriteService();
+  bool isFavorite = false;
+
+  @override
+  void initState() {
+    super.initState();
+    loadFavorite();
+  }
+// lib/screens/home/event_detail_screen.dart
+
+Future<void> loadFavorite() async {
+  try {
+    print('🔍 Event ID: ${widget.event.id}');
+    print('🔍 Event Name: ${widget.event.title}');
+    print('🔍 Event ID length: ${widget.event.id.length}');
+    
+    if (widget.event.id.isEmpty) {
+      print('❌ Event ID is EMPTY!');
+      return;
+    }
+    
+    bool favorite = await favoriteService.isFavorite(widget.event.id);
+    print('📊 Favorite status: $favorite');
+    if (mounted) {
+      setState(() {
+        isFavorite = favorite;
+      });
+    }
+  } catch (e) {
+    print('❌ Error loading favorite: $e');
+  }
+}
+
+Future<void> toggleFavorite() async {
+  try {
+    print('🔄 Toggling favorite for: ${widget.event.id}');
+    print('🔄 Event ID length: ${widget.event.id.length}');
+    
+    if (widget.event.id.isEmpty) {
+      print('❌ Cannot toggle favorite - Event ID is empty!');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Error: Event ID not found"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
+    if (isFavorite) {
+      print('🗑️ Removing favorite...');
+      await favoriteService.removeFavoriteByAttraction(widget.event.id);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Removed from favorites"),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else {
+      print('❤️ Adding favorite...');
+      await favoriteService.addFavorite(widget.event.id);
+      print('✅ Favorite added successfully');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Added to favorites ❤️"),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+    await loadFavorite();
+  } catch (e) {
+    print('❌ Error toggling favorite: $e');
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Error: $e"),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+}
+
   Future<void> openGoogleMaps(BuildContext context) async {
-    if (event.location.isEmpty) {
+    if (widget.event.location.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text("Location not available"),
@@ -28,7 +119,7 @@ class EventDetailScreen extends StatelessWidget {
     }
 
     final Uri url = Uri.parse(
-      "https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(event.location)}",
+      "https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(widget.event.location)}",
     );
 
     if (await canLaunchUrl(url)) {
@@ -57,7 +148,7 @@ class EventDetailScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          event.title,
+          widget.event.title,
           style: TextStyle(
             color: AppColors.dark,
             fontWeight: FontWeight.bold,
@@ -74,14 +165,14 @@ class EventDetailScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          // ✅ Favorite Button
           IconButton(
             icon: Icon(
-              Icons.favorite_border_rounded,
-              color: AppColors.error,
+              isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+              color: isFavorite ? Colors.red : AppColors.error,
+              size: 28,
             ),
-            onPressed: () {
-              // Add to favorites
-            },
+            onPressed: toggleFavorite,
           ),
           IconButton(
             icon: Icon(
@@ -89,7 +180,7 @@ class EventDetailScreen extends StatelessWidget {
               color: AppColors.dark,
             ),
             onPressed: () {
-              // Share event
+              // TODO: Share event
             },
           ),
         ],
@@ -101,7 +192,7 @@ class EventDetailScreen extends StatelessWidget {
             // Image Section
             Stack(
               children: [
-                event.image.isEmpty
+                widget.event.image.isEmpty
                     ? Container(
                         height: 280,
                         width: double.infinity,
@@ -113,7 +204,7 @@ class EventDetailScreen extends StatelessWidget {
                         ),
                       )
                     : Image.network(
-                        event.image,
+                        widget.event.image,
                         width: double.infinity,
                         height: 280,
                         fit: BoxFit.cover,
@@ -227,7 +318,7 @@ class EventDetailScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          _getDay(event.date),
+                          _getDay(widget.event.date),
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -235,7 +326,7 @@ class EventDetailScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          _getMonth(event.date),
+                          _getMonth(widget.event.date),
                           style: TextStyle(
                             fontSize: 11,
                             color: AppColors.darkGrey,
@@ -257,7 +348,7 @@ class EventDetailScreen extends StatelessWidget {
                 children: [
                   // Event Title
                   Text(
-                    event.title,
+                    widget.event.title,
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -290,7 +381,7 @@ class EventDetailScreen extends StatelessWidget {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                event.date.isNotEmpty ? event.date : 'TBD',
+                                widget.event.date.isNotEmpty ? widget.event.date : 'TBD',
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: AppColors.dark,
@@ -316,7 +407,7 @@ class EventDetailScreen extends StatelessWidget {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                event.time.isNotEmpty ? event.time : 'TBD',
+                                widget.event.time.isNotEmpty ? widget.event.time : 'TBD',
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: AppColors.dark,
@@ -366,8 +457,8 @@ class EventDetailScreen extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      event.description.isNotEmpty 
-                          ? event.description 
+                      widget.event.description.isNotEmpty 
+                          ? widget.event.description 
                           : "No description available",
                       style: TextStyle(
                         fontSize: 15,
@@ -443,8 +534,8 @@ class EventDetailScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                event.location.isNotEmpty 
-                                    ? event.location 
+                                widget.event.location.isNotEmpty 
+                                    ? widget.event.location 
                                     : "Location not available",
                                 style: TextStyle(
                                   fontSize: 15,
@@ -455,7 +546,7 @@ class EventDetailScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        if (event.location.isNotEmpty)
+                        if (widget.event.location.isNotEmpty)
                           IconButton(
                             icon: Icon(
                               Icons.copy_rounded,
