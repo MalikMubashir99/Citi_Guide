@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class ReviewModel {
   String id;
   String userId;
@@ -27,8 +29,7 @@ class ReviewModel {
       userName: data['userName'] ?? '',
       rating: (data['rating'] ?? 0).toDouble(),
       comment: data['comment'] ?? '',
-      createdAt:
-          (data['createdAt']).toDate(),
+     createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 }

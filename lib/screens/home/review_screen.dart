@@ -56,73 +56,68 @@ class _ReviewScreenState extends State<ReviewScreen> {
       if (mounted) setState(() {});
     }
   }
+Future<void> submitReview() async {
+  if (commentController.text.trim().isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text("Please write a review"),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+    return;
+  }
 
-  Future<void> submitReview() async {
-    if (commentController.text.trim().isEmpty) {
+  setState(() => isLoading = true);
+
+  try {
+    // ✅ Check first
+    final alreadyReviewed = await reviewService.hasUserReviewed(widget.attraction.id);
+    
+    if (alreadyReviewed) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text("Please write a review"),
-          backgroundColor: AppColors.error,
+          content: const Text("⚠️ You have already reviewed this attraction"),
+          backgroundColor: Colors.orange,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
         ),
       );
+      setState(() => isLoading = false);
       return;
     }
 
-    setState(() {
-      isLoading = true;
-    });
+    await reviewService.addReview(
+      attractionId: widget.attraction.id,
+      userName: userName,
+      rating: rating,
+      comment: commentController.text.trim(),
+    );
 
-    try {
-      await reviewService.addReview(
-        attractionId: widget.attraction.id,
-        userName: userName,
-        rating: rating,
-        comment: commentController.text.trim(),
-      );
+    if (!mounted) return;
+    commentController.clear();
+    setState(() => rating = 5);
 
-      if (!mounted) return;
-
-      commentController.clear();
-      setState(() {
-        rating = 5;
-      });
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text("✅ Review Added Successfully!"),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error: $e"),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text("✅ Review Added Successfully!"),
+        backgroundColor: AppColors.success,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  } catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Error: $e"),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  } finally {
+    if (mounted) setState(() => isLoading = false);
   }
-
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(

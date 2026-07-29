@@ -236,19 +236,6 @@ class _UsersScreenState extends State<UsersScreen> {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ✅ Toggle active/inactive
-            IconButton(
-              icon: Icon(
-                isActive ? Icons.check_circle : Icons.cancel,
-                color: isActive ? Colors.green : Colors.red,
-                size: 22,
-              ),
-              onPressed: () {
-                _showStatusToggleDialog(context, id, name, isActive);
-              },
-              tooltip: isActive ? 'Deactivate' : 'Activate',
-            ),
-            // ✅ Delete user
             IconButton(
               icon: const Icon(Icons.delete, color: Colors.red),
               onPressed: () {

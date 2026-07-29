@@ -20,11 +20,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-   try {
+  try {
     await NotificationService.initialize();
   } catch (e) {
     print('Notification Service Error (Web): $e');
@@ -41,15 +39,15 @@ class CitiGuideApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Citi Guide',
-      
+
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      
+
       navigatorObservers: [AnalyticsService.observer],
-      
+
       initialRoute: "/",
-      
+
       routes: {
         "/": (context) => const SplashScreen(),
         "/onboarding": (context) => const OnboardingScreen(),
@@ -62,11 +60,11 @@ class CitiGuideApp extends StatelessWidget {
         "/settings": (context) => const SettingsScreen(),
         "/admin-dashboard": (context) => const AdminDashboardScreen(),
       },
-      
+
       onGenerateRoute: (settings) {
         return null;
       },
-      
+
       onUnknownRoute: (settings) {
         return MaterialPageRoute(
           builder: (_) => Scaffold(
