@@ -1,5 +1,4 @@
 // lib/screens/search/search_screen.dart
-import 'package:app/core/constants/app_colors.dart';
 import 'package:app/model/attraction_model.dart';
 import 'package:app/model/hotel_model.dart';
 import 'package:app/model/restaurant_model.dart';
@@ -27,6 +26,9 @@ class _SearchScreenState extends State<SearchScreen> {
   String searchQuery = "";
   bool isLoading = false;
   bool isSearching = false;
+  String selectedCategory = "All";
+
+  final List<String> categories = ["All", "Attractions", "Restaurants", "Hotels", "Events"];
 
   // Search results
   List<AttractionModel> attractions = [];
@@ -46,7 +48,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Future<void> performSearch(String query) async {
-    if (query.trim().isEmpty) {
+    if (query.trim().isEmpty && selectedCategory == "All") {
       setState(() {
         searchQuery = "";
         attractions.clear();
@@ -65,32 +67,27 @@ class _SearchScreenState extends State<SearchScreen> {
     });
 
     try {
-      // Fetch all data
       final allAttractions = await attractionService.getAllAttractions();
       final allHotels = await hotelService.getAllHotels();
       final allRestaurants = await restaurantService.getAllRestaurants();
       final allEvents = await eventService.getAllEvents();
 
       setState(() {
-        // Filter attractions
         attractions = allAttractions.where((item) {
           return item.name.toLowerCase().contains(searchQuery) ||
               item.description.toLowerCase().contains(searchQuery);
         }).toList();
 
-        // Filter hotels
         hotels = allHotels.where((item) {
           return item.name.toLowerCase().contains(searchQuery) ||
               item.description.toLowerCase().contains(searchQuery);
         }).toList();
 
-        // Filter restaurants
         restaurants = allRestaurants.where((item) {
           return item.name.toLowerCase().contains(searchQuery) ||
               item.description.toLowerCase().contains(searchQuery);
         }).toList();
 
-        // Filter events
         events = allEvents.where((item) {
           return item.title.toLowerCase().contains(searchQuery) ||
               item.description.toLowerCase().contains(searchQuery);
@@ -108,11 +105,11 @@ class _SearchScreenState extends State<SearchScreen> {
           content: Text(
             'Error searching: $e',
             style: GoogleFonts.poppins(
-              color: AppColors.white,
+              color: Colors.white,
               fontWeight: FontWeight.w500,
             ),
           ),
-          backgroundColor: AppColors.error,
+          backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -125,93 +122,172 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background, // Warm Linen
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: Text(
           "Search",
           style: GoogleFonts.poppins(
-            color: AppColors.dark,
+            color: Colors.black87,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.3,
           ),
         ),
-        backgroundColor: AppColors.background,
+        backgroundColor: const Color(0xFFF8F9FA),
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black87),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(80),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.surface, // Pure white
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.lightGrey.withValues(alpha: 0.7), // Flat border
-                  width: 1,
-                ),
-                // Removed shadow for flat design
-              ),
-              child: TextField(
-                controller: searchController,
-                autofocus: true,
-                decoration: InputDecoration(
-                  hintText: "Search attractions, hotels, restaurants...",
-                  hintStyle: GoogleFonts.poppins(
-                    color: AppColors.grey,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                  ),
-                  prefixIcon: const Icon(
-                    Icons.search_rounded,
-                    color: AppColors.primary,
-                    size: 24,
-                  ),
-                  suffixIcon: searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(
-                            Icons.close_rounded,
-                            color: AppColors.grey,
+          preferredSize: const Size.fromHeight(130),
+          child: Column(
+            children: [
+              // Search Bar with Filter Button
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.grey.shade300,
+                            width: 1,
                           ),
-                          onPressed: () {
-                            searchController.clear();
-                            setState(() {
-                              searchQuery = "";
-                              attractions.clear();
-                              hotels.clear();
-                              restaurants.clear();
-                              events.clear();
-                              isSearching = false;
-                            });
+                        ),
+                        child: TextField(
+                          controller: searchController,
+                          autofocus: true,
+                          decoration: InputDecoration(
+                            hintText: "Search places, cities...",
+                            hintStyle: GoogleFonts.poppins(
+                              color: Colors.grey,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            prefixIcon: const Icon(
+                              Icons.search_rounded,
+                              color: Color(0xFF2563EB),
+                              size: 24,
+                            ),
+                            suffixIcon: searchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(
+                                      Icons.close_rounded,
+                                      color: Colors.grey,
+                                    ),
+                                    onPressed: () {
+                                      searchController.clear();
+                                      performSearch("");
+                                    },
+                                  )
+                                : null,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide.none,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide.none,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: const BorderSide(
+                                color: Color(0xFF2563EB),
+                                width: 2,
+                              ),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                          ),
+                          onChanged: (value) {
+                            setState(() {});
+                            performSearch(value);
                           },
-                        )
-                      : null,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(
-                      color: AppColors.primary,
-                      width: 2,
+                        ),
+                      ),
                     ),
-                  ),
-                  filled: true,
-                  fillColor: AppColors.surface,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
+                    const SizedBox(width: 12),
+                    Container(
+                      height: 52,
+                      width: 52,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.grey.shade300,
+                          width: 1,
+                        ),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.tune_rounded,
+                          color: Color(0xFF2563EB),
+                        ),
+                        onPressed: () {},
+                      ),
+                    ),
+                  ],
                 ),
-                onChanged: (value) {
-                  performSearch(value);
-                },
               ),
-            ),
+              const SizedBox(height: 12),
+              // Category Filter Chips
+              SizedBox(
+                height: 40,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: categories.length,
+                  itemBuilder: (context, index) {
+                    final category = categories[index];
+                    final isSelected = selectedCategory == category;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedCategory = category;
+                          });
+                          performSearch(searchController.text);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? const Color(0xFF2563EB)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isSelected
+                                  ? const Color(0xFF2563EB)
+                                  : Colors.grey.shade300,
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            category,
+                            style: GoogleFonts.poppins(
+                              color: isSelected
+                                  ? Colors.white
+                                  : Colors.black87,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
           ),
         ),
       ),
@@ -220,8 +296,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildBody() {
-    // Idle State
-    if (!isSearching) {
+    if (!isSearching && searchController.text.trim().isEmpty && selectedCategory == "All") {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -229,13 +304,13 @@ class _SearchScreenState extends State<SearchScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppColors.lightGrey.withValues(alpha: 0.3),
+                color: Colors.grey.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.search_rounded,
                 size: 80,
-                color: AppColors.grey,
+                color: Colors.grey,
               ),
             ),
             const SizedBox(height: 20),
@@ -244,7 +319,7 @@ class _SearchScreenState extends State<SearchScreen> {
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 16,
-                color: AppColors.darkGrey,
+                color: Colors.black54,
                 height: 1.5,
                 fontWeight: FontWeight.w500,
               ),
@@ -255,7 +330,7 @@ class _SearchScreenState extends State<SearchScreen> {
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 13,
-                color: AppColors.grey,
+                color: Colors.grey,
                 fontWeight: FontWeight.w400,
               ),
             ),
@@ -264,21 +339,20 @@ class _SearchScreenState extends State<SearchScreen> {
       );
     }
 
-    // Loading State
     if (isLoading) {
-      return Center(
+      return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const CircularProgressIndicator(
+            CircularProgressIndicator(
               strokeWidth: 2,
-              color: AppColors.primary,
+              color: Color(0xFF2563EB),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
               "Searching...",
-              style: GoogleFonts.poppins(
-                color: AppColors.darkGrey,
+              style: TextStyle(
+                color: Colors.black54,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -288,10 +362,16 @@ class _SearchScreenState extends State<SearchScreen> {
       );
     }
 
-    final totalResults = attractions.length + hotels.length +
-        restaurants.length + events.length;
+    final displayAttractions = (selectedCategory == "All" || selectedCategory == "Attractions") ? attractions : <AttractionModel>[];
+    final displayHotels = (selectedCategory == "All" || selectedCategory == "Hotels") ? hotels : <HotelModel>[];
+    final displayRestaurants = (selectedCategory == "All" || selectedCategory == "Restaurants") ? restaurants : <RestaurantModel>[];
+    final displayEvents = (selectedCategory == "All" || selectedCategory == "Events") ? events : <EventModel>[];
 
-    // No Results State
+    final totalResults = displayAttractions.length +
+        displayHotels.length +
+        displayRestaurants.length +
+        displayEvents.length;
+
     if (totalResults == 0) {
       return Center(
         child: Column(
@@ -300,13 +380,13 @@ class _SearchScreenState extends State<SearchScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppColors.lightGrey.withValues(alpha: 0.3),
+                color: Colors.grey.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.search_off_rounded,
                 size: 80,
-                color: AppColors.grey,
+                color: Colors.grey,
               ),
             ),
             const SizedBox(height: 20),
@@ -315,7 +395,7 @@ class _SearchScreenState extends State<SearchScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
-                color: AppColors.dark,
+                color: Colors.black87,
               ),
             ),
             const SizedBox(height: 8),
@@ -323,37 +403,7 @@ class _SearchScreenState extends State<SearchScreen> {
               "Try searching with different keywords",
               style: GoogleFonts.poppins(
                 fontSize: 14,
-                color: AppColors.grey,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.2),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.lightbulb_outline_rounded,
-                    size: 16,
-                    color: AppColors.primary,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Try: "restaurant", "hotel", "museum"',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+                color: Colors.grey,
               ),
             ),
           ],
@@ -361,27 +411,26 @@ class _SearchScreenState extends State<SearchScreen> {
       );
     }
 
-    // Results State
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
+          Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
             child: Row(
               children: [
                 const Icon(
                   Icons.trending_up_rounded,
                   size: 18,
-                  color: AppColors.primary,
+                  color: Color(0xFF2563EB),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   "Found $totalResults results",
                   style: GoogleFonts.poppins(
                     fontSize: 15,
-                    color: AppColors.darkGrey,
+                    color: Colors.black54,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -390,31 +439,27 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
           const SizedBox(height: 8),
 
-          // Attractions
-          if (attractions.isNotEmpty) ...[
-            _buildSectionTitle("Attractions", attractions.length),
-            ...attractions.map((item) => AttractionCard(attraction: item)),
+          if (displayAttractions.isNotEmpty) ...[
+            _buildSectionTitle("Attractions", displayAttractions.length),
+            ...displayAttractions.map((item) => AttractionCard(attraction: item)),
             const SizedBox(height: 16),
           ],
 
-          // Hotels
-          if (hotels.isNotEmpty) ...[
-            _buildSectionTitle("Hotels", hotels.length),
-            ...hotels.map((item) => HotelCard(hotel: item)),
+          if (displayHotels.isNotEmpty) ...[
+            _buildSectionTitle("Hotels", displayHotels.length),
+            ...displayHotels.map((item) => HotelCard(hotel: item)),
             const SizedBox(height: 16),
           ],
 
-          // Restaurants
-          if (restaurants.isNotEmpty) ...[
-            _buildSectionTitle("Restaurants", restaurants.length),
-            ...restaurants.map((item) => RestaurantCard(restaurant: item)),
+          if (displayRestaurants.isNotEmpty) ...[
+            _buildSectionTitle("Restaurants", displayRestaurants.length),
+            ...displayRestaurants.map((item) => RestaurantCard(restaurant: item)),
             const SizedBox(height: 16),
           ],
 
-          // Events
-          if (events.isNotEmpty) ...[
-            _buildSectionTitle("Events", events.length),
-            ...events.map((item) => EventCard(event: item)),
+          if (displayEvents.isNotEmpty) ...[
+            _buildSectionTitle("Events", displayEvents.length),
+            ...displayEvents.map((item) => EventCard(event: item)),
             const SizedBox(height: 16),
           ],
         ],
@@ -431,7 +476,7 @@ class _SearchScreenState extends State<SearchScreen> {
             width: 4,
             height: 24,
             decoration: BoxDecoration(
-              color: AppColors.primary,
+              color: const Color(0xFF2563EB),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -441,7 +486,7 @@ class _SearchScreenState extends State<SearchScreen> {
             style: GoogleFonts.poppins(
               fontSize: 20,
               fontWeight: FontWeight.w600,
-              color: AppColors.dark,
+              color: Colors.black87,
               letterSpacing: 0.3,
             ),
           ),
@@ -449,16 +494,16 @@ class _SearchScreenState extends State<SearchScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: const Color(0xFF2563EB).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.2),
+                color: const Color(0xFF2563EB).withValues(alpha: 0.2),
               ),
             ),
             child: Text(
               count.toString(),
               style: GoogleFonts.poppins(
-                color: AppColors.primary,
+                color: const Color(0xFF2563EB),
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
               ),

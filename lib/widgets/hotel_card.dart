@@ -1,5 +1,3 @@
-// lib/widgets/hotel_card.dart
-import 'package:app/core/constants/app_colors.dart';
 import 'package:app/model/hotel_model.dart';
 import 'package:app/screens/home/hotel_detail_screen.dart';
 import 'package:flutter/material.dart';
@@ -18,19 +16,19 @@ class HotelCard extends StatelessWidget {
       if (i < fullStars) {
         stars.add(const Icon(
           Icons.star_rounded,
-          color: AppColors.warning, // Marigold color for stars
+          color: Color(0xFFF59E0B), // Amber/Gold
           size: 13,
         ));
       } else if (i == fullStars && hasHalfStar) {
         stars.add(const Icon(
           Icons.star_half_rounded,
-          color: AppColors.warning,
+          color: Color(0xFFF59E0B), // Amber/Gold
           size: 13,
         ));
       } else {
         stars.add(const Icon(
           Icons.star_outline_rounded,
-          color: AppColors.lightGrey,
+          color: Color(0xFFE2E8F0), // Light Grey
           size: 13,
         ));
       }
@@ -38,27 +36,27 @@ class HotelCard extends StatelessWidget {
     return Row(mainAxisSize: MainAxisSize.min, children: stars);
   }
 
-  // ✅ Unified Placeholder Widget
+  // ✅ Placeholder Widget
   Widget _buildPlaceholder({bool isLoading = false}) {
     return Container(
       height: 120,
       width: double.infinity,
-      color: AppColors.primarySurface, // Warm ultra-light tint
+      color: const Color(0xFFFDF6F0), // Warm off-white
       child: isLoading
-          ? Center(
+          ? const Center(
               child: SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: AppColors.primary.withValues(alpha: 0.6),
+                  color: Color(0xFF2563EB), // Primary Blue
                 ),
               ),
             )
           : const Icon(
-              Icons.hotel_outlined, // Outlined icon
+              Icons.hotel_outlined,
               size: 36,
-              color: AppColors.grey,
+              color: Color(0xFF64748B), // Grey
             ),
     );
   }
@@ -66,17 +64,23 @@ class HotelCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 210, // Unified width
+      width: 210,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: AppColors.lightGrey.withValues(alpha: 0.5),
+            color: const Color(0xFFE2E8F0).withOpacity(0.5),
             width: 1,
           ),
-          boxShadow: AppColors.subtleShadow, // Warm shadow instead of stark black
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x1A000000), // Black with 10% opacity
+              blurRadius: 8,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
         child: Material(
           color: Colors.transparent,
@@ -104,7 +108,7 @@ class HotelCard extends StatelessWidget {
                       : Image.network(
                           hotel.image,
                           height: 120,
-                          width: double.infinity, // Properly fills container
+                          width: double.infinity,
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => _buildPlaceholder(),
                           loadingBuilder: (_, child, progress) {
@@ -126,7 +130,7 @@ class HotelCard extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.dark,
+                          color: Color(0xFF0F172A), // Dark
                           height: 1.3,
                         ),
                         maxLines: 1,
@@ -140,15 +144,15 @@ class HotelCard extends StatelessWidget {
                           const Icon(
                             Icons.location_on_rounded,
                             size: 12,
-                            color: AppColors.primary,
+                            color: Color(0xFF2563EB), // Primary Blue
                           ),
                           const SizedBox(width: 3),
                           Expanded(
                             child: Text(
                               hotel.cityId,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 11,
-                                color: AppColors.darkGrey,
+                                color: Color(0xFF334155), // Dark Grey
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -163,9 +167,9 @@ class HotelCard extends StatelessWidget {
                         hotel.description,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 11,
-                          color: AppColors.darkGrey,
+                          color: Color(0xFF334155), // Dark Grey
                           height: 1.4,
                         ),
                       ),
@@ -186,7 +190,7 @@ class HotelCard extends StatelessWidget {
                                 style: const TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
-                                  color: AppColors.dark,
+                                  color: Color(0xFF0F172A), // Dark
                                 ),
                               ),
                             ],
@@ -200,10 +204,10 @@ class HotelCard extends StatelessWidget {
                                 vertical: 3,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.08),
+                                color: const Color(0xFF2563EB).withOpacity(0.08),
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: AppColors.primary.withValues(alpha: 0.15),
+                                  color: const Color(0xFF2563EB).withOpacity(0.15),
                                   width: 0.5,
                                 ),
                               ),
@@ -213,7 +217,7 @@ class HotelCard extends StatelessWidget {
                                   const Icon(
                                     Icons.phone_rounded,
                                     size: 10,
-                                    color: AppColors.primary,
+                                    color: Color(0xFF2563EB), // Primary Blue
                                   ),
                                   const SizedBox(width: 3),
                                   ConstrainedBox(
@@ -222,7 +226,7 @@ class HotelCard extends StatelessWidget {
                                       hotel.phone,
                                       style: const TextStyle(
                                         fontSize: 9,
-                                        color: AppColors.primary,
+                                        color: Color(0xFF2563EB), // Primary Blue
                                         fontWeight: FontWeight.w600,
                                       ),
                                       maxLines: 1,

@@ -1,5 +1,4 @@
 // lib/screens/profile/settings_screen.dart
-import 'package:app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -13,29 +12,47 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool isDarkMode = false;
 
+  // Local color constants replacing AppColors
+  static const Color _bgColor = Color(0xFFF8F9FA);
+  static const Color _surfaceColor = Colors.white;
+  static const Color _darkColor = Color(0xFF1A1A1A);
+  static const Color _darkGreyColor = Color(0xFF666666);
+  static const Color _greyColor = Color(0xFF9E9E9E);
+  static const Color _lightGreyColor = Color(0xFFE0E0E0);
+  static const Color _primaryColor = Colors.blue;
+  static const Color _errorColor = Colors.red;
+
+  static final List<BoxShadow> _subtleShadow = [
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.04),
+      blurRadius: 10,
+      offset: const Offset(0, 2),
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: _bgColor,
       appBar: AppBar(
         title: const Text(
           "Settings",
           style: TextStyle(
-            color: AppColors.dark,
+            color: _darkColor,
             fontWeight: FontWeight.w600,
             fontSize: 18,
           ),
         ),
-        backgroundColor: AppColors.background,
+        backgroundColor: _bgColor,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: AppColors.dark),
+        iconTheme: const IconThemeData(color: _darkColor),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
             height: 1,
-            color: AppColors.lightGrey,
+            color: _lightGreyColor,
           ),
         ),
       ),
@@ -160,7 +177,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Text(
           title.toUpperCase(),
           style: const TextStyle(
-            color: AppColors.grey,
+            color: _greyColor,
             fontSize: 11,
             fontWeight: FontWeight.w600,
             letterSpacing: 1.2,
@@ -178,22 +195,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required VoidCallback onTap,
     bool isDestructive = false,
   }) {
-    final iconColor = isDestructive ? AppColors.error : AppColors.primary;
-    final titleColor = isDestructive ? AppColors.error : AppColors.dark;
-    final subtitleColor =
-        isDestructive ? AppColors.error.withValues(alpha: 0.6) : AppColors.darkGrey;
+    final iconColor = isDestructive ? _errorColor : _primaryColor;
+    final titleColor = isDestructive ? _errorColor : _darkColor;
+    final subtitleColor = isDestructive
+        ? _errorColor.withValues(alpha: 0.6)
+        : _darkGreyColor;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: _surfaceColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDestructive
-              ? AppColors.error.withValues(alpha: 0.15)
-              : AppColors.lightGrey.withValues(alpha: 0.5),
+              ? _errorColor.withValues(alpha: 0.15)
+              : _lightGreyColor.withValues(alpha: 0.5),
         ),
-        boxShadow: isDestructive ? null : AppColors.subtleShadow,
+        boxShadow: isDestructive ? null : _subtleShadow,
       ),
       child: Material(
         color: Colors.transparent,
@@ -254,8 +272,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Icons.arrow_forward_ios_rounded,
                   size: 14,
                   color: isDestructive
-                      ? AppColors.error.withValues(alpha: 0.5)
-                      : AppColors.grey,
+                      ? _errorColor.withValues(alpha: 0.5)
+                      : _greyColor,
                 ),
               ],
             ),
@@ -276,12 +294,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: _surfaceColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.lightGrey.withValues(alpha: 0.5),
+          color: _lightGreyColor.withValues(alpha: 0.5),
         ),
-        boxShadow: AppColors.subtleShadow,
+        boxShadow: _subtleShadow,
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(
@@ -295,12 +313,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: _primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(
-                Icons.dark_mode_outlined,
-                color: AppColors.primary,
+              child: Icon(
+                icon,
+                color: _primaryColor,
                 size: 20,
               ),
             ),
@@ -311,19 +329,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "Dark Mode",
-                    style: TextStyle(
-                      color: AppColors.dark,
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: _darkColor,
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    "Switch between light and dark theme",
-                    style: TextStyle(
-                      color: AppColors.darkGrey,
+                    subtitle,
+                    style: const TextStyle(
+                      color: _darkGreyColor,
                       fontSize: 12,
                     ),
                   ),
@@ -335,10 +353,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Switch(
               value: value,
               onChanged: onChanged,
-              activeColor: AppColors.white,
-              activeTrackColor: AppColors.primary,
-              inactiveThumbColor: AppColors.surface,
-              inactiveTrackColor: AppColors.lightGrey,
+              activeColor: Colors.white,
+              activeTrackColor: _primaryColor,
+              inactiveThumbColor: _surfaceColor,
+              inactiveTrackColor: _lightGreyColor,
             ),
           ],
         ),
@@ -354,7 +372,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: _surfaceColor,
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -364,12 +382,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.1),
+                  color: _errorColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.logout_rounded,
-                  color: AppColors.error,
+                  color: _errorColor,
                   size: 28,
                 ),
               ),
@@ -377,17 +395,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const Text(
                 "Logout",
                 style: TextStyle(
-                  color: AppColors.dark,
+                  color: _darkColor,
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
+              const Text(
                 "Are you sure you want to logout?",
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: AppColors.darkGrey,
+                  color: _darkGreyColor,
                   fontSize: 14,
                   height: 1.5,
                 ),
@@ -399,8 +417,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.darkGrey,
-                        side: const BorderSide(color: AppColors.lightGrey),
+                        foregroundColor: _darkGreyColor,
+                        side: const BorderSide(color: _lightGreyColor),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -418,8 +436,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         Navigator.pushReplacementNamed(context, '/login');
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.error,
-                        foregroundColor: AppColors.white,
+                        backgroundColor: _errorColor,
+                        foregroundColor: Colors.white,
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(

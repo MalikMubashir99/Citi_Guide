@@ -1,26 +1,24 @@
 // lib/widgets/city_card.dart
-import 'package:app/core/constants/app_colors.dart';
 import 'package:app/screens/home/city_detail_screen.dart';
 import 'package:flutter/material.dart';
 
 class CityCard extends StatelessWidget {
-  final String image;
+  final String? image;
   final String city;
   final String cityId;
 
   const CityCard({
     super.key,
-    required this.image,
+    this.image,
     required this.city,
     required this.cityId,
   });
 
-  // ✅ Unified Placeholder Widget
   Widget _buildPlaceholder({bool isLoading = false}) {
     return Container(
       height: 140,
       width: 160,
-      color: AppColors.primarySurface, // Warm ultra-light tint
+      color: Colors.blue.shade50,
       child: isLoading
           ? Center(
               child: SizedBox(
@@ -28,13 +26,13 @@ class CityCard extends StatelessWidget {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: AppColors.primary.withValues(alpha: 0.6),
+                  color: Colors.blue.withOpacity(0.6),
                 ),
               ),
             )
-          : Icon(
-              Icons.location_city_outlined, // Outlined icon for modern look
-              color: AppColors.grey, // Warm grey
+          : const Icon(
+              Icons.location_city_outlined,
+              color: Colors.grey,
               size: 36,
             ),
     );
@@ -50,31 +48,36 @@ class CityCard extends StatelessWidget {
             builder: (_) => CityDetailScreen(
               cityId: cityId,
               cityName: city,
+              cityImage: image ?? '',
             ),
           ),
         );
       },
       borderRadius: BorderRadius.circular(18),
-      splashColor: AppColors.primary.withValues(alpha: 0.1), // Warm cognac ripple
+      splashColor: Colors.blue.withOpacity(0.1),
       child: Container(
-        // ✅ Fixed width to match the image so the tile looks uniform
-        width: 160, 
+        width: 160,
         margin: const EdgeInsets.only(right: 15),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ✅ Image with Subtle Warm Shadow
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(18),
-                boxShadow: AppColors.subtleShadow, // Warm drop shadow
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(18),
-                child: image.isNotEmpty
+                child: (image != null && image!.isNotEmpty)
                     ? Image.network(
-                        image,
+                        image!,
                         height: 140,
                         width: 160,
                         fit: BoxFit.cover,
@@ -88,14 +91,12 @@ class CityCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            
-            // ✅ City Name
             Text(
               city,
               style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: AppColors.dark,
+                color: Colors.black87,
                 letterSpacing: 0.2,
               ),
               maxLines: 1,

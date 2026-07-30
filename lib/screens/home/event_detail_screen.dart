@@ -1,5 +1,4 @@
 // lib/screens/home/event_detail_screen.dart
-import 'package:app/core/constants/app_colors.dart';
 import 'package:app/model/event_model.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -29,11 +28,11 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         content: Text(
           message,
           style: GoogleFonts.poppins(
-            color: AppColors.white,
+            color: Colors.white,
             fontWeight: FontWeight.w500,
           ),
         ),
-        backgroundColor: AppColors.error,
+        backgroundColor: Colors.redAccent,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -61,27 +60,27 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background, // Warm Linen
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: Text(
           widget.event.title,
           style: GoogleFonts.poppins(
-            color: AppColors.dark,
+            color: const Color(0xFF1E293B),
             fontWeight: FontWeight.w600,
             letterSpacing: 0.3,
           ),
         ),
-        backgroundColor: AppColors.background,
+        backgroundColor: const Color(0xFFF8F9FA),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.dark),
+          icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1E293B)),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.share_rounded, color: AppColors.dark),
+            icon: const Icon(Icons.share_rounded, color: Color(0xFF1E293B)),
             onPressed: () {
-              // Share event
+              // Share city
             },
           ),
         ],
@@ -90,80 +89,79 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image Section
+            // Image Section with Travel Gradient
             Stack(
               children: [
                 widget.event.image.isEmpty
                     ? Container(
-                        height: 280,
+                        height: 300,
                         width: double.infinity,
-                        color: AppColors.lightGrey,
-                        child: const Icon(Icons.event_rounded, size: 100, color: AppColors.grey),
+                        color: Colors.grey.shade200,
+                        child: const Icon(Icons.location_city_rounded, size: 100, color: Colors.grey),
                       )
                     : Image.network(
                         widget.event.image,
                         width: double.infinity,
-                        height: 280,
+                        height: 300,
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Container(
-                          height: 280,
+                          height: 300,
                           width: double.infinity,
-                          color: AppColors.lightGrey,
-                          child: const Icon(Icons.broken_image, size: 100, color: AppColors.grey),
+                          color: Colors.grey.shade200,
+                          child: const Icon(Icons.broken_image, size: 100, color: Colors.grey),
                         ),
                         loadingBuilder: (_, child, progress) {
                           if (progress == null) return child;
                           return Container(
-                            height: 280,
+                            height: 300,
                             width: double.infinity,
-                            color: AppColors.lightGrey,
+                            color: Colors.grey.shade200,
                             child: const Center(
-                              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF3B82F6)),
                             ),
                           );
                         },
                       ),
                 
-                // Espresso tinted gradient overlay
+                // Gradient overlay
                 Positioned(
                   bottom: 0,
                   left: 0,
                   right: 0,
                   child: Container(
-                    height: 100,
+                    height: 120,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          AppColors.splashOverlayDark.withValues(alpha: 0.6),
-                          AppColors.splashOverlayDark.withValues(alpha: 0.9),
+                          Colors.black.withValues(alpha: 0.5),
+                          Colors.black.withValues(alpha: 0.8),
                         ],
                       ),
                     ),
                   ),
                 ),
                 
-                // Event badge (Flat design)
+                // Popular Destination Badge
                 Positioned(
                   top: 16,
                   right: 16,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppColors.secondary, // Warm Sand
+                      color: const Color(0xFF3B82F6),
                       borderRadius: BorderRadius.circular(20),
-                      // Removed shadow for modern flat look
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.event_available_rounded, color: AppColors.white, size: 16),
+                        const Icon(Icons.star_rounded, color: Colors.white, size: 16),
                         const SizedBox(width: 6),
                         Text(
-                          'Upcoming',
+                          'Popular City',
                           style: GoogleFonts.poppins(
-                            color: AppColors.white,
+                            color: Colors.white,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             letterSpacing: 0.5,
@@ -174,35 +172,40 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   ),
                 ),
                 
-                // Date badge on image (Flat design)
+                // Best Season / Date Tag on image
                 Positioned(
                   bottom: 16,
                   left: 16,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.95),
+                      color: Colors.white.withValues(alpha: 0.95),
                       borderRadius: BorderRadius.circular(12),
-                      // Removed shadow
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                    child: Row(
                       children: [
-                        Text(
-                          _getDay(widget.event.date),
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        Text(
-                          _getMonth(widget.event.date),
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            color: AppColors.darkGrey,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        const Icon(Icons.wb_sunny_rounded, color: Color(0xFFF59E0B), size: 18),
+                        const SizedBox(width: 8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Best Season',
+                              style: GoogleFonts.poppins(
+                                fontSize: 10,
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Text(
+                              widget.event.date.isNotEmpty ? widget.event.date : 'Year Round',
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF1E293B),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -211,97 +214,96 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               ],
             ),
 
-            // Content
+            // Content Section
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Event Title
-                  Text(
-                    widget.event.title,
-                    style: GoogleFonts.poppins(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.dark,
-                      height: 1.2,
-                      letterSpacing: 0.3,
-                    ),
+                  // City Title & Bookmark Action
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.event.title,
+                          style: GoogleFonts.poppins(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF1E293B),
+                            height: 1.2,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.bookmark_border_rounded, color: Color(0xFF3B82F6)),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
-                  // Event Meta Info Card
+                  // City Quick Stats Card (Population, Timezone, Rating)
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.lightGrey.withValues(alpha: 0.7), width: 1),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                      border: Border.all(color: Colors.grey.shade200, width: 1),
                     ),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        Expanded(
-                          child: Row(
-                            children: [
-                              const Icon(Icons.calendar_today_rounded, color: AppColors.primary, size: 18),
-                              const SizedBox(width: 6),
-                              Flexible(
-                                child: Text(
-                                  widget.event.date.isNotEmpty ? widget.event.date : 'TBD',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 13,
-                                    color: AppColors.dark,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
+                        _buildStatItem(Icons.people_outline_rounded, "Population", "2.4M+"),
+                        Container(width: 1, height: 30, color: Colors.grey.shade200),
+                        _buildStatItem(
+                          Icons.access_time_rounded, 
+                          "Timezone", 
+                          widget.event.time.isNotEmpty ? widget.event.time : 'GMT+5'
                         ),
-                        Container(width: 1, height: 20, color: AppColors.lightGrey),
-                        Expanded(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.access_time_rounded, color: AppColors.primary, size: 18),
-                              const SizedBox(width: 6),
-                              Flexible(
-                                child: Text(
-                                  widget.event.time.isNotEmpty ? widget.event.time : 'TBD',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 13,
-                                    color: AppColors.dark,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        Container(width: 1, height: 30, color: Colors.grey.shade200),
+                        _buildStatItem(Icons.star_rounded, "Rating", "4.8/5"),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
 
-                  // About Section
-                  _buildSectionHeader("About this Event"),
+                  // About Destination Section
+                  _buildSectionHeader("About Destination"),
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.lightGrey.withValues(alpha: 0.7), width: 1),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                      border: Border.all(color: Colors.grey.shade200, width: 1),
                     ),
                     child: Text(
                       widget.event.description.isNotEmpty 
                           ? widget.event.description 
-                          : "No description available",
+                          : "Explore the rich culture, historic landmarks, and vibrant lifestyle of this magnificent destination.",
                       style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        color: AppColors.darkGrey,
+                        fontSize: 14,
+                        color: Colors.grey.shade700,
                         height: 1.6,
                       ),
                     ),
@@ -309,26 +311,31 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   const SizedBox(height: 24),
 
                   // Location Section
-                  _buildSectionHeader("Location"),
+                  _buildSectionHeader("Location & Region"),
                   const SizedBox(height: 12),
-
-                  // Location Card
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.lightGrey.withValues(alpha: 0.7), width: 1),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                      border: Border.all(color: Colors.grey.shade200, width: 1),
                     ),
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(10),
+                          padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
+                            color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 22),
+                          child: const Icon(Icons.location_on_rounded, color: Color(0xFF3B82F6), size: 24),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
@@ -336,10 +343,10 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "Venue",
+                                "Country / Region",
                                 style: GoogleFonts.poppins(
                                   fontSize: 12,
-                                  color: AppColors.grey,
+                                  color: Colors.grey.shade500,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -350,50 +357,39 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                     : "Location not available",
                                 style: GoogleFonts.poppins(
                                   fontSize: 15,
-                                  color: AppColors.dark,
-                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0xFF1E293B),
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        if (widget.event.location.isNotEmpty)
-                          IconButton(
-                            icon: const Icon(Icons.copy_rounded, color: AppColors.primary, size: 20),
-                            onPressed: () {
-                              // Copy location logic
-                            },
-                          ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 30),
 
-                  // Actions Section
-                  _buildSectionHeader("Actions"),
-                  const SizedBox(height: 12),
-
-                  // Google Maps Button
+                  // Google Maps Action Button
                   SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton.icon(
                       onPressed: () => openGoogleMaps(context),
-                      icon: const Icon(Icons.map_rounded, color: AppColors.white, size: 22),
+                      icon: const Icon(Icons.navigation_rounded, color: Colors.white, size: 22),
                       label: Text(
-                        "Open in Google Maps",
+                        "Explore on Google Maps",
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.white,
+                          color: Colors.white,
                           letterSpacing: 0.3,
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.white,
+                        backgroundColor: const Color(0xFF3B82F6),
+                        foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        elevation: 0, // Flat modern style
+                        elevation: 0,
                       ),
                     ),
                   ),
@@ -407,15 +403,42 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     );
   }
 
+  // Stat Item Widget for City Stats
+  Widget _buildStatItem(IconData icon, String label, String value) {
+    return Column(
+      children: [
+        Icon(icon, color: const Color(0xFF3B82F6), size: 22),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 11,
+            color: Colors.grey.shade500,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            color: const Color(0xFF1E293B),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
   // Reusable Section Header
   Widget _buildSectionHeader(String title) {
     return Row(
       children: [
         Container(
           width: 4,
-          height: 24,
+          height: 22,
           decoration: BoxDecoration(
-            color: AppColors.primary,
+            color: const Color(0xFF3B82F6),
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -423,40 +446,13 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         Text(
           title,
           style: GoogleFonts.poppins(
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: AppColors.dark,
+            color: const Color(0xFF1E293B),
             letterSpacing: 0.3,
           ),
         ),
       ],
     );
-  }
-
-  // Helper methods for date formatting
-  String _getDay(String date) {
-    try {
-      if (date.isEmpty) return '--';
-      final parts = date.split(' ');
-      if (parts.length >= 2) {
-        return parts[0];
-      }
-      return date.substring(0, 2);
-    } catch (_) {
-      return '--';
-    }
-  }
-
-  String _getMonth(String date) {
-    try {
-      if (date.isEmpty) return '---';
-      final parts = date.split(' ');
-      if (parts.length >= 2) {
-        return parts[1].substring(0, 3);
-      }
-      return date.substring(3, 6);
-    } catch (_) {
-      return '---';
-    }
   }
 }

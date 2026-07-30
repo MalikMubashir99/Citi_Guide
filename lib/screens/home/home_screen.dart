@@ -13,6 +13,7 @@ import 'package:app/services/hotel_service.dart';
 import 'package:app/services/restaurant_service.dart';
 import 'package:app/services/event_service.dart';
 import 'package:app/services/city_service.dart';
+import 'package:app/widgets/city_card.dart'; // ✅ This imports the correct CityCard
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +25,6 @@ import 'package:app/widgets/attraction_card.dart';
 import 'package:app/widgets/hotel_card.dart';
 import 'package:app/widgets/restaurant_card.dart';
 import 'package:app/widgets/event_card.dart';
-import 'package:app/widgets/city_card.dart';
 import 'package:app/widgets/bottom_navbar.dart';
 import 'package:app/screens/profile/favorites_screen.dart';
 
@@ -222,7 +222,7 @@ class _HomeScreenState extends State<HomeScreen> {
         searchEvents.length;
 
     return Scaffold(
-      backgroundColor: AppColors.background, // Warm Linen
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text('Search Results', style: GoogleFonts.poppins(color: AppColors.dark, fontWeight: FontWeight.w600)),
         backgroundColor: AppColors.background,
@@ -381,25 +381,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 CategoryCard(
                   icon: Icons.place_rounded,
                   title: "Places",
-                  color: AppColors.info, // Dusty Blue
+                  color: AppColors.info,
                   onTap: () {},
                 ),
                 CategoryCard(
                   icon: Icons.hotel_rounded,
                   title: "Hotels",
-                  color: AppColors.secondary, // Warm Sand/Gold
+                  color: AppColors.secondary,
                   onTap: () {},
                 ),
                 CategoryCard(
                   icon: Icons.restaurant_rounded,
                   title: "Food",
-                  color: AppColors.accent, // Terracotta
+                  color: AppColors.accent,
                   onTap: () {},
                 ),
                 CategoryCard(
                   icon: Icons.event_rounded,
                   title: "Events",
-                  color: AppColors.success, // Sage Green
+                  color: AppColors.success,
                   onTap: () {},
                 ),
               ],
@@ -540,7 +540,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 35),
 
-            // Top Cities Section
+            // ✅ FIXED: Top Cities Section
             _buildHomeSectionHeader("Top Cities"),
             const SizedBox(height: 18),
 
@@ -563,7 +563,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     scrollDirection: Axis.horizontal,
                     children: cities.map((city) {
                       return CityCard(
-                        image: city.image,
+                        image: city.image ?? '',
                         city: city.name,
                         cityId: city.id,
                       );

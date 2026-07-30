@@ -1,3 +1,4 @@
+// lib/screens/splash_screen.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -101,7 +102,7 @@ class _SplashScreenState extends State<SplashScreen>
         children: [
           // Background Image
           Image.asset(
-            "assets/images/splash.jpg", // Ensure you have your city image here
+            "assets/images/splash.jpg",
             fit: BoxFit.cover,
             errorBuilder: (_, __, ___) => Container(
               decoration: const BoxDecoration(
@@ -121,9 +122,9 @@ class _SplashScreenState extends State<SplashScreen>
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  const Color(0xFF1A2352).withOpacity(0.6), // Top blue tint
-                  const Color(0xFF0F172A).withOpacity(0.75), // Mid dark navy
-                  const Color(0xFF090E17).withOpacity(0.95), // Deep bottom
+                  const Color(0xFF1A2352).withOpacity(0.6),
+                  const Color(0xFF0F172A).withOpacity(0.75),
+                  const Color(0xFF090E17).withOpacity(0.95),
                 ],
                 stops: const [0.0, 0.4, 1.0],
               ),
@@ -169,7 +170,7 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                         child: const Center(
                           child: Icon(
-                            Icons.location_on, // White pin
+                            Icons.location_on,
                             color: Colors.white,
                             size: 46,
                           ),

@@ -1,10 +1,26 @@
 // lib/screens/home/hotel_detail_screen.dart
-import 'package:app/core/constants/app_colors.dart';
 import 'package:app/model/hotel_model.dart';
 import 'package:app/services/favorite_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+// Local color palette to make the screen self-contained
+class AppColors {
+  static const Color background = Color(0xFFFDFBF7); // Warm Linen
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color primary = Color(0xFFA0522D); // Rich Cognac
+  static const Color primaryLight = Color(0xFFD2B48C);
+  static const Color secondary = Color(0xFFD4A373); // Warm Sand
+  static const Color dark = Color(0xFF2C221E);
+  static const Color darkGrey = Color(0xFF5C524E);
+  static const Color grey = Color(0xFF8C827E);
+  static const Color lightGrey = Color(0xFFE6E1DC);
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color success = Color(0xFF6A994E); // Sage Green
+  static const Color error = Color(0xFFBC4749); // Burnt Sienna
+  static const Color splashOverlayDark = Color(0xFF1A120B);
+}
 
 class HotelDetailScreen extends StatefulWidget {
   final HotelModel hotel;
@@ -49,7 +65,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Removed from favorites", style: GoogleFonts.poppins(color: AppColors.white, fontWeight: FontWeight.w500)),
-            backgroundColor: AppColors.error, // Burnt Sienna
+            backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
@@ -60,7 +76,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Added to favorites ❤️", style: GoogleFonts.poppins(color: AppColors.white, fontWeight: FontWeight.w500)),
-            backgroundColor: AppColors.success, // Sage Green
+            backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
@@ -130,7 +146,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background, // Warm Linen
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
           widget.hotel.name,
@@ -150,7 +166,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
           IconButton(
             icon: Icon(
               isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-              color: isFavorite ? AppColors.error : AppColors.darkGrey, // Burnt sienna when active
+              color: isFavorite ? AppColors.error : AppColors.darkGrey,
               size: 28,
             ),
             onPressed: toggleFavorite,
@@ -220,33 +236,6 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                   ),
                 ),
                 
-                // Rating badge (Flat)
-                Positioned(
-                  bottom: 16,
-                  right: 16,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary, // Rich Cognac
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.star_rounded, color: AppColors.white, size: 18),
-                        const SizedBox(width: 6),
-                        Text(
-                          widget.hotel.rating.toStringAsFixed(1),
-                          style: GoogleFonts.poppins(
-                            color: AppColors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                
                 // City badge (Flat)
                 Positioned(
                   bottom: 16,
@@ -295,36 +284,27 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Rating Stars
+                  // Quick Info Row
                   Row(
                     children: [
-                      ...List.generate(
-                        5,
-                        (index) => Icon(
-                          index < widget.hotel.rating.floor()
-                              ? Icons.star_rounded
-                              : index < widget.hotel.rating
-                                  ? Icons.star_half_rounded
-                                  : Icons.star_outline_rounded,
-                          color: AppColors.secondary, // Warm Sand
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
+                      const Icon(Icons.star_rounded, color: AppColors.secondary, size: 20),
+                      const SizedBox(width: 6),
                       Text(
                         widget.hotel.rating.toStringAsFixed(1),
                         style: GoogleFonts.poppins(
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: AppColors.dark,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 16),
+                      const Icon(Icons.hotel_rounded, color: AppColors.primary, size: 18),
+                      const SizedBox(width: 6),
                       Text(
-                        widget.hotel.rating >= 4.5 ? '⭐ Premium' : '👍 Good',
+                        widget.hotel.rating >= 4.5 ? '⭐ Premium Hotel' : '👍 Standard Hotel',
                         style: GoogleFonts.poppins(
                           fontSize: 13,
-                          color: widget.hotel.rating >= 4.5 ? AppColors.success : AppColors.grey,
+                          color: AppColors.grey,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -333,7 +313,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                   const SizedBox(height: 24),
 
                   // About Section Header
-                  _buildSectionHeader("About"),
+                  _buildSectionHeader("About Hotel"),
                   const SizedBox(height: 12),
                   
                   // Description Card
@@ -359,7 +339,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                   _buildSectionHeader("Contact Information"),
                   const SizedBox(height: 12),
 
-                  // Phone Card
+                  // Phone Tile
                   _buildContactTile(
                     icon: Icons.phone_rounded,
                     label: "Phone",
@@ -368,7 +348,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Website Card
+                  // Website Tile
                   _buildContactTile(
                     icon: Icons.language_rounded,
                     label: "Website",
@@ -402,7 +382,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                         backgroundColor: AppColors.primary,
                         foregroundColor: AppColors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        elevation: 0, // Flat design
+                        elevation: 0,
                       ),
                     ),
                   ),
@@ -426,7 +406,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                       ),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.primary,
-                        side: const BorderSide(color: AppColors.primaryLight, width: 1.5), // Softer border
+                        side: const BorderSide(color: AppColors.primaryLight, width: 1.5),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                     ),
@@ -512,7 +492,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
               ),
             ),
             if (onTap != null)
-              Icon(trailingIcon ?? Icons.copy_rounded, color: AppColors.primary, size: 20),
+              Icon(trailingIcon ?? Icons.arrow_forward_ios_rounded, color: AppColors.grey, size: 16),
           ],
         ),
       ),

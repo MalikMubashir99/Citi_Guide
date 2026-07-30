@@ -1,5 +1,4 @@
 // lib/screens/home/restaurant_detail_screen.dart
-import 'package:app/core/constants/app_colors.dart';
 import 'package:app/model/restaurant_model.dart';
 import 'package:app/services/favorite_service.dart';
 import 'package:flutter/material.dart';
@@ -48,8 +47,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Removed from favorites", style: GoogleFonts.poppins(color: AppColors.white, fontWeight: FontWeight.w500)),
-            backgroundColor: AppColors.error, // Burnt Sienna
+            content: Text("Removed from favorites", style: GoogleFonts.poppins(color: const Color(0xFFFFFFFF), fontWeight: FontWeight.w500)),
+            backgroundColor: const Color(0xFFBC4749),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
@@ -59,8 +58,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Added to favorites ❤️", style: GoogleFonts.poppins(color: AppColors.white, fontWeight: FontWeight.w500)),
-            backgroundColor: AppColors.success, // Sage Green
+            content: Text("Added to favorites ❤️", style: GoogleFonts.poppins(color: const Color(0xFFFFFFFF), fontWeight: FontWeight.w500)),
+            backgroundColor: const Color(0xFF6A994E),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
@@ -72,8 +71,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Error: $e", style: GoogleFonts.poppins(color: AppColors.white)),
-          backgroundColor: AppColors.error,
+          content: Text("Error: $e", style: GoogleFonts.poppins(color: const Color(0xFFFFFFFF))),
+          backgroundColor: const Color(0xFFBC4749),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
@@ -84,8 +83,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: GoogleFonts.poppins(color: AppColors.white, fontWeight: FontWeight.w500)),
-        backgroundColor: AppColors.error,
+        content: Text(message, style: GoogleFonts.poppins(color: const Color(0xFFFFFFFF), fontWeight: FontWeight.w500)),
+        backgroundColor: const Color(0xFFBC4749),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -128,33 +127,33 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background, // Warm Linen
+      backgroundColor: const Color(0xFFFDFBF7),
       appBar: AppBar(
         title: Text(
           widget.restaurant.name,
           style: GoogleFonts.poppins(
-            color: AppColors.dark,
+            color: const Color(0xFF2C221E),
             fontWeight: FontWeight.w600,
             letterSpacing: 0.3,
           ),
         ),
-        backgroundColor: AppColors.background,
+        backgroundColor: const Color(0xFFFDFBF7),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.dark),
+          icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF2C221E)),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
             icon: Icon(
               isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-              color: isFavorite ? AppColors.error : AppColors.darkGrey, // Burnt sienna when active
+              color: isFavorite ? const Color(0xFFBC4749) : const Color(0xFF5C524E),
               size: 28,
             ),
             onPressed: toggleFavorite,
           ),
           IconButton(
-            icon: const Icon(Icons.share_rounded, color: AppColors.dark),
+            icon: const Icon(Icons.share_rounded, color: Color(0xFF2C221E)),
             onPressed: () {},
           ),
         ],
@@ -170,28 +169,28 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                     ? Container(
                         height: 280,
                         width: double.infinity,
-                        color: AppColors.lightGrey,
-                        child: const Icon(Icons.restaurant_rounded, size: 100, color: AppColors.grey),
+                        color: const Color(0xFFE6E1DC),
+                        child: const Icon(Icons.restaurant_rounded, size: 100, color: Color(0xFF8C827E)),
                       )
                     : Image.network(
                         widget.restaurant.image,
-                        height: 280,
                         width: double.infinity,
+                        height: 280,
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Container(
                           height: 280,
                           width: double.infinity,
-                          color: AppColors.lightGrey,
-                          child: const Icon(Icons.broken_image, size: 100, color: AppColors.grey),
+                          color: const Color(0xFFE6E1DC),
+                          child: const Icon(Icons.broken_image, size: 100, color: Color(0xFF8C827E)),
                         ),
                         loadingBuilder: (_, child, progress) {
                           if (progress == null) return child;
                           return Container(
                             height: 280,
                             width: double.infinity,
-                            color: AppColors.lightGrey,
+                            color: const Color(0xFFE6E1DC),
                             child: const Center(
-                              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFA0522D)),
                             ),
                           );
                         },
@@ -210,8 +209,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          AppColors.splashOverlayDark.withValues(alpha: 0.6),
-                          AppColors.splashOverlayDark.withValues(alpha: 0.9),
+                          const Color(0xFF1A120B).withValues(alpha: 0.6),
+                          const Color(0xFF1A120B).withValues(alpha: 0.9),
                         ],
                       ),
                     ),
@@ -225,17 +224,17 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppColors.primary, // Rich Cognac
+                      color: const Color(0xFFA0522D),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.star_rounded, color: AppColors.white, size: 18),
+                        const Icon(Icons.star_rounded, color: Color(0xFFFFFFFF), size: 18),
                         const SizedBox(width: 6),
                         Text(
                           widget.restaurant.rating.toStringAsFixed(1),
                           style: GoogleFonts.poppins(
-                            color: AppColors.white,
+                            color: const Color(0xFFFFFFFF),
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -252,18 +251,18 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.95),
+                      color: const Color(0xFFFFFFFF).withValues(alpha: 0.95),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.location_on_rounded, size: 16, color: AppColors.primary),
+                        const Icon(Icons.location_on_rounded, size: 16, color: Color(0xFFA0522D)),
                         const SizedBox(width: 4),
                         Text(
                           widget.restaurant.cityId,
                           style: GoogleFonts.poppins(
                             fontSize: 12,
-                            color: AppColors.dark,
+                            color: const Color(0xFF2C221E),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -286,7 +285,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                     style: GoogleFonts.poppins(
                       fontSize: 28,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.dark,
+                      color: const Color(0xFF2C221E),
                       height: 1.2,
                       letterSpacing: 0.3,
                     ),
@@ -304,7 +303,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                               : index < widget.restaurant.rating
                                   ? Icons.star_half_rounded
                                   : Icons.star_outline_rounded,
-                          color: AppColors.secondary, // Warm Sand
+                          color: const Color(0xFFD4A373),
                           size: 20,
                         ),
                       ),
@@ -314,7 +313,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.dark,
+                          color: const Color(0xFF2C221E),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -322,7 +321,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                         widget.restaurant.rating >= 4.5 ? '(Popular)' : '(Good)',
                         style: GoogleFonts.poppins(
                           fontSize: 13,
-                          color: AppColors.grey,
+                          color: const Color(0xFF8C827E),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -336,15 +335,15 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: const Color(0xFFFFFFFF),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.lightGrey.withValues(alpha: 0.7), width: 1),
+                      border: Border.all(color: const Color(0xFFE6E1DC).withValues(alpha: 0.7), width: 1),
                     ),
                     child: Text(
                       widget.restaurant.description,
                       style: GoogleFonts.poppins(
                         fontSize: 15,
-                        color: AppColors.darkGrey,
+                        color: const Color(0xFF5C524E),
                         height: 1.6,
                       ),
                     ),
@@ -371,6 +370,10 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                     value: widget.restaurant.latitude != 0 && widget.restaurant.longitude != 0
                         ? "${widget.restaurant.latitude.toStringAsFixed(4)}, ${widget.restaurant.longitude.toStringAsFixed(4)}"
                         : "Location not available",
+                    trailingIcon: Icons.open_in_new_rounded,
+                    onTap: widget.restaurant.latitude != 0 && widget.restaurant.longitude != 0
+                        ? () => openGoogleMaps(context)
+                        : null,
                   ),
                   const SizedBox(height: 24),
 
@@ -384,21 +387,21 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                     height: 56,
                     child: ElevatedButton.icon(
                       onPressed: () => callRestaurant(context),
-                      icon: const Icon(Icons.call_rounded, color: AppColors.white, size: 22),
+                      icon: const Icon(Icons.call_rounded, color: Color(0xFFFFFFFF), size: 22),
                       label: Text(
                         "Call Restaurant",
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.white,
+                          color: const Color(0xFFFFFFFF),
                           letterSpacing: 0.3,
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.white,
+                        backgroundColor: const Color(0xFFA0522D),
+                        foregroundColor: const Color(0xFFFFFFFF),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        elevation: 0, // Flat design
+                        elevation: 0,
                       ),
                     ),
                   ),
@@ -410,19 +413,19 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                     height: 56,
                     child: OutlinedButton.icon(
                       onPressed: () => openGoogleMaps(context),
-                      icon: const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 22),
+                      icon: const Icon(Icons.location_on_rounded, color: Color(0xFFA0522D), size: 22),
                       label: Text(
                         "Open in Google Maps",
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
+                          color: const Color(0xFFA0522D),
                           letterSpacing: 0.3,
                         ),
                       ),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.primary,
-                        side: const BorderSide(color: AppColors.primaryLight, width: 1.5), // Softer border
+                        foregroundColor: const Color(0xFFA0522D),
+                        side: const BorderSide(color: Color(0xFFD2B48C), width: 1.5),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                     ),
@@ -445,7 +448,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
           width: 4,
           height: 24,
           decoration: BoxDecoration(
-            color: AppColors.primary,
+            color: const Color(0xFFA0522D),
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -455,7 +458,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: AppColors.dark,
+            color: const Color(0xFF2C221E),
             letterSpacing: 0.3,
           ),
         ),
@@ -468,14 +471,15 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     required IconData icon,
     required String label,
     required String value,
+    IconData? trailingIcon,
     VoidCallback? onTap,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: const Color(0xFFFFFFFF),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.lightGrey.withValues(alpha: 0.7), width: 1),
+        border: Border.all(color: const Color(0xFFE6E1DC).withValues(alpha: 0.7), width: 1),
       ),
       child: InkWell(
         onTap: onTap,
@@ -485,21 +489,21 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: const Color(0xFFA0522D).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: AppColors.primary, size: 22),
+              child: Icon(icon, color: const Color(0xFFA0522D), size: 22),
             ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: GoogleFonts.poppins(fontSize: 12, color: AppColors.grey, fontWeight: FontWeight.w500)),
+                  Text(label, style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF8C827E), fontWeight: FontWeight.w500)),
                   const SizedBox(height: 2),
                   Text(
                     value,
-                    style: GoogleFonts.poppins(fontSize: 15, color: AppColors.dark, fontWeight: FontWeight.w500),
+                    style: GoogleFonts.poppins(fontSize: 15, color: const Color(0xFF2C221E), fontWeight: FontWeight.w500),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -507,7 +511,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
               ),
             ),
             if (onTap != null)
-              const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.grey),
+              Icon(trailingIcon ?? Icons.arrow_forward_ios_rounded, size: 16, color: const Color(0xFF8C827E)),
           ],
         ),
       ),
