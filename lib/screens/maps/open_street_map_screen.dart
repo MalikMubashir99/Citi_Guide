@@ -1,5 +1,4 @@
 // lib/screens/maps/open_street_map_screen.dart
-import 'package:app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -34,6 +33,13 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
   bool _permissionDenied = false;
 
   static const LatLng _defaultPosition = LatLng(24.8607, 67.0011);
+  
+  // Custom theme colors replacing AppColors
+  static const Color _backgroundColor = Color(0xFFF8F5F0); // Warm Linen
+  static const Color _surfaceColor = Colors.white;
+  static const Color _darkColor = Color(0xFF2C2C2C); // Dark Espresso
+  static const Color _primaryColor = Color(0xFF2563EB); // Vibrant Blue / Primary
+  static const Color _errorColor = Color(0xFFDC2626); // Red
 
   @override
   void initState() {
@@ -119,7 +125,7 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: _surfaceColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
@@ -127,13 +133,13 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
           'Location Permission',
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w600,
-            color: AppColors.dark,
+            color: _darkColor,
           ),
         ),
         content: Text(
           'Location permission is required to show your current position on the map.',
           style: GoogleFonts.poppins(
-            color: AppColors.darkGrey,
+            color: Colors.grey.shade700,
             fontSize: 14,
             height: 1.5,
           ),
@@ -144,7 +150,7 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
             child: Text(
               'Cancel',
               style: GoogleFonts.poppins(
-                color: AppColors.darkGrey,
+                color: Colors.grey.shade700,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -155,8 +161,8 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
               _getCurrentLocation();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.white,
+              backgroundColor: _primaryColor,
+              foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -177,21 +183,21 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background, // Warm Linen
+      backgroundColor: _backgroundColor,
       appBar: AppBar(
         title: Text(
           widget.placeName ?? "Map",
           style: GoogleFonts.poppins(
-            color: AppColors.dark,
+            color: _darkColor,
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: AppColors.background,
+        backgroundColor: _backgroundColor,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.dark),
+        iconTheme: const IconThemeData(color: _darkColor),
         actions: [
           IconButton(
-            icon: const Icon(Icons.my_location, color: AppColors.dark),
+            icon: const Icon(Icons.my_location, color: _darkColor),
             onPressed: _centerOnLocation,
             tooltip: 'My Location',
           ),
@@ -225,20 +231,20 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
           // Loading State
           if (_isLoading)
             Container(
-              color: AppColors.background,
+              color: _backgroundColor,
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: AppColors.primary,
+                      color: _primaryColor,
                     ),
                     const SizedBox(height: 16),
                     Text(
                       'Loading Map...',
                       style: GoogleFonts.poppins(
-                        color: AppColors.darkGrey,
+                        color: Colors.grey.shade700,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -256,24 +262,23 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.surface, // Pure white
+                  color: _surfaceColor,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: AppColors.lightGrey.withValues(alpha: 0.7),
+                    color: Colors.grey.shade300.withValues(alpha: 0.7),
                     width: 1,
                   ),
-                  // Removed drop shadow for flat design
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.location_off, color: AppColors.error), // Burnt Sienna
+                    const Icon(Icons.location_off, color: _errorColor),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'Location permission denied. Please enable in settings.',
                         style: GoogleFonts.poppins(
                           fontSize: 13,
-                          color: AppColors.darkGrey,
+                          color: Colors.grey.shade700,
                         ),
                       ),
                     ),
@@ -282,7 +287,7 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
                       child: Text(
                         'Retry',
                         style: GoogleFonts.poppins(
-                          color: AppColors.primary,
+                          color: _primaryColor,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -337,7 +342,7 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
           height: 40,
           child: const Icon(
             Icons.location_pin,
-            color: AppColors.primary, // Rich Cognac Pin
+            color: _primaryColor,
             size: 40,
           ),
         ),
@@ -356,13 +361,13 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
           height: 30,
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.info.withValues(alpha: 0.3), // Dusty Blue glow
+              color: _primaryColor.withValues(alpha: 0.3),
               shape: BoxShape.circle,
             ),
             child: Container(
               margin: const EdgeInsets.all(4),
               decoration: const BoxDecoration(
-                color: AppColors.info, // Dusty Blue center
+                color: _primaryColor,
                 shape: BoxShape.circle,
               ),
             ),
@@ -380,13 +385,12 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface, // Pure white
+        color: _surfaceColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.lightGrey.withValues(alpha: 0.7),
+          color: Colors.grey.shade300.withValues(alpha: 0.7),
           width: 1,
         ),
-        // Removed drop shadow for flat design
       ),
       child: Material(
         color: Colors.transparent,
@@ -397,7 +401,7 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
             padding: const EdgeInsets.all(12),
             child: Icon(
               icon,
-              color: AppColors.dark, // Dark espresso icon instead of blue
+              color: _darkColor,
               size: 24,
             ),
           ),

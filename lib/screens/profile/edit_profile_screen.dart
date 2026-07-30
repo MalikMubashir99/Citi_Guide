@@ -1,7 +1,6 @@
 // lib/screens/profile/edit_profile_screen.dart
 import 'dart:convert';
 import 'dart:io';
-import 'package:app/core/constants/app_colors.dart';
 import 'package:app/model/user_model.dart';
 import 'package:app/services/user_service.dart';
 import 'package:flutter/material.dart';
@@ -70,42 +69,40 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     try {
       final bytes = await image.readAsBytes();
-      print('📸 Image bytes length: ${bytes.length}');
-
       final base64String = base64Encode(bytes);
-      print('📸 Base64 length: ${base64String.length}');
 
       setState(() {
         _base64Image = base64String;
       });
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
-            children: [
-              Icon(Icons.check_circle, color: AppColors.white, size: 20),
-              const SizedBox(width: 10),
-              const Text("Image selected"),
+            children: const [
+              Icon(Icons.check_circle, color: Colors.white, size: 20),
+              SizedBox(width: 10),
+              Text("Image selected successfully"),
             ],
           ),
-          backgroundColor: AppColors.success,
+          backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         ),
       );
     } catch (e) {
-      print('❌ Error picking image: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
-              Icon(Icons.error_outline, color: AppColors.white, size: 20),
+              const Icon(Icons.error_outline, color: Colors.white, size: 20),
               const SizedBox(width: 10),
-              Expanded(child: Text("Error: $e")),
+              Expanded(child: Text("Error picking image: $e")),
             ],
           ),
-          backgroundColor: AppColors.error,
+          backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -128,13 +125,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
-            children: [
-              Icon(Icons.warning_amber_rounded, color: AppColors.white, size: 20),
-              const SizedBox(width: 10),
-              const Text("Name must be at least 3 characters"),
+            children: const [
+              Icon(Icons.warning_amber_rounded, color: Colors.white, size: 20),
+              SizedBox(width: 10),
+              Text("Name must be at least 3 characters"),
             ],
           ),
-          backgroundColor: AppColors.warning,
+          backgroundColor: Colors.orange,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -148,8 +145,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
 
     try {
-      print('📸 Saving image length: ${_base64Image?.length ?? 0}');
-
       await userService.updateUser(
         name: name,
         phone: phone,
@@ -161,13 +156,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
-            children: [
-              Icon(Icons.check_circle, color: AppColors.white, size: 20),
-              const SizedBox(width: 10),
-              const Text("Profile Updated"),
+            children: const [
+              Icon(Icons.check_circle, color: Colors.white, size: 20),
+              SizedBox(width: 10),
+              Text("Profile Updated Successfully"),
             ],
           ),
-          backgroundColor: AppColors.success,
+          backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -177,19 +172,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       widget.onProfileUpdated?.call();
       Navigator.pop(context, true);
     } catch (e) {
-      print('❌ Update error: $e');
       setState(() => loading = false);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
-              Icon(Icons.error_outline, color: AppColors.white, size: 20),
+              const Icon(Icons.error_outline, color: Colors.white, size: 20),
               const SizedBox(width: 10),
               Expanded(child: Text("Error: $e")),
             ],
           ),
-          backgroundColor: AppColors.error,
+          backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -201,103 +195,118 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text(
           "Edit Profile",
           style: TextStyle(
-            color: AppColors.dark,
+            color: Colors.black87,
             fontWeight: FontWeight.w600,
             fontSize: 18,
           ),
         ),
-        backgroundColor: AppColors.background,
+        backgroundColor: Colors.grey[50],
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: AppColors.dark),
+        iconTheme: const IconThemeData(color: Colors.black87),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
             height: 1,
-            color: AppColors.lightGrey,
+            color: Colors.grey.shade300,
           ),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // ── Profile Image Section ──
-            GestureDetector(
-              onTap: pickImage,
+            Center(
               child: Stack(
                 children: [
-                  // Outer warm glow ring
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: AppColors.goldenGradient,
-                      boxShadow: AppColors.warmGlow,
+                      gradient: const LinearGradient(
+                        colors: [Colors.blue, Colors.cyanAccent],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withValues(alpha: 0.2),
+                          blurRadius: 12,
+                          spreadRadius: 2,
+                        ),
+                      ],
                     ),
                     child: CircleAvatar(
-                      radius: 60,
+                      radius: 56,
                       backgroundImage: _getImageProvider(_base64Image),
-                      backgroundColor: AppColors.surface,
+                      backgroundColor: Colors.white,
                       child: _base64Image == null || _base64Image!.isEmpty
-                          ? Icon(
+                          ? const Icon(
                               Icons.person,
-                              size: 55,
-                              color: AppColors.grey,
+                              size: 50,
+                              color: Colors.grey,
                             )
                           : null,
                     ),
                   ),
-                  // Camera button
+                  // Camera button badge
                   Positioned(
-                    bottom: 2,
-                    right: 2,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.surface,
-                          width: 3,
+                    bottom: 0,
+                    right: 0,
+                    child: GestureDetector(
+                      onTap: pickImage,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white,
+                            width: 3,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                        boxShadow: AppColors.subtleShadow,
-                      ),
-                      child: const Icon(
-                        Icons.camera_alt_rounded,
-                        size: 18,
-                        color: AppColors.white,
+                        child: const Icon(
+                          Icons.camera_alt_rounded,
+                          size: 16,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
-                  // Remove image button
-                  if (_base64Image != null)
+                  // Remove image button badge
+                  if (_base64Image != null && _base64Image!.isNotEmpty)
                     Positioned(
-                      top: 2,
-                      right: 2,
+                      top: 0,
+                      right: 0,
                       child: GestureDetector(
                         onTap: removeImage,
                         child: Container(
-                          padding: const EdgeInsets.all(4),
+                          padding: const EdgeInsets.all(5),
                           decoration: BoxDecoration(
-                            color: AppColors.error,
+                            color: Colors.red,
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: AppColors.surface,
+                              color: Colors.white,
                               width: 2,
                             ),
                           ),
                           child: const Icon(
                             Icons.close,
-                            size: 14,
-                            color: AppColors.white,
+                            size: 12,
+                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -306,43 +315,49 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            Text(
-              "Tap to change photo",
+            const Text(
+              "Tap camera icon to update photo",
               style: TextStyle(
-                color: AppColors.grey,
+                color: Colors.grey,
                 fontSize: 13,
                 fontWeight: FontWeight.w400,
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
 
-            // ── Form Section ──
+            // ── Form Card Container ──
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: AppColors.subtleShadow,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
                 border: Border.all(
-                  color: AppColors.lightGrey.withValues(alpha: 0.5),
+                  color: Colors.grey.shade300.withValues(alpha: 0.5),
                 ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     "Personal Information",
                     style: TextStyle(
-                      color: AppColors.dark,
+                      color: Colors.black87,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    "Update your details below",
+                  const Text(
+                    "Keep your profile details up to date",
                     style: TextStyle(
-                      color: AppColors.grey,
+                      color: Colors.grey,
                       fontSize: 13,
                     ),
                   ),
@@ -354,7 +369,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   TextField(
                     controller: nameController,
                     style: const TextStyle(
-                      color: AppColors.dark,
+                      color: Colors.black87,
                       fontSize: 15,
                     ),
                     decoration: _inputDecoration(
@@ -371,7 +386,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     controller: phoneController,
                     keyboardType: TextInputType.phone,
                     style: const TextStyle(
-                      color: AppColors.dark,
+                      color: Colors.black87,
                       fontSize: 15,
                     ),
                     decoration: _inputDecoration(
@@ -387,48 +402,56 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             // ── Save Button ──
             Container(
               width: double.infinity,
-              height: 54,
+              height: 52,
               decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
+                gradient: const LinearGradient(
+                  colors: [Colors.blue, Colors.blueAccent],
+                ),
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: AppColors.mediumShadow,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 15,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: ElevatedButton(
                 onPressed: loading ? null : updateProfile,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
-                  foregroundColor: AppColors.white,
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                   disabledBackgroundColor: Colors.transparent,
                 ),
                 child: loading
-                    ? SizedBox(
+                    ? const SizedBox(
                         height: 22,
                         width: 22,
                         child: CircularProgressIndicator(
                           strokeWidth: 2.5,
-                          color: AppColors.white.withValues(alpha: 0.8),
+                          color: Colors.white,
                         ),
                       )
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
+                        children: const [
+                          Text(
                             "Save Changes",
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.white,
+                              color: Colors.white,
                               letterSpacing: 0.3,
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           Icon(
                             Icons.arrow_forward_rounded,
-                            color: AppColors.white.withValues(alpha: 0.8),
+                            color: Colors.white,
                             size: 20,
                           ),
                         ],
@@ -442,12 +465,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  // ── Helper: Section Label ──
   Widget _buildLabel(String text) {
     return Text(
       text,
-      style: const TextStyle(
-        color: AppColors.darkGrey,
+      style: TextStyle(
+        color: Colors.grey.shade700,
         fontSize: 13,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.2,
@@ -455,49 +477,48 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  // ── Helper: Input Decoration ──
   InputDecoration _inputDecoration({
     required String hint,
     required IconData prefixIcon,
   }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(
-        color: AppColors.grey,
+      hintStyle: const TextStyle(
+        color: Colors.grey,
         fontSize: 14,
       ),
       filled: true,
-      fillColor: AppColors.primarySurface,
+      fillColor: Colors.blue.withValues(alpha: 0.05),
       prefixIcon: Icon(
         prefixIcon,
-        color: AppColors.darkGrey,
+        color: Colors.grey.shade700,
         size: 20,
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide(
-          color: AppColors.lightGrey,
+          color: Colors.grey.shade300,
           width: 1.5,
         ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(
-          color: AppColors.primary,
+          color: Colors.blue,
           width: 1.8,
         ),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(
-          color: AppColors.error,
+          color: Colors.red,
           width: 1.5,
         ),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(
-          color: AppColors.error,
+          color: Colors.red,
           width: 1.8,
         ),
       ),

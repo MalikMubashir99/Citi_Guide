@@ -14,6 +14,14 @@ class CustomTextField extends StatelessWidget {
   final int? maxLines;
   final bool readOnly;
   final VoidCallback? onTap;
+  
+  // ✅ NEW: Color customization parameters
+  final Color? fillColor;
+  final Color? borderColor;
+  final Color? focusedBorderColor;
+  final Color? iconColor;
+  final Color? textColor;
+  final Color? hintColor;
 
   const CustomTextField({
     super.key,
@@ -28,6 +36,13 @@ class CustomTextField extends StatelessWidget {
     this.maxLines = 1,
     this.readOnly = false,
     this.onTap,
+    // ✅ New parameters with default values
+    this.fillColor,
+    this.borderColor,
+    this.focusedBorderColor,
+    this.iconColor,
+    this.textColor,
+    this.hintColor,
   });
 
   @override
@@ -41,58 +56,58 @@ class CustomTextField extends StatelessWidget {
       maxLines: maxLines,
       readOnly: readOnly,
       onTap: onTap,
-      style: const TextStyle(
-        color: AppColors.dark,
+      style: TextStyle(
+        color: textColor ?? AppColors.dark,
         fontSize: 15,
       ),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: const TextStyle(
-          color: AppColors.grey,
+        hintStyle: TextStyle(
+          color: hintColor ?? AppColors.grey,
           fontSize: 14,
           fontWeight: FontWeight.w400,
         ),
         prefixIcon: Icon(
           prefixIcon,
-          color: AppColors.secondaryDark, // Deep Gold hint to match global theme
+          color: iconColor ?? AppColors.secondaryDark,
           size: 20,
         ),
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: AppColors.surface, // Pure white for consistency
+        fillColor: fillColor ?? AppColors.surface,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 20,
           vertical: 18,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14), // Matched to global theme 14px
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
-            color: AppColors.lightGrey,
+            color: borderColor ?? AppColors.lightGrey,
             width: 1,
           ),
         ),
-        focusedBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(14)),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(14)),
           borderSide: BorderSide(
-            color: AppColors.primary,
+            color: focusedBorderColor ?? AppColors.primary,
             width: 2,
           ),
         ),
         errorBorder: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(14)),
           borderSide: BorderSide(
-            color: AppColors.error, // Burnt Sienna instead of pure red
+            color: AppColors.error,
             width: 1.5,
           ),
         ),
         focusedErrorBorder: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(14)),
           borderSide: BorderSide(
-            color: AppColors.error, // Burnt Sienna instead of pure red
+            color: AppColors.error,
             width: 2,
           ),
         ),

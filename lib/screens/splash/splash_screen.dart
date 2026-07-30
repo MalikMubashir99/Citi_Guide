@@ -1,6 +1,4 @@
-// lib/screens/splash/splash_screen.dart
 import 'dart:async';
-import 'package:app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -13,14 +11,12 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-  // Main reveal animation controller
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<double> _slideAnimation;
   late Animation<double> _footerFadeAnimation;
 
-  // Subtle pulse animation for the icon
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
@@ -28,7 +24,6 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    // --- Main Animation Setup ---
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
@@ -60,11 +55,10 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // --- Pulse Animation Setup ---
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true); // Loop forever
+    )..repeat(reverse: true);
 
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
       CurvedAnimation(
@@ -73,7 +67,6 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
 
-    // Navigate to next screen after delay
     Timer(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.pushReplacementNamed(context, "/onboarding");
@@ -88,40 +81,51 @@ class _SplashScreenState extends State<SplashScreen>
     super.dispose();
   }
 
+  // Helper widget for the 3 dots indicator
+  Widget _buildDot({required bool active}) {
+    return Container(
+      width: active ? 16 : 6,
+      height: 6,
+      decoration: BoxDecoration(
+        color: active ? Colors.white : Colors.white.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(3),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Background Image - Sunset Cityscape
+          // Background Image
           Image.asset(
-            "assets/images/splash.jpg",
+            "assets/images/splash.jpg", // Ensure you have your city image here
             fit: BoxFit.cover,
             errorBuilder: (_, __, ___) => Container(
-              // Fallback gradient if image is missing
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0xFF5C3D24), Color(0xFF1A110A)],
+                  colors: [Color(0xFF243B55), Color(0xFF141E30)],
                 ),
               ),
             ),
           ),
 
-          // Cinematic Dark Overlay (Darker at bottom for text readability)
+          // Cinematic Dark Blue Overlay matching the image
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withValues(alpha: 0.15),
-                  Colors.black.withValues(alpha: 0.4),
-                  AppColors.splashOverlayDark.withValues(alpha: 0.92),
+                  const Color(0xFF1A2352).withOpacity(0.6), // Top blue tint
+                  const Color(0xFF0F172A).withOpacity(0.75), // Mid dark navy
+                  const Color(0xFF090E17).withOpacity(0.95), // Deep bottom
                 ],
-                stops: const [0.0, 0.5, 1.0],
+                stops: const [0.0, 0.4, 1.0],
               ),
             ),
           ),
@@ -132,9 +136,9 @@ class _SplashScreenState extends State<SplashScreen>
             child: SafeArea(
               child: Column(
                 children: [
-                  const Spacer(flex: 2),
+                  const Spacer(flex: 3),
 
-                  // Location Icon with Scale & Pulse Animation
+                  // Location Icon in Frosted Glass Container
                   ScaleTransition(
                     scale: _scaleAnimation,
                     child: AnimatedBuilder(
@@ -146,31 +150,37 @@ class _SplashScreenState extends State<SplashScreen>
                         );
                       },
                       child: Container(
-                        width: 80,
-                        height: 80,
+                        width: 90,
+                        height: 90,
                         decoration: BoxDecoration(
-                          color: AppColors.splashIconBg, // Grey-Brown from palette
-                          shape: BoxShape.circle,
+                          color: Colors.white.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(28),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 1.2,
+                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.3),
+                              color: Colors.black.withOpacity(0.2),
                               blurRadius: 20,
                               offset: const Offset(0, 10),
                             ),
                           ],
                         ),
-                        child: const Icon(
-                          Icons.location_on_rounded,
-                          color: Colors.white,
-                          size: 40,
+                        child: const Center(
+                          child: Icon(
+                            Icons.location_on, // White pin
+                            color: Colors.white,
+                            size: 46,
+                          ),
                         ),
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 24),
 
-                  // "CityGuide" Title with Slide Animation
+                  // "CityGuide" Title
                   AnimatedBuilder(
                     animation: _slideAnimation,
                     builder: (context, child) {
@@ -183,9 +193,9 @@ class _SplashScreenState extends State<SplashScreen>
                       "CityGuide",
                       style: GoogleFonts.poppins(
                         color: Colors.white,
-                        fontSize: 36,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1.5,
+                        fontSize: 38,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.5,
                         shadows: const [
                           Shadow(
                             color: Colors.black54,
@@ -197,9 +207,9 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
 
-                  // Tagline with Slide Animation
+                  // Tagline
                   AnimatedBuilder(
                     animation: _slideAnimation,
                     builder: (context, child) {
@@ -209,36 +219,58 @@ class _SplashScreenState extends State<SplashScreen>
                       );
                     },
                     child: Text(
-                      "Explore the world,\none city at a time",
+                      "Explore the world, one city at a time",
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        height: 1.6,
-                        letterSpacing: 0.5,
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.2,
                       ),
                     ),
                   ),
 
-                  const Spacer(flex: 3),
+                  const SizedBox(height: 32),
 
-                  // Bottom Branding Text with Fade Animation
+                  // Dots Indicator
+                  AnimatedBuilder(
+                    animation: _slideAnimation,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(0, _slideAnimation.value * 0.25),
+                        child: child,
+                      );
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildDot(active: true),
+                        const SizedBox(width: 6),
+                        _buildDot(active: false),
+                        const SizedBox(width: 6),
+                        _buildDot(active: false),
+                      ],
+                    ),
+                  ),
+
+                  const Spacer(flex: 4),
+
+                  // Bottom Branding Text
                   FadeTransition(
                     opacity: _footerFadeAnimation,
                     child: Text(
-                      "CITYGUIDE - MOBILE APP",
+                      "CITYGUIDE • MOBILE APP",
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
-                        color: Colors.white.withValues(alpha: 0.5),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 3,
+                        color: Colors.white.withOpacity(0.4),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 2.5,
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),

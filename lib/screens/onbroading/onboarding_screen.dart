@@ -1,5 +1,3 @@
-// lib/screens/onbroading/onboarding_screen.dart
-import 'package:app/core/constants/app_colors.dart';
 import 'package:app/core/constants/onboarding_data.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,6 +13,7 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _controller = PageController();
   bool isLastPage = false;
+  int currentPage = 0;
 
   @override
   void dispose() {
@@ -22,17 +21,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
+  // Helper method to match the colors shown in the designs
+  Color _getActiveColor(int index) {
+    if (index == 0) return const Color(0xFF2563EB); // Blue
+    if (index == 1) return const Color(0xFF22C55E); // Green
+    return const Color(0xFFF59E0B); // Orange
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // Page View
+          // 1. Page View
           PageView.builder(
             controller: _controller,
             itemCount: onboardingData.length,
             onPageChanged: (index) {
               setState(() {
+                currentPage = index;
                 isLastPage = index == onboardingData.length - 1;
               });
             },
@@ -42,117 +49,87 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Background Image
+                  // Full-screen background image
                   Image.asset(
                     item.image,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
-                      // Fallback matching new palette
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Color(0xFF5C3D24), Color(0xFF1A110A)],
+                          colors: [Color(0xFF1E3A5F), Color(0xFF0D1B2A)],
                         ),
                       ),
                     ),
                   ),
 
-                  // Cinematic Dark Overlay
+                  // Dark gradient overlay 
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withValues(alpha: 0.15),
-                          Colors.black.withValues(alpha: 0.3),
-                          AppColors.splashOverlayDark.withValues(alpha: 0.85),
-                          AppColors.primaryDark.withValues(alpha: 0.95),
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.2),
+                          Colors.black.withValues(alpha: 0.7),
+                          Colors.black.withValues(alpha: 0.95),
                         ],
-                        stops: const [0.0, 0.25, 0.6, 1.0],
+                        stops: const [0.0, 0.4, 0.75, 1.0],
                       ),
                     ),
                   ),
 
-                  // Content
+                  // Content (Text and Dots aligned to the left)
                   SafeArea(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 25),
+                      padding: const EdgeInsets.symmetric(horizontal: 28),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          // Skip Button
-                          Align(
-                            alignment: Alignment.topRight,
-                            child: TextButton(
-                              onPressed: () {
-                                Navigator.pushReplacementNamed(
-                                  context,
-                                  "/login",
-                                );
-                              },
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.white.withValues(alpha: 0.9),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 8,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                  side: BorderSide(
-                                    color: Colors.white.withValues(alpha: 0.25),
-                                    width: 1,
-                                  ),
-                                ),
-                              ),
-                              child: Text(
-                                "Skip",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          const Spacer(),
-
                           // Title
                           Text(
                             item.title,
-                            textAlign: TextAlign.center,
+                            textAlign: TextAlign.left,
                             style: GoogleFonts.poppins(
                               color: Colors.white,
-                              fontSize: 36,
-                              fontWeight: FontWeight.w600, // Semi-bold is more modern than full bold
+                              fontSize: 34,
+                              fontWeight: FontWeight.bold,
                               height: 1.2,
-                              letterSpacing: 0.5,
-                              shadows: const [
-                                Shadow(
-                                  color: Colors.black54,
-                                  blurRadius: 15,
-                                  offset: Offset(0, 3),
-                                ),
-                              ],
+                              letterSpacing: -0.5,
                             ),
                           ),
-
-                          const SizedBox(height: 16),
-
+                          const SizedBox(height: 12),
+                          
                           // Description
                           Text(
                             item.description,
-                            textAlign: TextAlign.center,
+                            textAlign: TextAlign.left,
                             style: GoogleFonts.poppins(
                               color: Colors.white.withValues(alpha: 0.8),
-                              fontSize: 16, // Slightly smaller for better hierarchy
+                              fontSize: 15,
                               fontWeight: FontWeight.w400,
                               height: 1.6,
-                              letterSpacing: 0.3,
                             ),
                           ),
-
-                          // Added spacer to push content up slightly so it doesn't overlap controls
-                          const SizedBox(height: 80), 
+                          const SizedBox(height: 24),
+                          
+                          // Page Indicator
+                          SmoothPageIndicator(
+                            controller: _controller,
+                            count: onboardingData.length,
+                            effect: ExpandingDotsEffect(
+                              activeDotColor: _getActiveColor(index),
+                              dotColor: Colors.white.withValues(alpha: 0.4),
+                              dotHeight: 6,
+                              dotWidth: 6,
+                              expansionFactor: 3.5,
+                              spacing: 6,
+                            ),
+                          ),
+                          
+                          // Extra spacing to account for the white bottom sheet overlapping
+                          const SizedBox(height: 160),
                         ],
                       ),
                     ),
@@ -162,96 +139,131 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             },
           ),
 
-          // Bottom Controls (Floating over the gradient)
+          // 2. White Bottom Sheet Controls
           Positioned(
-            left: 24,
-            right: 24,
-            bottom: MediaQuery.of(context).padding.bottom + 24,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Page Indicator
-                SmoothPageIndicator(
-                  controller: _controller,
-                  count: onboardingData.length,
-                  effect: ExpandingDotsEffect(
-                    activeDotColor: AppColors.secondary, // Warm Sand color
-                    dotColor: Colors.white.withValues(alpha: 0.3),
-                    dotHeight: 10,
-                    dotWidth: 10,
-                    expansionFactor: 3,
-                    spacing: 8,
-                  ),
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: EdgeInsets.only(
+                left: 28,
+                right: 28,
+                top: 28,
+                bottom: MediaQuery.of(context).padding.bottom + 20,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(24),
                 ),
-
-                const SizedBox(height: 32),
-
-                // Action Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isLastPage ? AppColors.secondary : AppColors.white,
-                      foregroundColor: AppColors.primaryDark, // Dark espresso text on both
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 0, // Flat modern design
-                    ),
-                    onPressed: () {
-                      if (isLastPage) {
-                        Navigator.pushReplacementNamed(context, "/login");
-                      } else {
-                        _controller.nextPage(
-                          duration: const Duration(milliseconds: 500),
-                          curve: Curves.easeInOut,
-                        );
-                      }
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          isLastPage ? "Get Started" : "Next",
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isLastPage) ...[
+                    // Final Page: Full-width "Get Started" Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF3B82F6),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        onPressed: () {
+                          Navigator.pushReplacementNamed(context, "/login");
+                        },
+                        child: Text(
+                          "Get Started",
                           style: GoogleFonts.poppins(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            letterSpacing: 0.5,
-                            color: AppColors.primaryDark,
                           ),
                         ),
-                        if (!isLastPage) ...[
-                          const SizedBox(width: 8),
-                          Icon(
-                            Icons.arrow_forward_rounded,
-                            size: 20,
-                            color: AppColors.primaryDark,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                // Skip to Login (only on last page)
-                if (isLastPage)
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pushReplacementNamed(context, "/login");
-                    },
-                    child: Text(
-                      "Already have an account? Login",
-                      style: GoogleFonts.poppins(
-                        color: Colors.white.withValues(alpha: 0.7),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
                       ),
                     ),
+                  ] else ...[
+                    // Pages 1 & 2: Split "Skip" and "Next" Buttons
+                    Row(
+                      children: [
+                        // Skip Button
+                        Expanded(
+                          child: SizedBox(
+                            height: 56,
+                            child: TextButton(
+                              style: TextButton.styleFrom(
+                                backgroundColor: const Color(0xFFF3F4F6),
+                                foregroundColor: const Color(0xFF4B5563),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              onPressed: () {
+                                Navigator.pushReplacementNamed(context, "/login");
+                              },
+                              child: Text(
+                                "Skip",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        
+                        // Next Button
+                        Expanded(
+                          child: SizedBox(
+                            height: 56,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _getActiveColor(currentPage),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 0,
+                              ),
+                              onPressed: () {
+                                _controller.nextPage(
+                                  duration: const Duration(milliseconds: 400),
+                                  curve: Curves.easeInOut,
+                                );
+                              },
+                              child: Text(
+                                "Next",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  
+                  const SizedBox(height: 12),
+                  
+                  // Faint branding text at the bottom center (as seen in screenshots)
+                  Text(
+                    "CITYGUIDE • MOBILE APP",
+                    style: GoogleFonts.poppins(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.5,
+                      color: const Color(0xFF9CA3AF).withValues(alpha: 0.5),
+                    ),
                   ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

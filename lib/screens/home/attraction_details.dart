@@ -1,6 +1,546 @@
-// lib/screens/home/attraction_detail_screen.dart
+// // lib/screens/home/attraction_details.dart
+// import 'package:app/model/attraction_model.dart';
+// import 'package:app/screens/home/review_screen.dart';
+// import 'package:app/services/favorite_service.dart';
+// import 'package:app/services/review_service.dart';
+// import 'package:flutter/material.dart';
+// import 'package:google_fonts/google_fonts.dart';
+// import 'package:url_launcher/url_launcher.dart';
+
+// // Modern Blue & Clean Theme matching the reference UI design
+// class _AppColors {
+//   static const Color background = Color(0xFFF8FAFC);
+//   static const Color white = Colors.white;
+//   static const Color dark = Color(0xFF0F172A);
+//   static const Color primary = Color(0xFF2563EB); // Vibrant Modern Blue
+//   static const Color primaryLight = Color(0xFFEFF6FF); // Light Blue tint
+//   static const Color error = Color(0xFFDC2626);
+//   static const Color lightGrey = Color(0xFFE2E8F0);
+//   static const Color grey = Color(0xFF64748B);
+//   static const Color star = Color(0xFFF59E0B); // Amber Star
+// }
+
+// class AttractionDetailScreen extends StatefulWidget {
+//   final AttractionModel attraction;
+
+//   const AttractionDetailScreen({super.key, required this.attraction});
+
+//   @override
+//   State<AttractionDetailScreen> createState() => _AttractionDetailScreenState();
+// }
+
+// class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
+//   final FavoriteService favoriteService = FavoriteService();
+//   final ReviewService reviewService = ReviewService();
+
+//   bool isFavorite = false;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     loadFavorite();
+//   }
+
+//   Future<void> openGoogleMaps() async {
+//     final Uri url = Uri.parse(
+//       "https://www.google.com/maps/search/?api=1&query=${widget.attraction.latitude},${widget.attraction.longitude}",
+//     );
+
+//     if (await canLaunchUrl(url)) {
+//       await launchUrl(url, mode: LaunchMode.externalApplication);
+//     } else {
+//       if (!mounted) return;
+//       _showErrorSnackBar("Unable to open Google Maps");
+//     }
+//   }
+
+//   Future<void> loadFavorite() async {
+//     bool favorite = await favoriteService.isFavorite(widget.attraction.id);
+//     if (mounted) {
+//       setState(() {
+//         isFavorite = favorite;
+//       });
+//     }
+//   }
+
+//   void _showErrorSnackBar(String message) {
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(
+//         content: Text(
+//           message,
+//           style: GoogleFonts.poppins(
+//             color: _AppColors.white,
+//             fontWeight: FontWeight.w500,
+//           ),
+//         ),
+//         backgroundColor: _AppColors.error,
+//         behavior: SnackBarBehavior.floating,
+//         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+//       ),
+//     );
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       backgroundColor: _AppColors.background,
+//       body: Stack(
+//         children: [
+//           // Background Image Header
+//           Positioned(
+//             top: 0,
+//             left: 0,
+//             right: 0,
+//             child: widget.attraction.image.isEmpty
+//                 ? Container(
+//                     height: 380,
+//                     width: double.infinity,
+//                     color: _AppColors.lightGrey,
+//                     child: const Icon(Icons.landscape_rounded, size: 100, color: _AppColors.grey),
+//                   )
+//                 : Image.network(
+//                     widget.attraction.image,
+//                     width: double.infinity,
+//                     height: 380,
+//                     fit: BoxFit.cover,
+//                     errorBuilder: (_, __, ___) => Container(
+//                       height: 380,
+//                       width: double.infinity,
+//                       color: _AppColors.lightGrey,
+//                       child: const Icon(Icons.broken_image, size: 100, color: _AppColors.grey),
+//                     ),
+//                     loadingBuilder: (_, child, progress) {
+//                       if (progress == null) return child;
+//                       return Container(
+//                         height: 380,
+//                         width: double.infinity,
+//                         color: _AppColors.lightGrey,
+//                         child: const Center(
+//                           child: CircularProgressIndicator(strokeWidth: 2, color: _AppColors.primary),
+//                         ),
+//                       );
+//                     },
+//                   ),
+//           ),
+
+//           // Floating Top Actions (Back, Favorite, Share)
+//           Positioned(
+//             top: MediaQuery.of(context).padding.top + 12,
+//             left: 20,
+//             right: 20,
+//             child: Row(
+//               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//               children: [
+//                 // Back Button
+//                 Container(
+//                   decoration: BoxDecoration(
+//                     color: Colors.black.withValues(alpha: 0.35),
+//                     shape: BoxShape.circle,
+//                   ),
+//                   child: IconButton(
+//                     icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+//                     onPressed: () => Navigator.pop(context),
+//                   ),
+//                 ),
+//                 // Right Action Buttons (Favorite & Share)
+//                 Row(
+//                   children: [
+//                     Container(
+//                       decoration: BoxDecoration(
+//                         color: Colors.black.withValues(alpha: 0.35),
+//                         shape: BoxShape.circle,
+//                       ),
+//                       child: IconButton(
+//                         icon: Icon(
+//                           isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+//                           color: isFavorite ? _AppColors.error : Colors.white,
+//                         ),
+//                         onPressed: () async {
+//                           if (isFavorite) {
+//                             await favoriteService.removeFavoriteByAttraction(widget.attraction.id);
+//                           } else {
+//                             await favoriteService.addFavorite(widget.attraction.id);
+//                           }
+//                           await loadFavorite();
+//                         },
+//                       ),
+//                     ),
+//                     const SizedBox(width: 10),
+//                     Container(
+//                       decoration: BoxDecoration(
+//                         color: Colors.black.withValues(alpha: 0.35),
+//                         shape: BoxShape.circle,
+//                       ),
+//                       child: IconButton(
+//                         icon: const Icon(Icons.share_rounded, color: Colors.white),
+//                         onPressed: () {
+//                           // Share attraction logic
+//                         },
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ],
+//             ),
+//           ),
+
+//           // Scrollable Content Sheet overlapping the image
+//           Positioned.fill(
+//             child: SingleChildScrollView(
+//               padding: const EdgeInsets.only(top: 330),
+//               child: Container(
+//                 decoration: const BoxDecoration(
+//                   color: _AppColors.white,
+//                   borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+//                   boxShadow: [
+//                     BoxShadow(
+//                       color: Colors.black12,
+//                       blurRadius: 10,
+//                       offset: Offset(0, -5),
+//                     ),
+//                   ],
+//                 ),
+//                 padding: const EdgeInsets.all(24),
+//                 child: Column(
+//                   crossAxisAlignment: CrossAxisAlignment.start,
+//                   children: [
+//                     // Title and Price Row
+//                     Row(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                       children: [
+//                         Expanded(
+//                           child: Text(
+//                             widget.attraction.name,
+//                             style: GoogleFonts.poppins(
+//                               fontSize: 26,
+//                               fontWeight: FontWeight.w700,
+//                               color: _AppColors.dark,
+//                               height: 1.2,
+//                             ),
+//                           ),
+//                         ),
+//                         const SizedBox(width: 12),
+//                         // Price Tag
+//                         Text(
+//                           "€26",
+//                           style: GoogleFonts.poppins(
+//                             fontSize: 24,
+//                             fontWeight: FontWeight.w700,
+//                             color: _AppColors.primary,
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                     const SizedBox(height: 12),
+
+//                     // Category Pill & City Location Row
+//                     Row(
+//                       children: [
+//                         Container(
+//                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+//                           decoration: BoxDecoration(
+//                             color: _AppColors.primaryLight,
+//                             borderRadius: BorderRadius.circular(20),
+//                           ),
+//                           child: Text(
+//                             "Landmark",
+//                             style: GoogleFonts.poppins(
+//                               fontSize: 13,
+//                               color: _AppColors.primary,
+//                               fontWeight: FontWeight.w600,
+//                             ),
+//                           ),
+//                         ),
+//                         const SizedBox(width: 12),
+//                         const Icon(Icons.location_on_rounded, size: 16, color: _AppColors.grey),
+//                         const SizedBox(width: 4),
+//                         Text(
+//                           widget.attraction.cityId,
+//                           style: GoogleFonts.poppins(
+//                             fontSize: 14,
+//                             color: _AppColors.grey,
+//                             fontWeight: FontWeight.w500,
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                     const SizedBox(height: 16),
+
+//                     // Star Rating Row
+//                     FutureBuilder<double>(
+//                       future: reviewService.getAverageRating(widget.attraction.id),
+//                       builder: (context, ratingSnapshot) {
+//                         return FutureBuilder<int>(
+//                           future: reviewService.getReviewCount(widget.attraction.id),
+//                           builder: (context, countSnapshot) {
+//                             final rating = ratingSnapshot.hasData ? ratingSnapshot.data! : 4.9;
+//                             final count = countSnapshot.hasData ? countSnapshot.data! : 48900;
+
+//                             return Row(
+//                               children: [
+//                                 Row(
+//                                   children: List.generate(
+//                                     5,
+//                                     (index) => const Icon(
+//                                       Icons.star_rounded,
+//                                       color: _AppColors.star,
+//                                       size: 20,
+//                                     ),
+//                                   ),
+//                                 ),
+//                                 const SizedBox(width: 8),
+//                                 Text(
+//                                   rating.toStringAsFixed(1),
+//                                   style: GoogleFonts.poppins(
+//                                     fontSize: 16,
+//                                     fontWeight: FontWeight.w600,
+//                                     color: _AppColors.dark,
+//                                   ),
+//                                 ),
+//                                 const SizedBox(width: 6),
+//                                 Text(
+//                                   '(${count > 1000 ? '${(count / 1000).toStringAsFixed(1)}k' : count} reviews)',
+//                                   style: GoogleFonts.poppins(
+//                                     fontSize: 13,
+//                                     color: _AppColors.grey,
+//                                     fontWeight: FontWeight.w400,
+//                                   ),
+//                                 ),
+//                               ],
+//                             );
+//                           },
+//                         );
+//                       },
+//                     ),
+//                     const Padding(
+//                       padding: EdgeInsets.symmetric(vertical: 20),
+//                       child: Divider(color: _AppColors.lightGrey, thickness: 1),
+//                     ),
+
+//                     // Description
+//                     Text(
+//                       widget.attraction.description,
+//                       style: GoogleFonts.poppins(
+//                         fontSize: 14,
+//                         color: _AppColors.dark.withValues(alpha: 0.8),
+//                         height: 1.6,
+//                       ),
+//                     ),
+//                     const SizedBox(height: 24),
+
+//                     // Info Container Card with opening hours, address, phone, website
+//                     Container(
+//                       decoration: BoxDecoration(
+//                         color: _AppColors.white,
+//                         borderRadius: BorderRadius.circular(20),
+//                         border: Border.all(color: _AppColors.lightGrey, width: 1),
+//                       ),
+//                       child: Column(
+//                         children: [
+//                           _buildInfoTile(
+//                             icon: Icons.access_time_rounded,
+//                             label: "Opening Hours",
+//                             value: widget.attraction.openingHours.isEmpty ? "9:00 AM – 12:45 AM" : widget.attraction.openingHours,
+//                           ),
+//                           const Divider(height: 1, color: _AppColors.lightGrey, indent: 64),
+//                           _buildInfoTile(
+//                             icon: Icons.location_on_outlined,
+//                             label: "Address",
+//                             value: "Champ de Mars, 75007 Paris, France",
+//                             isClickable: true,
+//                             onTap: openGoogleMaps,
+//                           ),
+//                           const Divider(height: 1, color: _AppColors.lightGrey, indent: 64),
+//                           _buildInfoTile(
+//                             icon: Icons.phone_outlined,
+//                             label: "Phone",
+//                             value: widget.attraction.phone.isEmpty ? "+33 892 70 12 39" : widget.attraction.phone,
+//                             isClickable: true,
+//                             onTap: () => _callAttraction(),
+//                           ),
+//                           const Divider(height: 1, color: _AppColors.lightGrey, indent: 64),
+//                           _buildInfoTile(
+//                             icon: Icons.language_outlined,
+//                             label: "Website",
+//                             value: widget.attraction.website.isEmpty ? "toureiffel.paris" : widget.attraction.website,
+//                             isClickable: true,
+//                             onTap: () => _openWebsite(),
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                     const SizedBox(height: 24),
+
+//                     // Map Section at Bottom
+//                     Container(
+//                       height: 160,
+//                       width: double.infinity,
+//                       decoration: BoxDecoration(
+//                         color: _AppColors.primaryLight,
+//                         borderRadius: BorderRadius.circular(20),
+//                       ),
+//                       child: Stack(
+//                         alignment: Alignment.center,
+//                         children: [
+//                           Container(
+//                             decoration: BoxDecoration(
+//                               color: _AppColors.primary.withValues(alpha: 0.1),
+//                               borderRadius: BorderRadius.circular(20),
+//                             ),
+//                           ),
+//                           Positioned(
+//                             bottom: 16,
+//                             child: ElevatedButton.icon(
+//                               onPressed: openGoogleMaps,
+//                               icon: const Icon(Icons.location_pin, color: Colors.white, size: 18),
+//                               label: Text(
+//                                 "View on Map",
+//                                 style: GoogleFonts.poppins(
+//                                   fontSize: 14,
+//                                   fontWeight: FontWeight.w600,
+//                                   color: Colors.white,
+//                                 ),
+//                               ),
+//                               style: ElevatedButton.styleFrom(
+//                                 backgroundColor: _AppColors.primary,
+//                                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+//                                 shape: RoundedRectangleBorder(
+//                                   borderRadius: BorderRadius.circular(25),
+//                                 ),
+//                                 elevation: 2,
+//                               ),
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                     const SizedBox(height: 30),
+
+//                     // Write Review Button
+//                     SizedBox(
+//                       width: double.infinity,
+//                       height: 52,
+//                       child: OutlinedButton.icon(
+//                         onPressed: () {
+//                           Navigator.push(
+//                             context,
+//                             MaterialPageRoute(builder: (_) => ReviewScreen(attraction: widget.attraction)),
+//                           );
+//                         },
+//                         icon: const Icon(Icons.rate_review_rounded, color: _AppColors.primary, size: 20),
+//                         label: Text(
+//                           "Write a Review",
+//                           style: GoogleFonts.poppins(
+//                             fontSize: 16,
+//                             fontWeight: FontWeight.w600,
+//                             color: _AppColors.primary,
+//                           ),
+//                         ),
+//                         style: OutlinedButton.styleFrom(
+//                           side: const BorderSide(color: _AppColors.primary, width: 1.5),
+//                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+//                         ),
+//                       ),
+//                     ),
+//                     const SizedBox(height: 20),
+//                   ],
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+
+//   Widget _buildInfoTile({
+//     required IconData icon,
+//     required String label,
+//     required String value,
+//     bool isClickable = false,
+//     VoidCallback? onTap,
+//   }) {
+//     return InkWell(
+//       onTap: isClickable ? onTap : null,
+//       borderRadius: BorderRadius.circular(20),
+//       child: Padding(
+//         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+//         child: Row(
+//           children: [
+//             Container(
+//               padding: const EdgeInsets.all(10),
+//               decoration: BoxDecoration(
+//                 color: _AppColors.primaryLight,
+//                 borderRadius: BorderRadius.circular(12),
+//               ),
+//               child: Icon(icon, color: _AppColors.primary, size: 20),
+//             ),
+//             const SizedBox(width: 14),
+//             Expanded(
+//               child: Column(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   Text(
+//                     label,
+//                     style: GoogleFonts.poppins(
+//                       fontSize: 11,
+//                       color: _AppColors.grey,
+//                       fontWeight: FontWeight.w500,
+//                     ),
+//                   ),
+//                   const SizedBox(height: 2),
+//                   Text(
+//                     value,
+//                     style: GoogleFonts.poppins(
+//                       fontSize: 14,
+//                       color: _AppColors.dark,
+//                       fontWeight: FontWeight.w600,
+//                     ),
+//                     maxLines: 1,
+//                     overflow: TextOverflow.ellipsis,
+//                   ),
+//                 ],
+//               ),
+//             ),
+//             if (isClickable)
+//               const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: _AppColors.grey),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+
+//   Future<void> _callAttraction() async {
+//     final phone = widget.attraction.phone.isEmpty ? "+33892701239" : widget.attraction.phone;
+//     final Uri url = Uri.parse("tel:$phone");
+//     if (await canLaunchUrl(url)) {
+//       await launchUrl(url);
+//     } else {
+//       if (!mounted) return;
+//       _showErrorSnackBar("Unable to make call");
+//     }
+//   }
+
+//   Future<void> _openWebsite() async {
+//     String urlString = widget.attraction.website.isEmpty ? "https://toureiffel.paris" : widget.attraction.website;
+//     if (!urlString.startsWith('http://') && !urlString.startsWith('https://')) {
+//       urlString = 'https://$urlString';
+//     }
+//     final Uri url = Uri.parse(urlString);
+//     if (await canLaunchUrl(url)) {
+//       await launchUrl(url, mode: LaunchMode.externalApplication);
+//     } else {
+//       if (!mounted) return;
+//       _showErrorSnackBar("Unable to open website");
+//     }
+//   }
+// }
+
+// lib/screens/home/attraction_detail_screen.dart// lib/screens/home/attraction_detail_screen.dart
 import 'package:app/core/constants/app_colors.dart';
 import 'package:app/model/attraction_model.dart';
+import 'package:app/model/review_model.dart';          // ⬅️ import ReviewModel
 import 'package:app/screens/home/review_screen.dart';
 import 'package:app/services/favorite_service.dart';
 import 'package:app/services/review_service.dart';
@@ -8,9 +548,21 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+// ─── Local Blue Theme ──────────────────────────────────────────────────────────
+class _AppColors {
+  static const Color background = Color(0xFFF8FAFC);
+  static const Color white = Colors.white;
+  static const Color dark = Color(0xFF0F172A);
+  static const Color primary = Color(0xFF2563EB);
+  static const Color primaryLight = Color(0xFFEFF6FF);
+  static const Color error = Color(0xFFDC2626);
+  static const Color lightGrey = Color(0xFFE2E8F0);
+  static const Color grey = Color(0xFF64748B);
+  static const Color star = Color(0xFFF59E0B);
+}
+
 class AttractionDetailScreen extends StatefulWidget {
   final AttractionModel attraction;
-
   const AttractionDetailScreen({super.key, required this.attraction});
 
   @override
@@ -29,11 +581,12 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
     loadFavorite();
   }
 
+  // ─── Core Logic (unchanged) ──────────────────────────────────────────────────
+
   Future<void> openGoogleMaps() async {
     final Uri url = Uri.parse(
       "https://www.google.com/maps/search/?api=1&query=${widget.attraction.latitude},${widget.attraction.longitude}",
     );
-
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
@@ -44,430 +597,41 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
 
   Future<void> loadFavorite() async {
     bool favorite = await favoriteService.isFavorite(widget.attraction.id);
-    if (mounted) {
-      setState(() {
-        isFavorite = favorite;
-      });
-    }
+    if (mounted) setState(() => isFavorite = favorite);
   }
 
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          message,
-          style: GoogleFonts.poppins(
-            color: AppColors.white,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        backgroundColor: AppColors.error,
+        content: Text(message, style: GoogleFonts.poppins(color: _AppColors.white, fontWeight: FontWeight.w500)),
+        backgroundColor: _AppColors.error,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background, // Warm Linen
-      appBar: AppBar(
-        title: Text(
-          widget.attraction.name,
-          style: GoogleFonts.poppins(
-            color: AppColors.dark,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.3,
-          ),
-        ),
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.dark),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-              color: isFavorite ? AppColors.error : AppColors.dark, // Burnt Sienna when active
-            ),
-            onPressed: () async {
-              if (isFavorite) {
-                await favoriteService.removeFavoriteByAttraction(widget.attraction.id);
-              } else {
-                await favoriteService.addFavorite(widget.attraction.id);
-              }
-              await loadFavorite();
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.share_rounded, color: AppColors.dark),
-            onPressed: () {
-              // Share attraction logic
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image Section
-            Stack(
-              children: [
-                widget.attraction.image.isEmpty
-                    ? Container(
-                        height: 280,
-                        width: double.infinity,
-                        color: AppColors.lightGrey,
-                        child: Icon(Icons.landscape_rounded, size: 100, color: AppColors.grey),
-                      )
-                    : Image.network(
-                        widget.attraction.image,
-                        width: double.infinity,
-                        height: 280,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          height: 280,
-                          width: double.infinity,
-                          color: AppColors.lightGrey,
-                          child: Icon(Icons.broken_image, size: 100, color: AppColors.grey),
-                        ),
-                        loadingBuilder: (_, child, progress) {
-                          if (progress == null) return child;
-                          return Container(
-                            height: 280,
-                            width: double.infinity,
-                            color: AppColors.lightGrey,
-                            child: const Center(
-                              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
-                            ),
-                          );
-                        },
-                      ),
-                
-                // Espresso tinted gradient overlay
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    height: 100,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          AppColors.splashOverlayDark.withValues(alpha: 0.6),
-                          AppColors.splashOverlayDark.withValues(alpha: 0.9),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                
-                // Rating badge
-                Positioned(
-                  bottom: 16,
-                  right: 16,
-                  child: FutureBuilder<double>(
-                    future: reviewService.getAverageRating(widget.attraction.id),
-                    builder: (context, ratingSnapshot) {
-                      return FutureBuilder<int>(
-                        future: reviewService.getReviewCount(widget.attraction.id),
-                        builder: (context, countSnapshot) {
-                          final rating = ratingSnapshot.hasData ? ratingSnapshot.data! : 0.0;
-                          final count = countSnapshot.hasData ? countSnapshot.data! : 0;
-
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary, // Rich Cognac
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.star_rounded, color: AppColors.white, size: 18),
-                                const SizedBox(width: 6),
-                                Text(
-                                  rating.toStringAsFixed(1),
-                                  style: GoogleFonts.poppins(
-                                    color: AppColors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                if (count > 0) ...[
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    '($count)',
-                                    style: GoogleFonts.poppins(
-                                      color: AppColors.white.withValues(alpha: 0.8),
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-                
-                // City badge
-                Positioned(
-                  bottom: 16,
-                  left: 16,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.95),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.location_on_rounded, size: 16, color: AppColors.primary),
-                        const SizedBox(width: 4),
-                        Text(
-                          widget.attraction.cityId,
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: AppColors.dark,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            // Content
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Attraction Name
-                  Text(
-                    widget.attraction.name,
-                    style: GoogleFonts.poppins(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.dark,
-                      height: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Star Rating Row
-                  FutureBuilder<double>(
-                    future: reviewService.getAverageRating(widget.attraction.id),
-                    builder: (context, ratingSnapshot) {
-                      return FutureBuilder<int>(
-                        future: reviewService.getReviewCount(widget.attraction.id),
-                        builder: (context, countSnapshot) {
-                          if (ratingSnapshot.connectionState == ConnectionState.waiting ||
-                              countSnapshot.connectionState == ConnectionState.waiting) {
-                            return const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
-                            );
-                          }
-
-                          final rating = ratingSnapshot.hasData ? ratingSnapshot.data! : 0.0;
-                          final count = countSnapshot.hasData ? countSnapshot.data! : 0;
-
-                          return Row(
-                            children: [
-                              ...List.generate(
-                                5,
-                                (index) => Icon(
-                                  index < rating.floor()
-                                      ? Icons.star_rounded
-                                      : index < rating
-                                          ? Icons.star_half_rounded
-                                          : Icons.star_outline_rounded,
-                                  color: AppColors.secondary, // Warm Sand stars
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                rating.toStringAsFixed(1),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.dark,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                '($count reviews)',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  color: AppColors.grey, // Warm Grey
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 24),
-
-                  // About Section Header
-                  _buildSectionHeader("About"),
-                  const SizedBox(height: 12),
-                  
-                  // Description Card
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface, // Pure white
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.lightGrey.withValues(alpha: 0.7), width: 1),
-                    ),
-                    child: Text(
-                      widget.attraction.description,
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        color: AppColors.darkGrey, // Warm Charcoal
-                        height: 1.6,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-
-                  // Contact Section Header
-                  _buildSectionHeader("Contact Information"),
-                  const SizedBox(height: 12),
-
-                  // Info Tiles
-                  _buildInfoTile(
-                    icon: Icons.access_time_rounded,
-                    label: "Opening Hours",
-                    value: widget.attraction.openingHours.isEmpty ? "Not available" : widget.attraction.openingHours,
-                  ),
-                  const SizedBox(height: 10),
-                  _buildInfoTile(
-                    icon: Icons.phone_rounded,
-                    label: "Phone",
-                    value: widget.attraction.phone.isEmpty ? "Not available" : widget.attraction.phone,
-                    isClickable: widget.attraction.phone.isNotEmpty,
-                    onTap: () => _callAttraction(),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildInfoTile(
-                    icon: Icons.language_rounded,
-                    label: "Website",
-                    value: widget.attraction.website.isEmpty ? "Not available" : widget.attraction.website,
-                    isClickable: widget.attraction.website.isNotEmpty,
-                    onTap: () => _openWebsite(),
-                  ),
-                  const SizedBox(height: 28),
-
-                  // Actions Header
-                  _buildSectionHeader("Actions"),
-                  const SizedBox(height: 12),
-
-                  // Google Maps Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton.icon(
-                      onPressed: openGoogleMaps,
-                      icon: const Icon(Icons.map_rounded, color: AppColors.white, size: 22),
-                      label: Text(
-                        "Open in Google Maps",
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.white,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        elevation: 0, // Flat modern style
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Write Review Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => ReviewScreen(attraction: widget.attraction)),
-                        );
-                      },
-                      icon: const Icon(Icons.rate_review_rounded, color: AppColors.primary, size: 22),
-                      label: Text(
-                        "Write Review",
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.primary,
-                        side: const BorderSide(color: AppColors.primaryLight, width: 1.5), // Softer border
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  Future<void> _callAttraction() async {
+    final phone = widget.attraction.phone.isEmpty ? "+33892701239" : widget.attraction.phone;
+    final Uri url = Uri.parse("tel:$phone");
+    if (await canLaunchUrl(url)) await launchUrl(url);
+    else if (mounted) _showErrorSnackBar("Unable to make call");
   }
 
-  // Reusable Section Header Widget
-  Widget _buildSectionHeader(String title) {
-    return Row(
-      children: [
-        Container(
-          width: 4,
-          height: 24,
-          decoration: BoxDecoration(
-            color: AppColors.primary, // Cognac accent bar
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Text(
-          title,
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: AppColors.dark,
-            letterSpacing: 0.3,
-          ),
-        ),
-      ],
-    );
+  Future<void> _openWebsite() async {
+    String urlString = widget.attraction.website.isEmpty ? "https://toureiffel.paris" : widget.attraction.website;
+    if (!urlString.startsWith('http://') && !urlString.startsWith('https://')) {
+      urlString = 'https://$urlString';
+    }
+    final Uri url = Uri.parse(urlString);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else if (mounted) {
+      _showErrorSnackBar("Unable to open website");
+    }
   }
+
+  // ─── UI Helpers ──────────────────────────────────────────────────────────────
 
   Widget _buildInfoTile({
     required IconData icon,
@@ -476,84 +640,416 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
     bool isClickable = false,
     VoidCallback? onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.lightGrey.withValues(alpha: 0.7), width: 1),
-      ),
-      child: InkWell(
-        onTap: isClickable ? onTap : null,
-        borderRadius: BorderRadius.circular(16),
+    return InkWell(
+      onTap: isClickable ? onTap : null,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1), // Very light cognac bg
+                color: _AppColors.primaryLight,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: AppColors.primary, size: 22),
+              child: Icon(icon, color: _AppColors.primary, size: 20),
             ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    label,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: AppColors.grey,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                  Text(label,
+                      style: GoogleFonts.poppins(fontSize: 11, color: _AppColors.grey, fontWeight: FontWeight.w500)),
                   const SizedBox(height: 2),
-                  Text(
-                    value,
-                    style: GoogleFonts.poppins(
-                      fontSize: 15,
-                      color: AppColors.dark,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(value,
+                      style: GoogleFonts.poppins(fontSize: 14, color: _AppColors.dark, fontWeight: FontWeight.w600),
+                      maxLines: 1, overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),
-            if (isClickable)
-              const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.grey),
+            if (isClickable) const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: _AppColors.grey),
           ],
         ),
       ),
     );
   }
 
-  Future<void> _callAttraction() async {
-    if (widget.attraction.phone.isEmpty) return;
-    final Uri url = Uri.parse("tel:${widget.attraction.phone}");
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
-    } else {
-      if (!mounted) return;
-      _showErrorSnackBar("Unable to make call");
-    }
+  // ─── Review Tile using ReviewModel ──────────────────────────────────────────
+  Widget _buildReviewTile(ReviewModel review) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: _AppColors.lightGrey, width: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: _AppColors.primaryLight,
+                child: Text(
+                  review.userName.isNotEmpty ? review.userName[0].toUpperCase() : 'U',
+                  style: GoogleFonts.poppins(color: _AppColors.primary, fontWeight: FontWeight.w600),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(review.userName,
+                        style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: _AppColors.dark, fontSize: 14)),
+                    Row(
+                      children: [
+                        ...List.generate(5, (i) => Icon(
+                          i < review.rating ? Icons.star_rounded : Icons.star_border_rounded,
+                          color: _AppColors.star, size: 16,
+                        )),
+                        const SizedBox(width: 6),
+                        Text(review.rating.toStringAsFixed(1),
+                            style: GoogleFonts.poppins(fontSize: 12, color: _AppColors.grey)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                _formatDate(review.createdAt),
+                style: GoogleFonts.poppins(fontSize: 12, color: _AppColors.grey),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(review.comment,
+              style: GoogleFonts.poppins(fontSize: 14, color: _AppColors.dark.withOpacity(0.8))),
+        ],
+      ),
+    );
   }
 
-  Future<void> _openWebsite() async {
-    if (widget.attraction.website.isEmpty) return;
-    String urlString = widget.attraction.website;
-    if (!urlString.startsWith('http://') && !urlString.startsWith('https://')) {
-      urlString = 'https://$urlString';
-    }
-    final Uri url = Uri.parse(urlString);
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      if (!mounted) return;
-      _showErrorSnackBar("Unable to open website");
-    }
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
+  // ─── Build ──────────────────────────────────────────────────────────────────
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: _AppColors.background,
+      body: Stack(
+        children: [
+          // ─── Image Header ──────────────────────────────────────────────────
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: widget.attraction.image.isEmpty
+                ? Container(height: 380, width: double.infinity, color: _AppColors.lightGrey,
+                    child: const Icon(Icons.landscape_rounded, size: 100, color: _AppColors.grey))
+                : Image.network(
+                    widget.attraction.image,
+                    width: double.infinity,
+                    height: 380,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(height: 380, color: _AppColors.lightGrey,
+                        child: const Icon(Icons.broken_image, size: 100, color: _AppColors.grey)),
+                    loadingBuilder: (_, child, progress) => progress == null
+                        ? child
+                        : Container(height: 380, color: _AppColors.lightGrey,
+                            child: const Center(child: CircularProgressIndicator(strokeWidth: 2, color: _AppColors.primary))),
+                  ),
+          ),
+
+          // ─── Floating Actions ──────────────────────────────────────────────
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 12,
+            left: 20,
+            right: 20,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _circleIconButton(Icons.arrow_back_rounded, () => Navigator.pop(context)),
+                Row(
+                  children: [
+                    _circleIconButton(
+                      isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                      () async {
+                        if (isFavorite) {
+                          await favoriteService.removeFavoriteByAttraction(widget.attraction.id);
+                        } else {
+                          await favoriteService.addFavorite(widget.attraction.id);
+                        }
+                        await loadFavorite();
+                      },
+                      color: isFavorite ? _AppColors.error : Colors.white,
+                    ),
+                    const SizedBox(width: 10),
+                    _circleIconButton(Icons.share_rounded, () {/* share logic */}),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // ─── Scrollable Content Sheet ──────────────────────────────────────
+          Positioned.fill(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(top: 330),
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: _AppColors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+                  boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -5))],
+                ),
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ─── Title & Price ──────────────────────────────────────
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(widget.attraction.name,
+                              style: GoogleFonts.poppins(fontSize: 26, fontWeight: FontWeight.w700, color: _AppColors.dark, height: 1.2)),
+                        ),
+                        const SizedBox(width: 12),
+                        Text("€26", style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w700, color: _AppColors.primary)),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // ─── Category & City ────────────────────────────────────
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(color: _AppColors.primaryLight, borderRadius: BorderRadius.circular(20)),
+                          child: Text("Landmark",
+                              style: GoogleFonts.poppins(fontSize: 13, color: _AppColors.primary, fontWeight: FontWeight.w600)),
+                        ),
+                        const SizedBox(width: 12),
+                        const Icon(Icons.location_on_rounded, size: 16, color: _AppColors.grey),
+                        const SizedBox(width: 4),
+                        Text(widget.attraction.cityId,
+                            style: GoogleFonts.poppins(fontSize: 14, color: _AppColors.grey, fontWeight: FontWeight.w500)),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // ─── Rating Summary ──────────────────────────────────────
+                    FutureBuilder<double>(
+                      future: reviewService.getAverageRating(widget.attraction.id),
+                      builder: (context, ratingSnap) {
+                        return FutureBuilder<int>(
+                          future: reviewService.getReviewCount(widget.attraction.id),
+                          builder: (context, countSnap) {
+                            final rating = ratingSnap.hasData ? ratingSnap.data! : 0.0;
+                            final count = countSnap.hasData ? countSnap.data! : 0;
+                            return Row(
+                              children: [
+                                ...List.generate(5, (i) => Icon(
+                                  i < rating ? Icons.star_rounded : Icons.star_border_rounded,
+                                  color: _AppColors.star, size: 20,
+                                )),
+                                const SizedBox(width: 8),
+                                Text(rating.toStringAsFixed(1),
+                                    style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: _AppColors.dark)),
+                                const SizedBox(width: 6),
+                                Text('(${count > 1000 ? '${(count / 1000).toStringAsFixed(1)}k' : count} reviews)',
+                                    style: GoogleFonts.poppins(fontSize: 13, color: _AppColors.grey)),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: Divider(color: _AppColors.lightGrey, thickness: 1),
+                    ),
+
+                    // ─── Description ──────────────────────────────────────────
+                    Text(widget.attraction.description,
+                        style: GoogleFonts.poppins(fontSize: 14, color: _AppColors.dark.withOpacity(0.8), height: 1.6)),
+                    const SizedBox(height: 24),
+
+                    // ─── Info Tiles ────────────────────────────────────────────
+                    Container(
+                      decoration: BoxDecoration(
+                        color: _AppColors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: _AppColors.lightGrey, width: 1),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildInfoTile(
+                            icon: Icons.access_time_rounded,
+                            label: "Opening Hours",
+                            value: widget.attraction.openingHours.isEmpty ? "9:00 AM – 12:45 AM" : widget.attraction.openingHours,
+                          ),
+                          const Divider(height: 1, color: _AppColors.lightGrey, indent: 64),
+                          _buildInfoTile(
+                            icon: Icons.location_on_outlined,
+                            label: "Address",
+                            value: "Champ de Mars, 75007 Paris, France",
+                            isClickable: true,
+                            onTap: openGoogleMaps,
+                          ),
+                          const Divider(height: 1, color: _AppColors.lightGrey, indent: 64),
+                          _buildInfoTile(
+                            icon: Icons.phone_outlined,
+                            label: "Phone",
+                            value: widget.attraction.phone.isEmpty ? "+33 892 70 12 39" : widget.attraction.phone,
+                            isClickable: true,
+                            onTap: _callAttraction,
+                          ),
+                          const Divider(height: 1, color: _AppColors.lightGrey, indent: 64),
+                          _buildInfoTile(
+                            icon: Icons.language_outlined,
+                            label: "Website",
+                            value: widget.attraction.website.isEmpty ? "toureiffel.paris" : widget.attraction.website,
+                            isClickable: true,
+                            onTap: _openWebsite,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // ─── Map Section ──────────────────────────────────────────
+                    Container(
+                      height: 160,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: _AppColors.primaryLight,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              color: _AppColors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 16,
+                            child: ElevatedButton.icon(
+                              onPressed: openGoogleMaps,
+                              icon: const Icon(Icons.location_pin, color: Colors.white, size: 18),
+                              label: Text("View on Map",
+                                  style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _AppColors.primary,
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                                elevation: 2,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+
+                    // ─── Reviews Section ──────────────────────────────────────
+                    _buildSectionHeader("Reviews"),
+                    const SizedBox(height: 12),
+
+                    // ✅ Use StreamBuilder because getReviews returns a Stream
+                    StreamBuilder<List<ReviewModel>>(
+                      stream: reviewService.getReviews(widget.attraction.id),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: _AppColors.primary));
+                        }
+                        if (snapshot.hasError) {
+                          return Text("Failed to load reviews",
+                              style: GoogleFonts.poppins(color: _AppColors.error));
+                        }
+                        final reviews = snapshot.data ?? [];
+                        if (reviews.isEmpty) {
+                          return Text("No reviews yet",
+                              style: GoogleFonts.poppins(color: _AppColors.grey, fontStyle: FontStyle.italic));
+                        }
+                        return Column(
+                          children: reviews.map((r) => _buildReviewTile(r)).toList(),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ─── Write Review Button (only if user hasn't reviewed) ──
+                    FutureBuilder<bool>(
+                      future: reviewService.hasUserReviewed(widget.attraction.id),
+                      builder: (context, userReviewSnap) {
+                        if (userReviewSnap.connectionState == ConnectionState.waiting) {
+                          return const SizedBox.shrink(); // or placeholder
+                        }
+                        final hasReviewed = userReviewSnap.data ?? false;
+                        if (hasReviewed) {
+                          return const SizedBox.shrink(); // hide button
+                        }
+                        return SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => ReviewScreen(attraction: widget.attraction)),
+                              );
+                            },
+                            icon: const Icon(Icons.rate_review_rounded, color: _AppColors.primary, size: 20),
+                            label: Text("Write a Review",
+                                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: _AppColors.primary)),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: _AppColors.primary, width: 1.5),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _circleIconButton(IconData icon, VoidCallback onPressed, {Color? color}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.35),
+        shape: BoxShape.circle,
+      ),
+      child: IconButton(
+        icon: Icon(icon, color: color ?? Colors.white),
+        onPressed: onPressed,
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Row(
+      children: [
+        Container(width: 4, height: 24, decoration: BoxDecoration(color: _AppColors.primary, borderRadius: BorderRadius.circular(2))),
+        const SizedBox(width: 10),
+        Text(title, style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w600, color: _AppColors.dark)),
+      ],
+    );
   }
 }

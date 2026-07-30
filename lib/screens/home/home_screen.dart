@@ -196,9 +196,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final screens = [
       _buildHomeContent(),
-      const FavoritesScreen(),
       const SearchScreen(),
       const OpenStreetMapScreen(),
+      const FavoritesScreen(),
       const ProfileScreen(),
     ];
 

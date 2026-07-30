@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // Make sure to update this import path to match your exact AppColors location
-import '../../core/constants/app_colors.dart'; 
+import '../../core/constants/app_colors.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/custom_textfield.dart';
 import '../../widgets/primary_button.dart';
@@ -11,8 +11,7 @@ class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  State<ForgotPasswordScreen> createState() =>
-      _ForgotPasswordScreenState();
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
@@ -45,7 +44,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
       if (!mounted) return;
 
-      // Themed Success SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -55,9 +53,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          backgroundColor: AppColors.success, // Sage Green
+          backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           margin: const EdgeInsets.symmetric(horizontal: 24),
         ),
       );
@@ -66,7 +66,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     } catch (e) {
       if (!mounted) return;
 
-      // Themed Error SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -76,9 +75,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          backgroundColor: AppColors.error, // Burnt Sienna
+          backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           margin: const EdgeInsets.symmetric(horizontal: 24),
         ),
       );
@@ -97,160 +98,174 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const Color signInColor = Color(0xFF2563EB);
+    
     return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
+      backgroundColor: Colors.white,
+      body: Column(
         children: [
-          // Background Image (Reusing login aesthetic)
-          Image.asset(
-            "assets/images/login.jpg", // You can change this to a specific forgot_password.jpg if you have one
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Container(
-              decoration: const BoxDecoration(
+          // 1. Top Image Header
+          Container(
+            height: MediaQuery.of(context).size.height * 0.28,
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage("assets/images/login.jpg"),
+                fit: BoxFit.cover,
+              ),
+              color: Color(0xFF1A2352),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0xFF5C3D24), Color(0xFF1A110A)],
+                  colors: [
+                    const Color(0xFF1A2352).withOpacity(0.5),
+                    const Color(0xFF0F172A).withOpacity(0.9),
+                  ],
+                ),
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24.0,
+                    vertical: 20.0,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.arrow_back_ios_new,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            "CityGuide",
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        "Account recovery",
+                        style: GoogleFonts.poppins(
+                          color: Colors.white.withOpacity(0.85),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
 
-          // Cinematic Gradient Overlay
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withValues(alpha: 0.2),
-                  Colors.black.withValues(alpha: 0.5),
-                  AppColors.splashOverlayDark.withValues(alpha: 0.88),
-                  AppColors.primaryDark.withValues(alpha: 0.95),
-                ],
-                stops: const [0.0, 0.3, 0.7, 1.0],
-              ),
-            ),
-          ),
-
-          // Content
-          SafeArea(
+          // 2. White Bottom Container with Form
+          Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.only(
-                left: 24, 
-                right: 24, 
-                top: 24, 
-                bottom: MediaQuery.of(context).viewInsets.bottom + 24
-              ),
-              child: Column(
-                children: [
-                  // Custom Back Button (Replaces default AppBar)
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.15),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          width: 1,
+              padding: const EdgeInsets.all(24.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Reset Password",
+                      style: GoogleFonts.poppins(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF0F172A),
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      "Enter your registered email address below to receive a password reset link.",
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        color: const Color(0xFF64748B),
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 36),
+
+                    // ✅ CustomTextField with SignIn Button Color
+                    CustomTextField(
+                      controller: emailController,
+                      hintText: "Email",
+                      prefixIcon: Icons.email,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: _validateEmail,
+                      // ✅ Apply SignIn button colors
+                      fillColor: signInColor.withOpacity(0.08),
+                      borderColor: signInColor,
+                      focusedBorderColor: signInColor,
+                      iconColor: signInColor,
+                      textColor: const Color(0xFF0F172A),
+                      hintColor: const Color(0xFF94A3B8),
+                    ),
+                    const SizedBox(height: 36),
+
+                    // ✅ Send Reset Link Button
+                    PrimaryButton(
+                      text: "Send Reset Link",
+                      isLoading: loading,
+                      onPressed: resetPassword,
+                      backgroundColor: signInColor,
+                    ),
+                    const SizedBox(height: 32),
+
+                    // ✅ Back to Login Link
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Remember your password? ",
+                          style: GoogleFonts.poppins(
+                            color: const Color(0xFF64748B),
+                            fontSize: 14,
+                          ),
                         ),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-                        color: Colors.white,
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 60),
-
-                  // Icon
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.secondary.withValues(alpha: 0.15), // Subtle golden glow
-                    ),
-                    child: const Icon(
-                      Icons.lock_reset_rounded,
-                      size: 70,
-                      color: Colors.white,
-                    ),
-                  ),
-
-                  const SizedBox(height: 30),
-
-                  // Title
-                  Text(
-                    "Reset Your Password",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w600,
-                      height: 1.2,
-                      shadows: const [
-                        Shadow(
-                          color: Colors.black54,
-                          blurRadius: 15,
-                          offset: Offset(0, 3),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context);
+                          },
+                          child: Text(
+                            "Sign In",
+                            style: GoogleFonts.poppins(
+                              color: signInColor,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Subtitle
-                  Text(
-                    "Enter your registered email address.\nWe'll send you a reset link.",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      color: Colors.white.withValues(alpha: 0.7),
-                      fontSize: 15,
-                      height: 1.6,
-                    ),
-                  ),
-
-                  const SizedBox(height: 45),
-
-                  // ✅ Email with validation
-                  CustomTextField(
-                    controller: emailController,
-                    hintText: "Email",
-                    prefixIcon: Icons.email,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: _validateEmail,
-                  ),
-
-                  const SizedBox(height: 30),
-
-                  // ✅ Send Reset Link Button
-                  PrimaryButton(
-                    text: "Send Reset Link",
-                    isLoading: loading,
-                    onPressed: resetPassword,
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // ✅ Back to Login Link
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text(
-                      "Back to Login",
-                      style: GoogleFonts.poppins(
-                        color: AppColors.secondary, // Golden highlight
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
           ),

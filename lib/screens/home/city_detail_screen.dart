@@ -1,4 +1,4 @@
-import 'package:app/core/constants/app_colors.dart';
+// lib/screens/home/city_detail_screen.dart
 import 'package:app/model/attraction_model.dart';
 import 'package:app/model/event_model.dart';
 import 'package:app/model/hotel_model.dart';
@@ -11,8 +11,22 @@ import 'package:app/widgets/attraction_card.dart';
 import 'package:app/widgets/event_card.dart';
 import 'package:app/widgets/hotel_card.dart';
 import 'package:app/widgets/restaurant_card.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+// Modern Blue & Clean Theme matching AttractionDetailScreen
+class _AppColors {
+  static const Color background = Color(0xFFF8FAFC);
+  static const Color white = Colors.white;
+  static const Color dark = Color(0xFF0F172A);
+  static const Color primary = Color(0xFF2563EB); // Vibrant Modern Blue
+  static const Color primaryLight = Color(0xFFEFF6FF); // Light Blue tint
+  static const Color error = Color(0xFFDC2626);
+  static const Color lightGrey = Color(0xFFE2E8F0);
+  static const Color grey = Color(0xFF64748B);
+  static const Color star = Color(0xFFF59E0B); // Amber Star
+}
 
 class CityDetailScreen extends StatefulWidget {
   final String cityId;
@@ -39,254 +53,331 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background, // Warm Linen
-      appBar: AppBar(
-        title: Text(
-          widget.cityName,
-          style: GoogleFonts.poppins(
-            color: AppColors.dark,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.3,
+      backgroundColor: _AppColors.background,
+      body: Stack(
+        children: [
+          // Background Image Header
+        Positioned(
+  top: 0,
+  left: 0,
+  right: 0,
+  child: widget.cityImage == null || widget.cityImage!.isEmpty
+      ? Container(
+          height: 340,
+          width: double.infinity,
+          color: _AppColors.lightGrey,
+          child: const Icon(Icons.location_city_rounded, size: 100, color: _AppColors.grey),
+        )
+      : CachedNetworkImage(
+          imageUrl: widget.cityImage!,
+          width: double.infinity,
+          height: 340,
+          fit: BoxFit.cover,
+          placeholder: (context, url) => Container(
+            height: 340,
+            color: _AppColors.lightGrey,
+            child: const Center(
+              child: CircularProgressIndicator(strokeWidth: 2, color: _AppColors.primary),
+            ),
+          ),
+          errorWidget: (context, url, error) => Container(
+            height: 340,
+            width: double.infinity,
+            color: _AppColors.lightGrey,
+            child: const Icon(Icons.broken_image, size: 100, color: _AppColors.grey),
           ),
         ),
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.dark),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share_rounded, color: AppColors.dark),
-            onPressed: () {
-              // Share city
-            },
+),
+
+          // Gradient overlay for header readability
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 340,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.4),
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.6),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Floating Top Actions (Back and Share)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 12,
+            left: 20,
+            right: 20,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.35),
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.35),
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.share_rounded, color: Colors.white),
+                    onPressed: () {
+                      // Share city logic
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Scrollable Content Sheet overlapping the header image
+          Positioned.fill(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(top: 290),
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: _AppColors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 10,
+                      offset: Offset(0, -5),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // City Title & Subtitle inside the sheet
+                    Text(
+                      widget.cityName,
+                      style: GoogleFonts.poppins(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                        color: _AppColors.dark,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Explore the best of ${widget.cityName}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: _AppColors.grey,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Quick Stats Cards
+                    _buildQuickStats(),
+                    const SizedBox(height: 24),
+
+                    // Sections
+                    attractionSection(),
+                    const SizedBox(height: 16),
+                    hotelSection(),
+                    const SizedBox(height: 16),
+                    restaurantSection(),
+                    const SizedBox(height: 16),
+                    eventSection(),
+                    const SizedBox(height: 40),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildCityHeader(),
-            const SizedBox(height: 8),
-            _buildQuickStats(),
-            const SizedBox(height: 8),
-            attractionSection(),
-            hotelSection(),
-            restaurantSection(),
-            eventSection(),
-            const SizedBox(height: 30),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCityHeader() {
-    return Container(
-      height: 220,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        image: widget.cityImage != null && widget.cityImage!.isNotEmpty
-            ? DecorationImage(
-                image: NetworkImage(widget.cityImage!),
-                fit: BoxFit.cover,
-              )
-            : null,
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          // Cinematic Espresso Gradient Overlay
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.transparent,
-              Colors.black.withValues(alpha: 0.2),
-              AppColors.splashOverlayDark.withValues(alpha: 0.7),
-              AppColors.splashOverlayDark.withValues(alpha: 0.95),
-            ],
-            stops: const [0.0, 0.3, 0.7, 1.0],
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.location_city_rounded,
-              color: Colors.white.withValues(alpha: 0.2),
-              size: 60,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              widget.cityName,
-              style: GoogleFonts.poppins(
-                fontSize: 38,
-                color: AppColors.white,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 1.5,
-                shadows: const [
-                  Shadow(
-                    color: Colors.black54,
-                    blurRadius: 15,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Explore the best of ${widget.cityName}',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                color: Colors.white.withValues(alpha: 0.85),
-                fontWeight: FontWeight.w400,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
 
   Widget _buildQuickStats() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.surface, // Pure white
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.lightGrey.withValues(alpha: 0.7), // Subtle warm border
-                  width: 1,
-                ),
-              ),
-              child: Column(
-                children: [
-                  const Icon(Icons.place_rounded, color: AppColors.primary, size: 24),
-                  const SizedBox(height: 4),
-                  Text(
-                    widget.cityName,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.dark,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    'City',
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      color: AppColors.grey,
-                    ),
-                  ),
-                ],
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: _AppColors.primaryLight,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: _AppColors.primary.withOpacity(0.15),
+                width: 1,
               ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.lightGrey.withValues(alpha: 0.7),
-                  width: 1,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: _AppColors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.place_rounded, color: _AppColors.primary, size: 22),
                 ),
-              ),
-              child: Column(
-                children: [
-                  const Icon(Icons.star_rounded, color: AppColors.secondary, size: 24), // Warm Sand
-                  const SizedBox(height: 4),
-                  Text(
-                    '4.5',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.dark,
-                    ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.cityName,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: _AppColors.dark,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Destination',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          color: _AppColors.grey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    'Average Rating',
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      color: AppColors.grey,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFEF3C7), // Light Amber tint
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: _AppColors.star.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: _AppColors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.star_rounded, color: _AppColors.star, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '4.9',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: _AppColors.dark,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Average Rating',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          color: _AppColors.grey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildSectionHeader(String title, {String? subtitle}) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            width: 4,
-            height: 24,
-            decoration: BoxDecoration(
-              color: AppColors.primary, // Cognac accent bar
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.dark,
-                    letterSpacing: 0.3,
-                  ),
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 22,
+                decoration: BoxDecoration(
+                  color: _AppColors.primary,
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 2),
+              ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    subtitle,
+                    title,
                     style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      color: AppColors.grey,
-                      fontWeight: FontWeight.w400,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: _AppColors.dark,
+                      letterSpacing: 0.2,
                     ),
                   ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: _AppColors.grey,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
-            ),
+              ),
+            ],
           ),
           TextButton(
             onPressed: () {
               // Navigate to all items
             },
             style: TextButton.styleFrom(
-              foregroundColor: AppColors.primary,
+              foregroundColor: _AppColors.primary,
               padding: const EdgeInsets.symmetric(horizontal: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             child: Text(
               'View All',
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: AppColors.primary,
+                color: _AppColors.primary,
               ),
             ),
           ),
@@ -295,25 +386,31 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
     );
   }
 
-  // Helper for consistent empty/error states
   Widget _buildStatePlaceholder({required IconData icon, required String title, String? subtitle, bool isError = false}) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         child: Column(
           children: [
-            Icon(
-              icon,
-              size: isError ? 40 : 48,
-              color: isError ? AppColors.error : AppColors.grey,
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isError ? const Color(0xFFFEE2E2) : _AppColors.primaryLight,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                size: 32,
+                color: isError ? _AppColors.error : _AppColors.primary,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
               title,
               style: GoogleFonts.poppins(
-                color: isError ? AppColors.error : AppColors.grey,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+                color: isError ? _AppColors.error : _AppColors.dark,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
               ),
             ),
             if (subtitle != null) ...[
@@ -321,9 +418,10 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
               Text(
                 subtitle,
                 style: GoogleFonts.poppins(
-                  color: AppColors.lightGrey,
-                  fontSize: 13,
+                  color: _AppColors.grey,
+                  fontSize: 12,
                 ),
+                textAlign: TextAlign.center,
               ),
             ],
           ],
@@ -345,9 +443,9 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Padding(
-                padding: EdgeInsets.all(20),
+                padding: EdgeInsets.all(24),
                 child: Center(
-                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                  child: CircularProgressIndicator(strokeWidth: 2, color: _AppColors.primary),
                 ),
               );
             }
@@ -387,9 +485,9 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Padding(
-                padding: EdgeInsets.all(20),
+                padding: EdgeInsets.all(24),
                 child: Center(
-                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                  child: CircularProgressIndicator(strokeWidth: 2, color: _AppColors.primary),
                 ),
               );
             }
@@ -428,9 +526,9 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Padding(
-                padding: EdgeInsets.all(20),
+                padding: EdgeInsets.all(24),
                 child: Center(
-                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                  child: CircularProgressIndicator(strokeWidth: 2, color: _AppColors.primary),
                 ),
               );
             }
@@ -469,9 +567,9 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Padding(
-                padding: EdgeInsets.all(20),
+                padding: EdgeInsets.all(24),
                 child: Center(
-                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                  child: CircularProgressIndicator(strokeWidth: 2, color: _AppColors.primary),
                 ),
               );
             }

@@ -1,5 +1,4 @@
 // lib/widgets/bottom_nav_bar.dart
-import 'package:app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class BottomNavBar extends StatelessWidget {
@@ -17,20 +16,20 @@ class BottomNavBar extends StatelessWidget {
     return Container(
       height: 80,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Colors.white,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
         ),
         border: Border(
           top: BorderSide(
-            color: AppColors.lightGrey.withValues(alpha: 0.5),
+            color: Colors.grey.withValues(alpha: 0.2),
             width: 1,
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.dark.withValues(alpha: 0.06), // Warm shadow instead of stark black
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -42,27 +41,32 @@ class BottomNavBar extends StatelessWidget {
           children: [
             _navItem(
               index: 0,
-              icon: Icons.home_rounded,
+              icon: Icons.home_outlined,
+              selectedIcon: Icons.home_rounded,
               label: "Home",
             ),
             _navItem(
               index: 1,
-              icon: Icons.favorite_rounded,
-              label: "Favorites",
-            ),
-            _navItem(
-              index: 2,
               icon: Icons.search_rounded,
+              selectedIcon: Icons.search_rounded,
               label: "Search",
             ),
             _navItem(
-              index: 3,
-              icon: Icons.map_rounded,
+              index: 2,
+              icon: Icons.map_outlined,
+              selectedIcon: Icons.map_rounded,
               label: "Map",
             ),
             _navItem(
+              index: 3,
+              icon: Icons.favorite_border_rounded,
+              selectedIcon: Icons.favorite_rounded,
+              label: "Saved",
+            ),
+            _navItem(
               index: 4,
-              icon: Icons.person_rounded,
+              icon: Icons.person_outline_rounded,
+              selectedIcon: Icons.person_rounded,
               label: "Profile",
             ),
           ],
@@ -74,6 +78,7 @@ class BottomNavBar extends StatelessWidget {
   Widget _navItem({
     required int index,
     required IconData icon,
+    required IconData selectedIcon,
     required String label,
   }) {
     final bool selected = currentIndex == index;
@@ -81,46 +86,35 @@ class BottomNavBar extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(20),
       onTap: () => onTap(index),
-      splashColor: AppColors.primary.withValues(alpha: 0.1), // Cognac splash
-      highlightColor: AppColors.primary.withValues(alpha: 0.05),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 8,
-        ),
-        decoration: BoxDecoration(
-          color: selected
-              ? AppColors.primary.withValues(alpha: 0.12) // Warm cognac tint
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(18),
-        ),
+      splashColor: Colors.blue.withValues(alpha: 0.1),
+      highlightColor: Colors.blue.withValues(alpha: 0.05),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: Icon(
-                icon,
-                key: ValueKey(selected),
-                size: 26, // Slightly reduced for a cleaner look with 5 items
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
                 color: selected
-                    ? AppColors.primary
-                    : AppColors.grey,
+                    ? Colors.blue.withValues(alpha: 0.12)
+                    : Colors.transparent,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                selected ? selectedIcon : icon,
+                size: 24,
+                color: selected ? Colors.blue : Colors.grey,
               ),
             ),
-            const SizedBox(height: 4),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
+            const SizedBox(height: 2),
+            Text(
+              label,
               style: TextStyle(
-                fontSize: 11, // Slightly reduced to prevent crowding
-                fontWeight: FontWeight.w600,
-                color: selected
-                    ? AppColors.primary
-                    : AppColors.grey,
+                fontSize: 11,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                color: selected ? Colors.blue : Colors.grey,
               ),
-              child: Text(label),
             ),
           ],
         ),

@@ -17,13 +17,13 @@ class AttractionCard extends StatelessWidget {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
+          const Icon(
             Icons.star_outline_rounded,
             color: AppColors.grey,
             size: 13,
           ),
           const SizedBox(width: 4),
-          Text(
+          const Text(
             'No rating',
             style: TextStyle(
               fontSize: 11,
@@ -42,7 +42,7 @@ class AttractionCard extends StatelessWidget {
       if (i < fullStars) {
         stars.add(const Icon(
           Icons.star_rounded,
-          color: AppColors.warning, // Marigold color for stars
+          color: AppColors.warning,
           size: 13,
         ));
       } else if (i == fullStars && hasHalfStar) {
@@ -67,7 +67,6 @@ class AttractionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Attraction is non-nullable, so no need for the null check here
     final String imageUrl = attraction.image ?? '';
     final String name = attraction.name ?? 'Unknown';
     final String description = attraction.description ?? 'No description available';
@@ -82,7 +81,7 @@ class AttractionCard extends StatelessWidget {
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: AppColors.lightGrey.withValues(alpha: 0.5),
+            color: AppColors.lightGrey.withValues(alpha: 0.6),
             width: 1,
           ),
           boxShadow: AppColors.subtleShadow,
@@ -104,17 +103,17 @@ class AttractionCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Image Section
+                // ── Image Section ──
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(15), // Slightly less than container to fit border nicely
+                    top: Radius.circular(15),
                   ),
                   child: imageUrl.isEmpty
                       ? Container(
                           height: 130,
                           width: double.infinity,
                           color: AppColors.primarySurface,
-                          child: Icon(
+                          child: const Icon(
                             Icons.landscape_outlined,
                             size: 36,
                             color: AppColors.grey,
@@ -129,7 +128,7 @@ class AttractionCard extends StatelessWidget {
                             height: 130,
                             width: double.infinity,
                             color: AppColors.primarySurface,
-                            child: Icon(
+                            child: const Icon(
                               Icons.broken_image_outlined,
                               size: 36,
                               color: AppColors.grey,
@@ -156,9 +155,9 @@ class AttractionCard extends StatelessWidget {
                         ),
                 ),
                 
-                // Content Section
+                // ── Content Section ──
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+                  padding: const EdgeInsets.all(12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -230,7 +229,7 @@ class AttractionCard extends StatelessWidget {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
+                                  const Icon(
                                     Icons.location_on_rounded,
                                     size: 9,
                                     color: AppColors.primary,
