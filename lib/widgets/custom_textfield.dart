@@ -1,7 +1,6 @@
 // lib/widgets/custom_text_field.dart
-import 'package:flutter/material.dart';
 import 'package:app/core/constants/app_colors.dart';
-
+import 'package:flutter/material.dart';
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -42,61 +41,66 @@ class CustomTextField extends StatelessWidget {
       maxLines: maxLines,
       readOnly: readOnly,
       onTap: onTap,
+      style: const TextStyle(
+        color: AppColors.dark,
+        fontSize: 15,
+      ),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: TextStyle(
+        hintStyle: const TextStyle(
           color: AppColors.grey,
           fontSize: 14,
           fontWeight: FontWeight.w400,
         ),
         prefixIcon: Icon(
           prefixIcon,
-          color: AppColors.primary,
-          size: 22,
+          color: AppColors.secondaryDark, // Deep Gold hint to match global theme
+          size: 20,
         ),
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: AppColors.white,
+        fillColor: AppColors.surface, // Pure white for consistency
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 20,
           vertical: 18,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14), // Matched to global theme 14px
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
             color: AppColors.lightGrey,
             width: 1,
           ),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+        focusedBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(14)),
           borderSide: BorderSide(
             color: AppColors.primary,
             width: 2,
           ),
         ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(
-            color: Colors.red,
+        errorBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(14)),
+          borderSide: BorderSide(
+            color: AppColors.error, // Burnt Sienna instead of pure red
             width: 1.5,
           ),
         ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(
-            color: Colors.red,
+        focusedErrorBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(14)),
+          borderSide: BorderSide(
+            color: AppColors.error, // Burnt Sienna instead of pure red
             width: 2,
           ),
         ),
-        errorStyle: TextStyle(
+        errorStyle: const TextStyle(
           color: AppColors.error,
           fontSize: 12,
           fontWeight: FontWeight.w500,
+          height: 1.2,
         ),
         floatingLabelBehavior: FloatingLabelBehavior.never,
       ),

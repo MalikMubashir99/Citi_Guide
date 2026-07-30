@@ -1,4 +1,5 @@
 // lib/widgets/bottom_nav_bar.dart
+import 'package:app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class BottomNavBar extends StatelessWidget {
@@ -15,17 +16,23 @@ class BottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 80,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(25),
-          topRight: Radius.circular(25),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+        border: Border(
+          top: BorderSide(
+            color: AppColors.lightGrey.withValues(alpha: 0.5),
+            width: 1,
+          ),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black12,
-            blurRadius: 15,
-            offset: Offset(0, -3),
+            color: AppColors.dark.withValues(alpha: 0.06), // Warm shadow instead of stark black
+            blurRadius: 20,
+            offset: const Offset(0, -5),
           ),
         ],
       ),
@@ -74,8 +81,8 @@ class BottomNavBar extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(20),
       onTap: () => onTap(index),
-      splashColor: const Color(0xff0984E3).withValues(alpha: 0.1),
-      highlightColor: const Color(0xff0984E3).withValues(alpha: 0.05),
+      splashColor: AppColors.primary.withValues(alpha: 0.1), // Cognac splash
+      highlightColor: AppColors.primary.withValues(alpha: 0.05),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
@@ -85,7 +92,7 @@ class BottomNavBar extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: selected
-              ? const Color(0xff0984E3).withValues(alpha: 0.12)
+              ? AppColors.primary.withValues(alpha: 0.12) // Warm cognac tint
               : Colors.transparent,
           borderRadius: BorderRadius.circular(18),
         ),
@@ -97,21 +104,21 @@ class BottomNavBar extends StatelessWidget {
               child: Icon(
                 icon,
                 key: ValueKey(selected),
-                size: 28,
+                size: 26, // Slightly reduced for a cleaner look with 5 items
                 color: selected
-                    ? const Color(0xff0984E3)
-                    : Colors.grey,
+                    ? AppColors.primary
+                    : AppColors.grey,
               ),
             ),
             const SizedBox(height: 4),
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 200),
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11, // Slightly reduced to prevent crowding
                 fontWeight: FontWeight.w600,
                 color: selected
-                    ? const Color(0xff0984E3)
-                    : Colors.grey,
+                    ? AppColors.primary
+                    : AppColors.grey,
               ),
               child: Text(label),
             ),

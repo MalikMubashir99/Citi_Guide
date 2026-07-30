@@ -2,6 +2,7 @@
 import 'package:app/core/constants/app_colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:app/model/attraction_model.dart';
 import 'package:app/model/review_model.dart';
 import 'package:app/services/review_service.dart';
@@ -56,88 +57,79 @@ class _ReviewScreenState extends State<ReviewScreen> {
       if (mounted) setState(() {});
     }
   }
-Future<void> submitReview() async {
-  if (commentController.text.trim().isEmpty) {
+
+  void _showSnackBar(String message, Color backgroundColor) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text("Please write a review"),
-        backgroundColor: AppColors.error,
+        content: Text(
+          message,
+          style: GoogleFonts.poppins(
+            color: AppColors.white,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        backgroundColor: backgroundColor,
         behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
-    return;
   }
 
-  setState(() => isLoading = true);
-
-  try {
-    // ✅ Check first
-    final alreadyReviewed = await reviewService.hasUserReviewed(widget.attraction.id);
-    
-    if (alreadyReviewed) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text("⚠️ You have already reviewed this attraction"),
-          backgroundColor: Colors.orange,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      setState(() => isLoading = false);
+  Future<void> submitReview() async {
+    if (commentController.text.trim().isEmpty) {
+      _showSnackBar("Please write a review", AppColors.error);
       return;
     }
 
-    await reviewService.addReview(
-      attractionId: widget.attraction.id,
-      userName: userName,
-      rating: rating,
-      comment: commentController.text.trim(),
-    );
+    setState(() => isLoading = true);
 
-    if (!mounted) return;
-    commentController.clear();
-    setState(() => rating = 5);
+    try {
+      final alreadyReviewed = await reviewService.hasUserReviewed(widget.attraction.id);
+      
+      if (alreadyReviewed) {
+        if (!mounted) return;
+        _showSnackBar("⚠️ You have already reviewed this attraction", AppColors.warning);
+        setState(() => isLoading = false);
+        return;
+      }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text("✅ Review Added Successfully!"),
-        backgroundColor: AppColors.success,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  } catch (e) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Error: $e"),
-        backgroundColor: AppColors.error,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  } finally {
-    if (mounted) setState(() => isLoading = false);
+      await reviewService.addReview(
+        attractionId: widget.attraction.id,
+        userName: userName,
+        rating: rating,
+        comment: commentController.text.trim(),
+      );
+
+      if (!mounted) return;
+      commentController.clear();
+      setState(() => rating = 5);
+
+      _showSnackBar("✅ Review Added Successfully!", AppColors.success);
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar("Error: $e", AppColors.error);
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
   }
-}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.background, // Warm Linen
       appBar: AppBar(
         title: Text(
           "Reviews",
-          style: TextStyle(
+          style: GoogleFonts.poppins(
             color: AppColors.dark,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             letterSpacing: 0.3,
           ),
         ),
         backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_rounded,
-            color: AppColors.dark,
-          ),
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.dark),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -146,25 +138,22 @@ Future<void> submitReview() async {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Attraction Name Card
+            // Attraction Name Card (Flat)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: AppColors.surface, // Pure white
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.lightGrey,
-                  width: 1,
-                ),
-                boxShadow: AppColors.subtleShadow,
+                border: Border.all(color: AppColors.lightGrey.withValues(alpha: 0.7), width: 1),
+                // Removed shadow for flat design
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     "Rate & Review",
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 12,
                       color: AppColors.grey,
                       fontWeight: FontWeight.w500,
@@ -174,9 +163,9 @@ Future<void> submitReview() async {
                   const SizedBox(height: 4),
                   Text(
                     widget.attraction.name,
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 22,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.dark,
                       letterSpacing: 0.3,
                     ),
@@ -191,18 +180,15 @@ Future<void> submitReview() async {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.lightGrey,
-                  width: 1,
-                ),
+                border: Border.all(color: AppColors.lightGrey.withValues(alpha: 0.7), width: 1),
               ),
               child: Column(
                 children: [
                   Text(
                     "How would you rate this attraction?",
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: AppColors.dark,
@@ -216,9 +202,9 @@ Future<void> submitReview() async {
                     itemCount: 5,
                     itemSize: 40,
                     itemBuilder: (context, index) {
-                      return Icon(
+                      return const Icon(
                         Icons.star_rounded,
-                        color: AppColors.secondary,
+                        color: AppColors.secondary, // Warm Sand
                       );
                     },
                     onRatingUpdate: (value) {
@@ -230,7 +216,7 @@ Future<void> submitReview() async {
                   const SizedBox(height: 8),
                   Text(
                     _getRatingLabel(rating),
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 14,
                       color: AppColors.darkGrey,
                       fontWeight: FontWeight.w500,
@@ -245,25 +231,22 @@ Future<void> submitReview() async {
             // Comment Field
             Container(
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.lightGrey,
-                  width: 1,
-                ),
+                border: Border.all(color: AppColors.lightGrey.withValues(alpha: 0.7), width: 1),
               ),
               child: TextField(
                 controller: commentController,
                 maxLines: 5,
                 decoration: InputDecoration(
                   labelText: "Write your review",
-                  labelStyle: TextStyle(
+                  labelStyle: GoogleFonts.poppins(
                     color: AppColors.darkGrey,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
                   hintText: "Share your experience...",
-                  hintStyle: TextStyle(
+                  hintStyle: GoogleFonts.poppins(
                     color: AppColors.grey,
                     fontSize: 14,
                   ),
@@ -273,21 +256,21 @@ Future<void> submitReview() async {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(
+                    borderSide: const BorderSide(
                       color: AppColors.primary,
                       width: 2,
                     ),
                   ),
                   contentPadding: const EdgeInsets.all(16),
                   filled: true,
-                  fillColor: AppColors.white,
+                  fillColor: AppColors.surface,
                 ),
               ),
             ),
             
             const SizedBox(height: 20),
             
-            // Submit Button
+            // Submit Button (Flat)
             SizedBox(
               width: double.infinity,
               height: 56,
@@ -299,14 +282,13 @@ Future<void> submitReview() async {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  elevation: 2,
-                  shadowColor: AppColors.primary.withValues(alpha: 0.3),
+                  elevation: 0, // Flat design
                 ),
                 child: isLoading
                     ? Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          SizedBox(
+                          const SizedBox(
                             height: 24,
                             width: 24,
                             child: CircularProgressIndicator(
@@ -317,9 +299,10 @@ Future<void> submitReview() async {
                           const SizedBox(width: 12),
                           Text(
                             "Submitting...",
-                            style: TextStyle(
+                            style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
+                              color: AppColors.white,
                               letterSpacing: 0.3,
                             ),
                           ),
@@ -328,17 +311,14 @@ Future<void> submitReview() async {
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.send_rounded,
-                            color: AppColors.white,
-                            size: 20,
-                          ),
+                          const Icon(Icons.send_rounded, color: AppColors.white, size: 20),
                           const SizedBox(width: 10),
                           Text(
                             "Submit Review",
-                            style: TextStyle(
+                            style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
+                              color: AppColors.white,
                               letterSpacing: 0.3,
                             ),
                           ),
@@ -349,31 +329,28 @@ Future<void> submitReview() async {
             
             const SizedBox(height: 30),
             
-            // User Reviews Section
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                children: [
-                  Container(
-                    width: 4,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+            // User Reviews Section Header
+            Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  const SizedBox(width: 12),
-                  Text(
-                    "User Reviews",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.dark,
-                      letterSpacing: 0.3,
-                    ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  "User Reviews",
+                  style: GoogleFonts.poppins(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.dark,
+                    letterSpacing: 0.3,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
             
             const SizedBox(height: 16),
@@ -399,10 +376,7 @@ Future<void> submitReview() async {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: AppColors.primary,
-            ),
+            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
           );
         }
 
@@ -410,18 +384,11 @@ Future<void> submitReview() async {
           return Center(
             child: Column(
               children: [
-                Icon(
-                  Icons.error_outline_rounded,
-                  size: 40,
-                  color: AppColors.error,
-                ),
+                const Icon(Icons.error_outline_rounded, size: 40, color: AppColors.error),
                 const SizedBox(height: 8),
                 Text(
                   'Error loading reviews',
-                  style: TextStyle(
-                    color: AppColors.error,
-                    fontSize: 14,
-                  ),
+                  style: GoogleFonts.poppins(color: AppColors.error, fontSize: 14, fontWeight: FontWeight.w500),
                 ),
               ],
             ),
@@ -432,26 +399,19 @@ Future<void> submitReview() async {
           return Container(
             padding: const EdgeInsets.all(30),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.lightGrey,
-                width: 1,
-              ),
+              border: Border.all(color: AppColors.lightGrey.withValues(alpha: 0.7), width: 1),
             ),
             child: Column(
               children: [
-                Icon(
-                  Icons.chat_bubble_outline_rounded,
-                  size: 60,
-                  color: AppColors.grey,
-                ),
+                const Icon(Icons.chat_bubble_outline_rounded, size: 60, color: AppColors.grey),
                 const SizedBox(height: 12),
                 Text(
                   "No Reviews Yet",
-                  style: TextStyle(
+                  style: GoogleFonts.poppins(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.dark,
                   ),
                 ),
@@ -459,7 +419,7 @@ Future<void> submitReview() async {
                 Text(
                   "Be the first to review this attraction!",
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: GoogleFonts.poppins(
                     color: AppColors.grey,
                     fontSize: 14,
                   ),
@@ -475,13 +435,10 @@ Future<void> submitReview() async {
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.lightGrey,
-                  width: 1,
-                ),
-                boxShadow: AppColors.subtleShadow,
+                border: Border.all(color: AppColors.lightGrey.withValues(alpha: 0.7), width: 1),
+                // Removed shadow for flat design
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -495,8 +452,8 @@ Future<void> submitReview() async {
                           review.userName.isNotEmpty
                               ? review.userName[0].toUpperCase()
                               : 'U',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
                             fontSize: 18,
                             color: AppColors.primary,
                           ),
@@ -509,9 +466,9 @@ Future<void> submitReview() async {
                           children: [
                             Text(
                               review.userName,
-                              style: TextStyle(
+                              style: GoogleFonts.poppins(
                                 fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w600,
                                 color: AppColors.dark,
                               ),
                             ),
@@ -526,14 +483,14 @@ Future<void> submitReview() async {
                                         : index < review.rating
                                             ? Icons.star_half_rounded
                                             : Icons.star_outline_rounded,
-                                    color: AppColors.secondary,
+                                    color: AppColors.secondary, // Warm Sand
                                     size: 16,
                                   ),
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
                                   review.rating.toStringAsFixed(1),
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
                                     color: AppColors.dark,
@@ -546,7 +503,7 @@ Future<void> submitReview() async {
                       ),
                       Text(
                         _getTimeAgo(review.createdAt),
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           fontSize: 11,
                           color: AppColors.grey,
                         ),
@@ -556,7 +513,7 @@ Future<void> submitReview() async {
                   const SizedBox(height: 10),
                   Text(
                     review.comment,
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 14,
                       color: AppColors.darkGrey,
                       height: 1.5,
@@ -571,22 +528,16 @@ Future<void> submitReview() async {
     );
   }
 
-  // ✅ Fixed: Now handles both Timestamp and DateTime
   String _getTimeAgo(dynamic timestamp) {
     if (timestamp == null) return 'Just now';
     
     DateTime dateTime;
     
-    // Handle Timestamp
     if (timestamp is Timestamp) {
       dateTime = timestamp.toDate();
-    } 
-    // Handle DateTime
-    else if (timestamp is DateTime) {
+    } else if (timestamp is DateTime) {
       dateTime = timestamp;
-    }
-    // Handle Map or other types
-    else {
+    } else {
       return 'Recently';
     }
     

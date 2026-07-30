@@ -16,6 +16,7 @@ import 'package:app/services/city_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:app/widgets/home_appbar.dart';
 import 'package:app/widgets/search_bar_widget.dart';
 import 'package:app/widgets/category_card.dart';
@@ -57,22 +58,10 @@ class _HomeScreenState extends State<HomeScreen> {
   final EventService eventService = EventService();
   final CityService cityService = CityService();
 
-  // ✅ Screens list
-  late final List<Widget> _screens;
-
   @override
   void initState() {
     super.initState();
     _getUserName();
-
-    // ✅ Initialize screens
-    _screens = [
-      _buildHomeContent(),
-      const FavoritesScreen(),
-      const SearchScreen(),
-      const OpenStreetMapScreen(), // Map screen
-      ProfileScreen(onProfileUpdated: refreshUserName),
-    ];
   }
 
   @override
@@ -94,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (userDoc.exists) {
             final data = userDoc.data();
             String name = data?['name'] ?? '';
-            String image = data?['image'] ?? ''; // ✅ Get image
+            String image = data?['image'] ?? '';
 
             if (name.trim().isEmpty) {
               name = user.displayName ?? user.email?.split('@').first ?? "User";
@@ -102,10 +91,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
             setState(() {
               userName = name;
-              userImage = image; // ✅ Set image
+              userImage = image;
             });
-            print('✅ User name: $userName');
-            print('✅ User image length: ${userImage.length}');
             return;
           }
         } catch (e) {
@@ -207,7 +194,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ Create screens dynamically so userName is always up to date
     final screens = [
       _buildHomeContent(),
       const FavoritesScreen(),
@@ -230,23 +216,23 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ✅ Build Search Results
   Widget _buildSearchResults() {
-    final totalResults =
-        searchAttractions.length +
+    final totalResults = searchAttractions.length +
         searchHotels.length +
         searchRestaurants.length +
         searchEvents.length;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.background, // Warm Linen
       appBar: AppBar(
-        title: const Text('Search Results'),
+        title: Text('Search Results', style: GoogleFonts.poppins(color: AppColors.dark, fontWeight: FontWeight.w600)),
+        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.dark),
           onPressed: _clearSearch,
         ),
         actions: [
-          IconButton(icon: const Icon(Icons.close), onPressed: _clearSearch),
+          IconButton(icon: const Icon(Icons.close_rounded, color: AppColors.darkGrey), onPressed: _clearSearch),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(70),
@@ -254,12 +240,8 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.all(16),
             child: SearchBarWidget(
               controller: searchController,
-              onSearch: () {
-                _performSearch(searchController.text);
-              },
-              onChanged: (value) {
-                _performSearch(value);
-              },
+              onSearch: () => _performSearch(searchController.text),
+              onChanged: (value) => _performSearch(value),
             ),
           ),
         ),
@@ -269,15 +251,11 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.search_off_rounded,
-                    size: 80,
-                    color: AppColors.grey,
-                  ),
+                  const Icon(Icons.search_off_rounded, size: 80, color: AppColors.grey),
                   const SizedBox(height: 16),
                   Text(
                     'No results found for "$searchQuery"',
-                    style: const TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
                       color: AppColors.dark,
@@ -286,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'Try searching with different keywords',
-                    style: TextStyle(fontSize: 14, color: AppColors.grey),
+                    style: GoogleFonts.poppins(fontSize: 14, color: AppColors.grey),
                   ),
                 ],
               ),
@@ -298,18 +276,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(
                     'Found $totalResults results for "$searchQuery"',
-                    style: TextStyle(fontSize: 16, color: AppColors.grey),
+                    style: GoogleFonts.poppins(fontSize: 16, color: AppColors.darkGrey),
                   ),
                   const SizedBox(height: 20),
 
                   if (searchAttractions.isNotEmpty) ...[
-                    _buildResultSection(
-                      'Attractions',
-                      searchAttractions.length,
-                    ),
-                    ...searchAttractions.map(
-                      (item) => AttractionCard(attraction: item),
-                    ),
+                    _buildResultSection('Attractions', searchAttractions.length),
+                    ...searchAttractions.map((item) => AttractionCard(attraction: item)),
                     const SizedBox(height: 16),
                   ],
 
@@ -320,13 +293,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
 
                   if (searchRestaurants.isNotEmpty) ...[
-                    _buildResultSection(
-                      'Restaurants',
-                      searchRestaurants.length,
-                    ),
-                    ...searchRestaurants.map(
-                      (item) => RestaurantCard(restaurant: item),
-                    ),
+                    _buildResultSection('Restaurants', searchRestaurants.length),
+                    ...searchRestaurants.map((item) => RestaurantCard(restaurant: item)),
                     const SizedBox(height: 16),
                   ],
 
@@ -348,7 +316,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Text(
             title,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.dark),
           ),
           const SizedBox(width: 8),
           Container(
@@ -359,14 +327,27 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: Text(
               count.toString(),
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 color: AppColors.primary,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Reusable Section Header for Home Content
+  Widget _buildHomeSectionHeader(String title) {
+    return Text(
+      title,
+      style: GoogleFonts.poppins(
+        fontSize: 22,
+        fontWeight: FontWeight.w600,
+        color: AppColors.dark,
+        letterSpacing: 0.3,
       ),
     );
   }
@@ -384,48 +365,41 @@ class _HomeScreenState extends State<HomeScreen> {
 
             SearchBarWidget(
               controller: searchController,
-              onSearch: () {
-                _performSearch(searchController.text);
-              },
-              onChanged: (value) {
-                _performSearch(value);
-              },
+              onSearch: () => _performSearch(searchController.text),
+              onChanged: (value) => _performSearch(value),
             ),
 
             const SizedBox(height: 30),
 
             // Categories Section
-            const Text(
-              "Categories",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
+            _buildHomeSectionHeader("Categories"),
             const SizedBox(height: 18),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CategoryCard(
-                  icon: Icons.place,
+                  icon: Icons.place_rounded,
                   title: "Places",
-                  color: Colors.blue,
+                  color: AppColors.info, // Dusty Blue
                   onTap: () {},
                 ),
                 CategoryCard(
-                  icon: Icons.hotel,
+                  icon: Icons.hotel_rounded,
                   title: "Hotels",
-                  color: Colors.orange,
+                  color: AppColors.secondary, // Warm Sand/Gold
                   onTap: () {},
                 ),
                 CategoryCard(
-                  icon: Icons.restaurant,
+                  icon: Icons.restaurant_rounded,
                   title: "Food",
-                  color: Colors.green,
+                  color: AppColors.accent, // Terracotta
                   onTap: () {},
                 ),
                 CategoryCard(
-                  icon: Icons.event,
+                  icon: Icons.event_rounded,
                   title: "Events",
-                  color: Colors.purple,
+                  color: AppColors.success, // Sage Green
                   onTap: () {},
                 ),
               ],
@@ -434,10 +408,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 35),
 
             // Popular Attractions Section
-            const Text(
-              "Popular Attractions",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
+            _buildHomeSectionHeader("Popular Attractions"),
             const SizedBox(height: 18),
 
             SizedBox(
@@ -446,52 +417,31 @@ class _HomeScreenState extends State<HomeScreen> {
                 future: attractionService.getAllAttractions(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.primary,
-                      ),
-                    );
+                    return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary));
                   }
-
                   if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        'Error loading attractions',
-                        style: TextStyle(color: AppColors.error),
-                      ),
-                    );
+                    return Center(child: Text('Error loading attractions', style: GoogleFonts.poppins(color: AppColors.error, fontWeight: FontWeight.w500)));
                   }
-
                   final attractions = snapshot.data ?? [];
                   if (attractions.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'No attractions available',
-                        style: TextStyle(color: AppColors.grey, fontSize: 16),
-                      ),
-                    );
+                    return Center(child: Text('No attractions available', style: GoogleFonts.poppins(color: AppColors.grey, fontSize: 16)));
                   }
-
                   return ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: attractions.length,
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     itemBuilder: (context, index) {
-                      final attraction = attractions[index];
-                      return AttractionCard(attraction: attraction);
+                      return AttractionCard(attraction: attractions[index]);
                     },
                   );
                 },
               ),
             ),
+
             const SizedBox(height: 35),
 
             // Top Hotels Section
-            const Text(
-              "Top Hotels",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
+            _buildHomeSectionHeader("Top Hotels"),
             const SizedBox(height: 18),
 
             SizedBox(
@@ -500,41 +450,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 future: hotelService.getAllHotels(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.primary,
-                      ),
-                    );
+                    return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary));
                   }
-
                   if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        'Error loading hotels',
-                        style: TextStyle(color: AppColors.error),
-                      ),
-                    );
+                    return Center(child: Text('Error loading hotels', style: GoogleFonts.poppins(color: AppColors.error, fontWeight: FontWeight.w500)));
                   }
-
                   final hotels = snapshot.data ?? [];
                   if (hotels.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'No hotels available',
-                        style: TextStyle(color: AppColors.grey, fontSize: 16),
-                      ),
-                    );
+                    return Center(child: Text('No hotels available', style: GoogleFonts.poppins(color: AppColors.grey, fontSize: 16)));
                   }
-
                   return ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: hotels.length,
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     itemBuilder: (context, index) {
-                      final hotel = hotels[index];
-                       print('🟢 Building HotelCard for: ${hotel.name}');
-                      return HotelCard(hotel: hotel);
+                      print('🟢 Building HotelCard for: ${hotels[index].name}');
+                      return HotelCard(hotel: hotels[index]);
                     },
                   );
                 },
@@ -544,10 +475,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 35),
 
             // Restaurants Section
-            const Text(
-              "Popular Restaurants",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
+            _buildHomeSectionHeader("Popular Restaurants"),
             const SizedBox(height: 18),
 
             SizedBox(
@@ -556,40 +484,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 future: restaurantService.getAllRestaurants(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.primary,
-                      ),
-                    );
+                    return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary));
                   }
-
                   if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        'Error loading restaurants',
-                        style: TextStyle(color: AppColors.error),
-                      ),
-                    );
+                    return Center(child: Text('Error loading restaurants', style: GoogleFonts.poppins(color: AppColors.error, fontWeight: FontWeight.w500)));
                   }
-
                   final restaurants = snapshot.data ?? [];
                   if (restaurants.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'No restaurants found',
-                        style: TextStyle(color: AppColors.grey, fontSize: 16),
-                      ),
-                    );
+                    return Center(child: Text('No restaurants found', style: GoogleFonts.poppins(color: AppColors.grey, fontSize: 16)));
                   }
-
                   return ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: restaurants.length,
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     itemBuilder: (context, index) {
-                      final restaurant = restaurants[index];
-                      return RestaurantCard(restaurant: restaurant);
+                      return RestaurantCard(restaurant: restaurants[index]);
                     },
                   );
                 },
@@ -599,10 +508,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 35),
 
             // Events Section
-            const Text(
-              "Upcoming Events",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
+            _buildHomeSectionHeader("Upcoming Events"),
             const SizedBox(height: 18),
 
             SizedBox(
@@ -611,40 +517,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 future: eventService.getAllEvents(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.primary,
-                      ),
-                    );
+                    return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary));
                   }
-
                   if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        'Error loading events',
-                        style: TextStyle(color: AppColors.error),
-                      ),
-                    );
+                    return Center(child: Text('Error loading events', style: GoogleFonts.poppins(color: AppColors.error, fontWeight: FontWeight.w500)));
                   }
-
                   final events = snapshot.data ?? [];
                   if (events.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'No upcoming events',
-                        style: TextStyle(color: AppColors.grey, fontSize: 16),
-                      ),
-                    );
+                    return Center(child: Text('No upcoming events', style: GoogleFonts.poppins(color: AppColors.grey, fontSize: 16)));
                   }
-
                   return ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: events.length,
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     itemBuilder: (context, index) {
-                      final event = events[index];
-                      return EventCard(event: event);
+                      return EventCard(event: events[index]);
                     },
                   );
                 },
@@ -654,10 +541,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 35),
 
             // Top Cities Section
-            const Text(
-              "Top Cities",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
+            _buildHomeSectionHeader("Top Cities"),
             const SizedBox(height: 18),
 
             SizedBox(
@@ -666,33 +550,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 future: cityService.getCities(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.primary,
-                      ),
-                    );
+                    return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary));
                   }
-
                   if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        'Error loading cities',
-                        style: TextStyle(color: AppColors.error),
-                      ),
-                    );
+                    return Center(child: Text('Error loading cities', style: GoogleFonts.poppins(color: AppColors.error, fontWeight: FontWeight.w500)));
                   }
-
                   final cities = snapshot.data ?? [];
                   if (cities.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'No cities found',
-                        style: TextStyle(color: AppColors.grey, fontSize: 16),
-                      ),
-                    );
+                    return Center(child: Text('No cities found', style: GoogleFonts.poppins(color: AppColors.grey, fontSize: 16)));
                   }
-
                   return ListView(
                     scrollDirection: Axis.horizontal,
                     children: cities.map((city) {

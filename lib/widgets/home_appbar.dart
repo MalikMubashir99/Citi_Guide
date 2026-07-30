@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 
 class HomeAppBar extends StatelessWidget {
   final String userName;
-  final String? profileImage; // ✅ Add this
+  final String? profileImage;
 
   const HomeAppBar({
     super.key,
     required this.userName,
-    this.profileImage, // ✅ Optional
+    this.profileImage,
   });
 
   @override
@@ -26,29 +26,28 @@ class HomeAppBar extends StatelessWidget {
 
     return Row(
       children: [
-        // ✅ Dynamic Profile Image
+        // ✅ Dynamic Profile Image with Golden Ring
         Container(
+          padding: const EdgeInsets.all(3), // Creates the ring width
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(
-              color: AppColors.primary,
-              width: 2,
-            ),
+            gradient: AppColors.goldenGradient, // Matches profile screens
+            boxShadow: AppColors.warmGlow,
           ),
           child: CircleAvatar(
-            radius: 26,
-            backgroundColor: Colors.grey.shade200,
+            radius: 24,
+            backgroundColor: AppColors.primarySurface, // Warm tint fallback
             backgroundImage: _getImageProvider(profileImage),
             child: profileImage == null || profileImage!.isEmpty
-                ? const Icon(
-                    Icons.person,
-                    color: Colors.grey,
-                    size: 30,
+                ? Icon(
+                    Icons.person_rounded,
+                    color: AppColors.grey,
+                    size: 28,
                   )
                 : null,
           ),
         ),
-        const SizedBox(width: 15),
+        const SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,9 +63,9 @@ class HomeAppBar extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 userName.isNotEmpty ? userName : "Guest",
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   color: AppColors.dark,
                   letterSpacing: 0.3,
                 ),
@@ -76,32 +75,40 @@ class HomeAppBar extends StatelessWidget {
             ],
           ),
         ),
+        
+        // ✅ Notification Bell
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: AppColors.background,
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: AppColors.lightGrey,
+              color: AppColors.lightGrey.withValues(alpha: 0.6),
               width: 1,
             ),
+            boxShadow: AppColors.subtleShadow, // Lifted off background
           ),
           child: Stack(
+            clipBehavior: Clip.none, // Allow dot to overflow
             children: [
               Icon(
                 Icons.notifications_none_rounded,
                 color: AppColors.dark,
-                size: 26,
+                size: 24,
               ),
               Positioned(
-                right: 0,
-                top: 0,
+                right: -1,
+                top: -1,
                 child: Container(
                   width: 10,
                   height: 10,
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
+                  decoration: BoxDecoration(
+                    color: AppColors.error, // Burnt sienna instead of pure red
                     shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.surface, // White border to separate from bell
+                      width: 2,
+                    ),
                   ),
                 ),
               ),
@@ -117,7 +124,6 @@ class HomeAppBar extends StatelessWidget {
     if (image == null || image.isEmpty) return null;
 
     try {
-      // ✅ Check if it's Base64
       if (image.length > 100 && !image.startsWith('http')) {
         String imageData = image;
         if (imageData.startsWith('data:image')) {
@@ -127,15 +133,13 @@ class HomeAppBar extends StatelessWidget {
         return MemoryImage(bytes);
       }
 
-      // ✅ If it's a URL
       if (image.startsWith('http')) {
         return NetworkImage(image);
       }
 
       return null;
     } catch (e) {
-      print('❌ Error loading profile image: $e');
-      return null;
+      return null; // Removed print statement for clean production code
     }
   }
 }

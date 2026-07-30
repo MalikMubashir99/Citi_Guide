@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+// Make sure to update this import path to match your exact AppColors location
+import '../../core/constants/app_colors.dart'; 
 import '../../services/auth_service.dart';
 import '../../widgets/custom_textfield.dart';
 import '../../widgets/primary_button.dart';
@@ -58,7 +62,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (value.length < 6) {
       return "Password must be at least 6 characters";
     }
-    // Optional: Add more password requirements
     if (!RegExp(r'[A-Z]').hasMatch(value)) {
       return "Password must contain at least one uppercase letter";
     }
@@ -68,16 +71,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return null;
   }
 
+  // ✅ Helper to show themed SnackBars
+  void _showSnackBar(String message, bool isError) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: GoogleFonts.poppins(
+            color: AppColors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        backgroundColor: isError ? AppColors.error : AppColors.success,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.symmetric(horizontal: 24),
+      ),
+    );
+  }
+
   Future<void> register() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (passwordController.text != confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Passwords do not match"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showSnackBar("Passwords do not match", true);
       return;
     }
 
@@ -93,23 +111,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Account Created Successfully 🎉"),
-          backgroundColor: Colors.green,
-        ),
-      );
+      _showSnackBar("Account Created Successfully 🎉", false);
 
       Navigator.pushReplacementNamed(context, "/home");
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showSnackBar(e.toString(), true);
     }
 
     if (mounted) {
@@ -133,40 +141,82 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
+          // Background Image
           Image.asset(
             "assets/images/register.jpg",
             fit: BoxFit.cover,
             errorBuilder: (_, __, ___) => Container(
-              color: const Color(0xff0984E3),
+              // Fallback matches new premium palette
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF5C3D24), Color(0xFF1A110A)],
+                ),
+              ),
             ),
           ),
-          // ✅ Fixed: withOpacity → withValues(alpha:)
+          
+          // Cinematic Gradient Overlay
           Container(
-            color: Colors.black.withValues(alpha: 0.5),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withValues(alpha: 0.2),
+                  Colors.black.withValues(alpha: 0.5),
+                  AppColors.splashOverlayDark.withValues(alpha: 0.88),
+                  AppColors.primaryDark.withValues(alpha: 0.95),
+                ],
+                stops: const [0.0, 0.3, 0.7, 1.0],
+              ),
+            ),
           ),
+
+          // Content
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              // Prevents keyboard from covering the button
+              padding: EdgeInsets.only(
+                left: 24, 
+                right: 24, 
+                top: 24, 
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24
+              ),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 50),
-                    const Text(
+                    const SizedBox(height: 40),
+                    
+                    // Title
+                    Text(
                       "Create Account",
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         color: Colors.white,
                         fontSize: 34,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
+                        height: 1.2,
+                        shadows: const [
+                          Shadow(
+                            color: Colors.black54,
+                            blurRadius: 15,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      "Start your journey with Citi Guide.",
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 17,
+                    const SizedBox(height: 10),
+                    
+                    // Subtitle (Fixed "Citi Guide" to "CityGuide")
+                    Text(
+                      "Start your journey with CityGuide.",
+                      style: GoogleFonts.poppins(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                     const SizedBox(height: 35),
@@ -198,7 +248,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 18),
 
-                    // ✅ Email with validation
+                    // ✅ Email
                     CustomTextField(
                       controller: emailController,
                       hintText: "Email",
@@ -208,7 +258,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 18),
 
-                    // ✅ Password with validation
+                    // ✅ Password
                     CustomTextField(
                       controller: passwordController,
                       hintText: "Password",
@@ -217,9 +267,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       suffixIcon: IconButton(
                         icon: Icon(
                           hidePassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                          color: Colors.white70,
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                          color: AppColors.secondary, // Warm Sand
                         ),
                         onPressed: () {
                           setState(() {
@@ -240,14 +290,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       suffixIcon: IconButton(
                         icon: Icon(
                           hideConfirmPassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                          color: Colors.white70,
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                          color: AppColors.secondary, // Warm Sand
                         ),
                         onPressed: () {
                           setState(() {
-                            hideConfirmPassword =
-                                !hideConfirmPassword;
+                            hideConfirmPassword = !hideConfirmPassword;
                           });
                         },
                       ),
@@ -263,6 +312,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 30),
 
+                    // ✅ Register Button
                     PrimaryButton(
                       text: "Create Account",
                       isLoading: loading,
@@ -270,30 +320,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 20),
 
+                    // ✅ Login Link
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           "Already have an account?",
-                          style: TextStyle(
-                            color: Colors.white,
+                          style: GoogleFonts.poppins(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontSize: 14,
                           ),
                         ),
                         TextButton(
                           onPressed: () {
                             Navigator.pop(context);
                           },
-                          child: const Text(
+                          child: Text(
                             "Login",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                            style: GoogleFonts.poppins(
+                              color: AppColors.secondary, // Golden highlight
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 30),
                   ],
                 ),
               ),

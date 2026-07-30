@@ -1,4 +1,3 @@
-// lib/screens/home/city_detail_screen.dart
 import 'package:app/core/constants/app_colors.dart';
 import 'package:app/model/attraction_model.dart';
 import 'package:app/model/event_model.dart';
@@ -13,6 +12,7 @@ import 'package:app/widgets/event_card.dart';
 import 'package:app/widgets/hotel_card.dart';
 import 'package:app/widgets/restaurant_card.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CityDetailScreen extends StatefulWidget {
   final String cityId;
@@ -39,31 +39,25 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.background, // Warm Linen
       appBar: AppBar(
         title: Text(
           widget.cityName,
-          style: TextStyle(
+          style: GoogleFonts.poppins(
             color: AppColors.dark,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             letterSpacing: 0.3,
           ),
         ),
         backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_rounded,
-            color: AppColors.dark,
-          ),
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.dark),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: Icon(
-              Icons.share_rounded,
-              color: AppColors.dark,
-            ),
+            icon: const Icon(Icons.share_rounded, color: AppColors.dark),
             onPressed: () {
               // Share city
             },
@@ -73,28 +67,14 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // City header with image
             _buildCityHeader(),
-            
             const SizedBox(height: 8),
-            
-            // Quick Stats
             _buildQuickStats(),
-            
             const SizedBox(height: 8),
-            
-            // Attractions
             attractionSection(),
-            
-            // Hotels
             hotelSection(),
-            
-            // Restaurants
             restaurantSection(),
-            
-            // Events
             eventSection(),
-            
             const SizedBox(height: 30),
           ],
         ),
@@ -117,16 +97,17 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
       ),
       child: Container(
         decoration: BoxDecoration(
+          // Cinematic Espresso Gradient Overlay
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Colors.black.withValues(alpha: 0.1),
-              Colors.black.withValues(alpha: 0.3),
-              Colors.black.withValues(alpha: 0.6),
-              Colors.black.withValues(alpha: 0.8),
+              Colors.transparent,
+              Colors.black.withValues(alpha: 0.2),
+              AppColors.splashOverlayDark.withValues(alpha: 0.7),
+              AppColors.splashOverlayDark.withValues(alpha: 0.95),
             ],
-            stops: const [0.0, 0.3, 0.6, 1.0],
+            stops: const [0.0, 0.3, 0.7, 1.0],
           ),
         ),
         child: Column(
@@ -140,16 +121,16 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
             const SizedBox(height: 8),
             Text(
               widget.cityName,
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 38,
                 color: AppColors.white,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 letterSpacing: 1.5,
-                shadows: [
+                shadows: const [
                   Shadow(
-                    color: Colors.black.withValues(alpha: 0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
+                    color: Colors.black54,
+                    blurRadius: 15,
+                    offset: Offset(0, 3),
                   ),
                 ],
               ),
@@ -157,18 +138,11 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
             const SizedBox(height: 6),
             Text(
               'Explore the best of ${widget.cityName}',
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 16,
                 color: Colors.white.withValues(alpha: 0.85),
                 fontWeight: FontWeight.w400,
                 letterSpacing: 0.5,
-                shadows: [
-                  Shadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
               ),
             ),
           ],
@@ -186,26 +160,22 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: AppColors.surface, // Pure white
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppColors.lightGrey,
+                  color: AppColors.lightGrey.withValues(alpha: 0.7), // Subtle warm border
                   width: 1,
                 ),
               ),
               child: Column(
                 children: [
-                  Icon(
-                    Icons.place_rounded,
-                    color: AppColors.primary,
-                    size: 24,
-                  ),
+                  const Icon(Icons.place_rounded, color: AppColors.primary, size: 24),
                   const SizedBox(height: 4),
                   Text(
                     widget.cityName,
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.dark,
                     ),
                     maxLines: 1,
@@ -213,7 +183,7 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
                   ),
                   Text(
                     'City',
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 11,
                       color: AppColors.grey,
                     ),
@@ -227,32 +197,28 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppColors.lightGrey,
+                  color: AppColors.lightGrey.withValues(alpha: 0.7),
                   width: 1,
                 ),
               ),
               child: Column(
                 children: [
-                  Icon(
-                    Icons.star_rounded,
-                    color: AppColors.secondary,
-                    size: 24,
-                  ),
+                  const Icon(Icons.star_rounded, color: AppColors.secondary, size: 24), // Warm Sand
                   const SizedBox(height: 4),
                   Text(
                     '4.5',
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.dark,
                     ),
                   ),
                   Text(
                     'Average Rating',
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 11,
                       color: AppColors.grey,
                     ),
@@ -275,7 +241,7 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
             width: 4,
             height: 24,
             decoration: BoxDecoration(
-              color: AppColors.primary,
+              color: AppColors.primary, // Cognac accent bar
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -286,9 +252,9 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
               children: [
                 Text(
                   title,
-                  style: TextStyle(
+                  style: GoogleFonts.poppins(
                     fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.dark,
                     letterSpacing: 0.3,
                   ),
@@ -297,7 +263,7 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 13,
                       color: AppColors.grey,
                       fontWeight: FontWeight.w400,
@@ -307,7 +273,6 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
               ],
             ),
           ),
-          // View all button (optional)
           TextButton(
             onPressed: () {
               // Navigate to all items
@@ -318,7 +283,7 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
             ),
             child: Text(
               'View All',
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.primary,
@@ -326,6 +291,43 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Helper for consistent empty/error states
+  Widget _buildStatePlaceholder({required IconData icon, required String title, String? subtitle, bool isError = false}) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              size: isError ? 40 : 48,
+              color: isError ? AppColors.error : AppColors.grey,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                color: isError ? AppColors.error : AppColors.grey,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: GoogleFonts.poppins(
+                  color: AppColors.lightGrey,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -345,77 +347,26 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
               return const Padding(
                 padding: EdgeInsets.all(20),
                 child: Center(
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: AppColors.primary,
-                  ),
+                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
                 ),
               );
             }
-
             if (snapshot.hasError) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.error_outline_rounded,
-                        size: 40,
-                        color: AppColors.error,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Error loading attractions',
-                        style: TextStyle(
-                          color: AppColors.error,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              return _buildStatePlaceholder(
+                icon: Icons.error_outline_rounded,
+                title: 'Error loading attractions',
+                isError: true,
               );
             }
-
             if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.landscape_rounded,
-                        size: 48,
-                        color: AppColors.grey,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "No Attractions Found",
-                        style: TextStyle(
-                          color: AppColors.grey,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        "Check back later for new places",
-                        style: TextStyle(
-                          color: AppColors.lightGrey,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              return _buildStatePlaceholder(
+                icon: Icons.landscape_rounded,
+                title: "No Attractions Found",
+                subtitle: "Check back later for new places",
               );
             }
-
             return Column(
-              children: snapshot.data!.map((item) {
-                return AttractionCard(attraction: item);
-              }).toList(),
+              children: snapshot.data!.map((item) => AttractionCard(attraction: item)).toList(),
             );
           },
         ),
@@ -438,69 +389,25 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
               return const Padding(
                 padding: EdgeInsets.all(20),
                 child: Center(
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: AppColors.primary,
-                  ),
+                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
                 ),
               );
             }
-
             if (snapshot.hasError) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.error_outline_rounded,
-                        size: 40,
-                        color: AppColors.error,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Error loading hotels',
-                        style: TextStyle(
-                          color: AppColors.error,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              return _buildStatePlaceholder(
+                icon: Icons.error_outline_rounded,
+                title: 'Error loading hotels',
+                isError: true,
               );
             }
-
             if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.hotel_rounded,
-                        size: 48,
-                        color: AppColors.grey,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "No Hotels Found",
-                        style: TextStyle(
-                          color: AppColors.grey,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              return _buildStatePlaceholder(
+                icon: Icons.hotel_rounded,
+                title: "No Hotels Found",
               );
             }
-
             return Column(
-              children: snapshot.data!.map((hotel) {
-                return HotelCard(hotel: hotel);
-              }).toList(),
+              children: snapshot.data!.map((hotel) => HotelCard(hotel: hotel)).toList(),
             );
           },
         ),
@@ -523,69 +430,25 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
               return const Padding(
                 padding: EdgeInsets.all(20),
                 child: Center(
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: AppColors.primary,
-                  ),
+                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
                 ),
               );
             }
-
             if (snapshot.hasError) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.error_outline_rounded,
-                        size: 40,
-                        color: AppColors.error,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Error loading restaurants',
-                        style: TextStyle(
-                          color: AppColors.error,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              return _buildStatePlaceholder(
+                icon: Icons.error_outline_rounded,
+                title: 'Error loading restaurants',
+                isError: true,
               );
             }
-
             if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.restaurant_rounded,
-                        size: 48,
-                        color: AppColors.grey,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "No Restaurants Found",
-                        style: TextStyle(
-                          color: AppColors.grey,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              return _buildStatePlaceholder(
+                icon: Icons.restaurant_rounded,
+                title: "No Restaurants Found",
               );
             }
-
             return Column(
-              children: snapshot.data!.map((restaurant) {
-                return RestaurantCard(restaurant: restaurant);
-              }).toList(),
+              children: snapshot.data!.map((restaurant) => RestaurantCard(restaurant: restaurant)).toList(),
             );
           },
         ),
@@ -608,69 +471,25 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
               return const Padding(
                 padding: EdgeInsets.all(20),
                 child: Center(
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: AppColors.primary,
-                  ),
+                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
                 ),
               );
             }
-
             if (snapshot.hasError) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.error_outline_rounded,
-                        size: 40,
-                        color: AppColors.error,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Error loading events',
-                        style: TextStyle(
-                          color: AppColors.error,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              return _buildStatePlaceholder(
+                icon: Icons.error_outline_rounded,
+                title: 'Error loading events',
+                isError: true,
               );
             }
-
             if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.event_rounded,
-                        size: 48,
-                        color: AppColors.grey,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "No Events Found",
-                        style: TextStyle(
-                          color: AppColors.grey,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              return _buildStatePlaceholder(
+                icon: Icons.event_rounded,
+                title: "No Events Found",
               );
             }
-
             return Column(
-              children: snapshot.data!.map((event) {
-                return EventCard(event: event);
-              }).toList(),
+              children: snapshot.data!.map((event) => EventCard(event: event)).toList(),
             );
           },
         ),

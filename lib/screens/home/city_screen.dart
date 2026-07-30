@@ -4,6 +4,7 @@ import 'package:app/model/city_model.dart';
 import 'package:app/screens/home/city_detail_screen.dart';
 import 'package:app/services/city_service.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CityScreen extends StatefulWidget {
   const CityScreen({super.key});
@@ -18,29 +19,27 @@ class _CityScreenState extends State<CityScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.background, // Warm Linen
       appBar: AppBar(
         title: Text(
           "Select City",
-          style: TextStyle(
+          style: GoogleFonts.poppins(
             color: AppColors.dark,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             letterSpacing: 0.3,
           ),
         ),
         backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_rounded,
-            color: AppColors.dark,
-          ),
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.dark),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: FutureBuilder<List<CityModel>>(
         future: service.getCities(),
         builder: (context, snapshot) {
+          // Loading State
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
               child: Column(
@@ -53,7 +52,7 @@ class _CityScreenState extends State<CityScreen> {
                   const SizedBox(height: 16),
                   Text(
                     "Loading cities...",
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       color: AppColors.darkGrey,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -64,141 +63,136 @@ class _CityScreenState extends State<CityScreen> {
             );
           }
 
+          // Error State
           if (snapshot.hasError) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: AppColors.error.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.error_outline_rounded,
-                      size: 60,
-                      color: AppColors.error,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Error loading cities',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.error,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    snapshot.error.toString(),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.darkGrey,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      setState(() {});
-                    },
-                    icon: Icon(
-                      Icons.refresh_rounded,
-                      color: AppColors.white,
-                      size: 18,
-                    ),
-                    label: const Text("Retry"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.error_outline_rounded,
+                        size: 60,
+                        color: AppColors.error,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    Text(
+                      'Error loading cities',
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.error,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      snapshot.error.toString(),
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: AppColors.darkGrey,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () => setState(() {}),
+                      icon: const Icon(Icons.refresh_rounded, color: AppColors.white, size: 18),
+                      label: Text("Retry", style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.white,
+                        elevation: 0, // Flat design
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }
 
+          // Empty State
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: AppColors.lightGrey.withValues(alpha: 0.3),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.location_city_rounded,
-                      size: 80,
-                      color: AppColors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    "No Cities Found",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.dark,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Check back later for new cities",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      setState(() {});
-                    },
-                    icon: Icon(
-                      Icons.refresh_rounded,
-                      color: AppColors.white,
-                      size: 18,
-                    ),
-                    label: const Text("Refresh"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: AppColors.lightGrey.withValues(alpha: 0.3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.location_city_rounded,
+                        size: 80,
+                        color: AppColors.grey,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 20),
+                    Text(
+                      "No Cities Found",
+                      style: GoogleFonts.poppins(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.dark,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Check back later for new cities",
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: AppColors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () => setState(() {}),
+                      icon: const Icon(Icons.refresh_rounded, color: AppColors.white, size: 18),
+                      label: Text("Refresh", style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.white,
+                        elevation: 0, // Flat design
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }
 
           final cities = snapshot.data!;
           
+          // Success State - City List
           return Column(
             children: [
-              // Results count
+              // Results count header
               Container(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.location_city_rounded,
-                      size: 18,
-                      color: AppColors.primary,
-                    ),
+                    const Icon(Icons.location_city_rounded, size: 18, color: AppColors.primary),
                     const SizedBox(width: 8),
                     Text(
                       '${cities.length} cities available',
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         fontSize: 14,
                         color: AppColors.darkGrey,
                         fontWeight: FontWeight.w500,
@@ -217,13 +211,13 @@ class _CityScreenState extends State<CityScreen> {
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
-                        color: AppColors.white,
+                        color: AppColors.surface, // Pure white
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: AppColors.lightGrey,
+                          color: AppColors.lightGrey.withValues(alpha: 0.7), // Subtle warm border
                           width: 1,
                         ),
-                        boxShadow: AppColors.subtleShadow,
+                        // Removed shadow for modern flat look
                       ),
                       child: InkWell(
                         onTap: () {
@@ -243,7 +237,7 @@ class _CityScreenState extends State<CityScreen> {
                           padding: const EdgeInsets.all(12),
                           child: Row(
                             children: [
-                              // City Image
+                              // City Image Thumbnail
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(12),
                                 child: Container(
@@ -256,7 +250,7 @@ class _CityScreenState extends State<CityScreen> {
                                           width: 70,
                                           height: 70,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => Icon(
+                                          errorBuilder: (_, __, ___) => const Icon(
                                             Icons.broken_image,
                                             size: 40,
                                             color: AppColors.grey,
@@ -275,7 +269,7 @@ class _CityScreenState extends State<CityScreen> {
                                             );
                                           },
                                         )
-                                      : Icon(
+                                      : const Icon(
                                           Icons.location_city_rounded,
                                           size: 40,
                                           color: AppColors.grey,
@@ -291,9 +285,9 @@ class _CityScreenState extends State<CityScreen> {
                                   children: [
                                     Text(
                                       city.name,
-                                      style: TextStyle(
+                                      style: GoogleFonts.poppins(
                                         fontSize: 18,
-                                        fontWeight: FontWeight.bold,
+                                        fontWeight: FontWeight.w600,
                                         color: AppColors.dark,
                                         letterSpacing: 0.3,
                                       ),
@@ -303,7 +297,7 @@ class _CityScreenState extends State<CityScreen> {
                                     const SizedBox(height: 4),
                                     Text(
                                       city.description,
-                                      style: TextStyle(
+                                      style: GoogleFonts.poppins(
                                         fontSize: 14,
                                         color: AppColors.darkGrey,
                                         height: 1.3,
@@ -325,7 +319,7 @@ class _CityScreenState extends State<CityScreen> {
                                           ),
                                           child: Row(
                                             children: [
-                                              Icon(
+                                              const Icon(
                                                 Icons.place_rounded,
                                                 size: 14,
                                                 color: AppColors.primary,
@@ -333,7 +327,7 @@ class _CityScreenState extends State<CityScreen> {
                                               const SizedBox(width: 4),
                                               Text(
                                                 'Explore',
-                                                style: TextStyle(
+                                                style: GoogleFonts.poppins(
                                                   fontSize: 11,
                                                   color: AppColors.primary,
                                                   fontWeight: FontWeight.w500,
@@ -343,7 +337,7 @@ class _CityScreenState extends State<CityScreen> {
                                           ),
                                         ),
                                         const Spacer(),
-                                        Icon(
+                                        const Icon(
                                           Icons.arrow_forward_ios_rounded,
                                           size: 16,
                                           color: AppColors.grey,

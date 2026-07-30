@@ -1,8 +1,8 @@
 // lib/screens/home/event_detail_screen.dart
 import 'package:app/core/constants/app_colors.dart';
 import 'package:app/model/event_model.dart';
-import 'package:app/services/favorite_service.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class EventDetailScreen extends StatefulWidget {
@@ -18,24 +18,31 @@ class EventDetailScreen extends StatefulWidget {
 }
 
 class _EventDetailScreenState extends State<EventDetailScreen> {
-
   @override
   void initState() {
     super.initState();
   }
 
-  Future<void> openGoogleMaps(BuildContext context) async {
-    if (widget.event.location.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text("Location not available"),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: GoogleFonts.poppins(
+            color: AppColors.white,
+            fontWeight: FontWeight.w500,
           ),
         ),
-      );
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  Future<void> openGoogleMaps(BuildContext context) async {
+    if (widget.event.location.isEmpty) {
+      _showErrorSnackBar("Location not available");
       return;
     }
 
@@ -44,55 +51,37 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     );
 
     if (await canLaunchUrl(url)) {
-      await launchUrl(
-        url,
-        mode: LaunchMode.externalApplication,
-      );
+      await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text("Unable to open Google Maps"),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
+      _showErrorSnackBar("Unable to open Google Maps");
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.background, // Warm Linen
       appBar: AppBar(
         title: Text(
           widget.event.title,
-          style: TextStyle(
+          style: GoogleFonts.poppins(
             color: AppColors.dark,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             letterSpacing: 0.3,
           ),
         ),
         backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_rounded,
-            color: AppColors.dark,
-          ),
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.dark),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: Icon(
-              Icons.share_rounded,
-              color: AppColors.dark,
-            ),
+            icon: const Icon(Icons.share_rounded, color: AppColors.dark),
             onPressed: () {
-              
+              // Share event
             },
           ),
         ],
@@ -109,11 +98,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         height: 280,
                         width: double.infinity,
                         color: AppColors.lightGrey,
-                        child: Icon(
-                          Icons.event_rounded,
-                          size: 100,
-                          color: AppColors.grey,
-                        ),
+                        child: const Icon(Icons.event_rounded, size: 100, color: AppColors.grey),
                       )
                     : Image.network(
                         widget.event.image,
@@ -124,11 +109,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           height: 280,
                           width: double.infinity,
                           color: AppColors.lightGrey,
-                          child: Icon(
-                            Icons.broken_image,
-                            size: 100,
-                            color: AppColors.grey,
-                          ),
+                          child: const Icon(Icons.broken_image, size: 100, color: AppColors.grey),
                         ),
                         loadingBuilder: (_, child, progress) {
                           if (progress == null) return child;
@@ -137,68 +118,54 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                             width: double.infinity,
                             color: AppColors.lightGrey,
                             child: const Center(
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppColors.primary,
-                              ),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
                             ),
                           );
                         },
                       ),
-                // Gradient overlay
+                
+                // Espresso tinted gradient overlay
                 Positioned(
                   bottom: 0,
                   left: 0,
                   right: 0,
                   child: Container(
-                    height: 80,
+                    height: 100,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          Colors.black.withValues(alpha: 0.5),
-                          Colors.black.withValues(alpha: 0.7),
+                          AppColors.splashOverlayDark.withValues(alpha: 0.6),
+                          AppColors.splashOverlayDark.withValues(alpha: 0.9),
                         ],
                       ),
                     ),
                   ),
                 ),
-                // Event badge
+                
+                // Event badge (Flat design)
                 Positioned(
                   top: 16,
                   right: 16,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppColors.secondary.withValues(alpha: 0.95),
+                      color: AppColors.secondary, // Warm Sand
                       borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.secondary.withValues(alpha: 0.3),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                      // Removed shadow for modern flat look
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          Icons.event_available_rounded,
-                          color: AppColors.white,
-                          size: 16,
-                        ),
+                        const Icon(Icons.event_available_rounded, color: AppColors.white, size: 16),
                         const SizedBox(width: 6),
                         Text(
                           'Upcoming',
-                          style: TextStyle(
+                          style: GoogleFonts.poppins(
                             color: AppColors.white,
                             fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -206,40 +173,32 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     ),
                   ),
                 ),
-                // Date badge on image
+                
+                // Date badge on image (Flat design)
                 Positioned(
                   bottom: 16,
                   left: 16,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
                       color: AppColors.white.withValues(alpha: 0.95),
                       borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                      // Removed shadow
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
                           _getDay(widget.event.date),
-                          style: TextStyle(
+                          style: GoogleFonts.poppins(
                             fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             color: AppColors.primary,
                           ),
                         ),
                         Text(
                           _getMonth(widget.event.date),
-                          style: TextStyle(
+                          style: GoogleFonts.poppins(
                             fontSize: 11,
                             color: AppColors.darkGrey,
                             fontWeight: FontWeight.w500,
@@ -261,69 +220,61 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   // Event Title
                   Text(
                     widget.event.title,
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 28,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.dark,
+                      height: 1.2,
                       letterSpacing: 0.3,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
 
-                  // Event Meta Info
+                  // Event Meta Info Card
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.white,
+                      color: AppColors.surface,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppColors.lightGrey,
-                        width: 1,
-                      ),
+                      border: Border.all(color: AppColors.lightGrey.withValues(alpha: 0.7), width: 1),
                     ),
                     child: Row(
                       children: [
                         Expanded(
                           child: Row(
                             children: [
-                              Icon(
-                                Icons.calendar_today_rounded,
-                                color: AppColors.primary,
-                                size: 18,
-                              ),
+                              const Icon(Icons.calendar_today_rounded, color: AppColors.primary, size: 18),
                               const SizedBox(width: 6),
-                              Text(
-                                widget.event.date.isNotEmpty ? widget.event.date : 'TBD',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: AppColors.dark,
-                                  fontWeight: FontWeight.w500,
+                              Flexible(
+                                child: Text(
+                                  widget.event.date.isNotEmpty ? widget.event.date : 'TBD',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    color: AppColors.dark,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        Container(
-                          width: 1,
-                          height: 20,
-                          color: AppColors.lightGrey,
-                        ),
+                        Container(width: 1, height: 20, color: AppColors.lightGrey),
                         Expanded(
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
-                                Icons.access_time_rounded,
-                                color: AppColors.primary,
-                                size: 18,
-                              ),
+                              const Icon(Icons.access_time_rounded, color: AppColors.primary, size: 18),
                               const SizedBox(width: 6),
-                              Text(
-                                widget.event.time.isNotEmpty ? widget.event.time : 'TBD',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: AppColors.dark,
-                                  fontWeight: FontWeight.w500,
+                              Flexible(
+                                child: Text(
+                                  widget.event.time.isNotEmpty ? widget.event.time : 'TBD',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    color: AppColors.dark,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
@@ -332,47 +283,23 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
 
-                  // Description Section
-                  Row(
-                    children: [
-                      Container(
-                        width: 4,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        "About this Event",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.dark,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ],
-                  ),
+                  // About Section
+                  _buildSectionHeader("About this Event"),
                   const SizedBox(height: 12),
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.white,
+                      color: AppColors.surface,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppColors.lightGrey,
-                        width: 1,
-                      ),
+                      border: Border.all(color: AppColors.lightGrey.withValues(alpha: 0.7), width: 1),
                     ),
                     child: Text(
                       widget.event.description.isNotEmpty 
                           ? widget.event.description 
                           : "No description available",
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         fontSize: 15,
                         color: AppColors.darkGrey,
                         height: 1.6,
@@ -381,41 +308,17 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Location Information
-                  Row(
-                    children: [
-                      Container(
-                        width: 4,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        "Location",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.dark,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ],
-                  ),
+                  // Location Section
+                  _buildSectionHeader("Location"),
                   const SizedBox(height: 12),
 
                   // Location Card
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.white,
+                      color: AppColors.surface,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppColors.lightGrey,
-                        width: 1,
-                      ),
+                      border: Border.all(color: AppColors.lightGrey.withValues(alpha: 0.7), width: 1),
                     ),
                     child: Row(
                       children: [
@@ -425,11 +328,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                             color: AppColors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Icon(
-                            Icons.location_on_rounded,
-                            color: AppColors.primary,
-                            size: 22,
-                          ),
+                          child: const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 22),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
@@ -438,7 +337,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                             children: [
                               Text(
                                 "Venue",
-                                style: TextStyle(
+                                style: GoogleFonts.poppins(
                                   fontSize: 12,
                                   color: AppColors.grey,
                                   fontWeight: FontWeight.w500,
@@ -449,7 +348,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                 widget.event.location.isNotEmpty 
                                     ? widget.event.location 
                                     : "Location not available",
-                                style: TextStyle(
+                                style: GoogleFonts.poppins(
                                   fontSize: 15,
                                   color: AppColors.dark,
                                   fontWeight: FontWeight.w500,
@@ -460,13 +359,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         ),
                         if (widget.event.location.isNotEmpty)
                           IconButton(
-                            icon: Icon(
-                              Icons.copy_rounded,
-                              color: AppColors.primary,
-                              size: 20,
-                            ),
+                            icon: const Icon(Icons.copy_rounded, color: AppColors.primary, size: 20),
                             onPressed: () {
-                              // Copy location
+                              // Copy location logic
                             },
                           ),
                       ],
@@ -474,16 +369,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Action Buttons
-                  Text(
-                    "Actions",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.dark,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
+                  // Actions Section
+                  _buildSectionHeader("Actions"),
                   const SizedBox(height: 12),
 
                   // Google Maps Button
@@ -492,31 +379,24 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     height: 56,
                     child: ElevatedButton.icon(
                       onPressed: () => openGoogleMaps(context),
-                      icon: Icon(
-                        Icons.map_rounded,
-                        color: AppColors.white,
-                        size: 22,
-                      ),
+                      icon: const Icon(Icons.map_rounded, color: AppColors.white, size: 22),
                       label: Text(
                         "Open in Google Maps",
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
+                          color: AppColors.white,
                           letterSpacing: 0.3,
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: AppColors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 2,
-                        shadowColor: AppColors.primary.withValues(alpha: 0.3),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 0, // Flat modern style
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 30),
                 ],
               ),
@@ -524,6 +404,32 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  // Reusable Section Header
+  Widget _buildSectionHeader(String title) {
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 24,
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: AppColors.dark,
+            letterSpacing: 0.3,
+          ),
+        ),
+      ],
     );
   }
 

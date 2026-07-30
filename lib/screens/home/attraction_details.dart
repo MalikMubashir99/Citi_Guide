@@ -1,10 +1,11 @@
 // lib/screens/home/attraction_detail_screen.dart
 import 'package:app/core/constants/app_colors.dart';
+import 'package:app/model/attraction_model.dart';
 import 'package:app/screens/home/review_screen.dart';
 import 'package:app/services/favorite_service.dart';
 import 'package:app/services/review_service.dart';
 import 'package:flutter/material.dart';
-import '../../model/attraction_model.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AttractionDetailScreen extends StatefulWidget {
@@ -37,22 +38,12 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text("Unable to open Google Maps"),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
+      _showErrorSnackBar("Unable to open Google Maps");
     }
   }
 
   Future<void> loadFavorite() async {
     bool favorite = await favoriteService.isFavorite(widget.attraction.id);
-
     if (mounted) {
       setState(() {
         isFavorite = favorite;
@@ -60,39 +51,51 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
     }
   }
 
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: GoogleFonts.poppins(
+            color: AppColors.white,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.background, // Warm Linen
       appBar: AppBar(
         title: Text(
           widget.attraction.name,
-          style: TextStyle(
+          style: GoogleFonts.poppins(
             color: AppColors.dark,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             letterSpacing: 0.3,
           ),
         ),
         backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_rounded,
-            color: AppColors.dark,
-          ),
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.dark),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
             icon: Icon(
               isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-              color: isFavorite ? AppColors.error : AppColors.dark,
+              color: isFavorite ? AppColors.error : AppColors.dark, // Burnt Sienna when active
             ),
             onPressed: () async {
               if (isFavorite) {
-                await favoriteService.removeFavoriteByAttraction(
-                  widget.attraction.id,
-                );
+                await favoriteService.removeFavoriteByAttraction(widget.attraction.id);
               } else {
                 await favoriteService.addFavorite(widget.attraction.id);
               }
@@ -100,12 +103,9 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
             },
           ),
           IconButton(
-            icon: Icon(
-              Icons.share_rounded,
-              color: AppColors.dark,
-            ),
+            icon: const Icon(Icons.share_rounded, color: AppColors.dark),
             onPressed: () {
-              // Share attraction
+              // Share attraction logic
             },
           ),
         ],
@@ -122,11 +122,7 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                         height: 280,
                         width: double.infinity,
                         color: AppColors.lightGrey,
-                        child: Icon(
-                          Icons.landscape_rounded,
-                          size: 100,
-                          color: AppColors.grey,
-                        ),
+                        child: Icon(Icons.landscape_rounded, size: 100, color: AppColors.grey),
                       )
                     : Image.network(
                         widget.attraction.image,
@@ -137,11 +133,7 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                           height: 280,
                           width: double.infinity,
                           color: AppColors.lightGrey,
-                          child: Icon(
-                            Icons.broken_image,
-                            size: 100,
-                            color: AppColors.grey,
-                          ),
+                          child: Icon(Icons.broken_image, size: 100, color: AppColors.grey),
                         ),
                         loadingBuilder: (_, child, progress) {
                           if (progress == null) return child;
@@ -150,92 +142,69 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                             width: double.infinity,
                             color: AppColors.lightGrey,
                             child: const Center(
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppColors.primary,
-                              ),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
                             ),
                           );
                         },
                       ),
-                // Gradient overlay
+                
+                // Espresso tinted gradient overlay
                 Positioned(
                   bottom: 0,
                   left: 0,
                   right: 0,
                   child: Container(
-                    height: 80,
+                    height: 100,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          Colors.black.withValues(alpha: 0.5),
-                          Colors.black.withValues(alpha: 0.7),
+                          AppColors.splashOverlayDark.withValues(alpha: 0.6),
+                          AppColors.splashOverlayDark.withValues(alpha: 0.9),
                         ],
                       ),
                     ),
                   ),
                 ),
+                
                 // Rating badge
                 Positioned(
                   bottom: 16,
                   right: 16,
                   child: FutureBuilder<double>(
-                    future: reviewService.getAverageRating(
-                      widget.attraction.id,
-                    ),
+                    future: reviewService.getAverageRating(widget.attraction.id),
                     builder: (context, ratingSnapshot) {
                       return FutureBuilder<int>(
-                        future: reviewService.getReviewCount(
-                          widget.attraction.id,
-                        ),
+                        future: reviewService.getReviewCount(widget.attraction.id),
                         builder: (context, countSnapshot) {
-                          final rating = ratingSnapshot.hasData 
-                              ? ratingSnapshot.data! 
-                              : 0.0;
-                          final count = countSnapshot.hasData 
-                              ? countSnapshot.data! 
-                              : 0;
+                          final rating = ratingSnapshot.hasData ? ratingSnapshot.data! : 0.0;
+                          final count = countSnapshot.hasData ? countSnapshot.data! : 0;
 
                           return Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 8,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.9),
+                              color: AppColors.primary, // Rich Cognac
                               borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.primary.withValues(alpha: 0.3),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
                             ),
                             child: Row(
                               children: [
-                                Icon(
-                                  Icons.star_rounded,
-                                  color: AppColors.white,
-                                  size: 18,
-                                ),
+                                const Icon(Icons.star_rounded, color: AppColors.white, size: 18),
                                 const SizedBox(width: 6),
                                 Text(
                                   rating.toStringAsFixed(1),
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins(
                                     color: AppColors.white,
                                     fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 if (count > 0) ...[
                                   const SizedBox(width: 6),
                                   Text(
                                     '($count)',
-                                    style: TextStyle(
+                                    style: GoogleFonts.poppins(
                                       color: AppColors.white.withValues(alpha: 0.8),
                                       fontSize: 12,
                                     ),
@@ -249,30 +218,24 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                     },
                   ),
                 ),
+                
                 // City badge
                 Positioned(
                   bottom: 16,
                   left: 16,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.9),
+                      color: AppColors.white.withValues(alpha: 0.95),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          Icons.location_on_rounded,
-                          size: 16,
-                          color: AppColors.primary,
-                        ),
+                        const Icon(Icons.location_on_rounded, size: 16, color: AppColors.primary),
                         const SizedBox(width: 4),
                         Text(
                           widget.attraction.cityId,
-                          style: TextStyle(
+                          style: GoogleFonts.poppins(
                             fontSize: 12,
                             color: AppColors.dark,
                             fontWeight: FontWeight.w500,
@@ -294,35 +257,28 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                   // Attraction Name
                   Text(
                     widget.attraction.name,
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 28,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.dark,
-                      letterSpacing: 0.3,
+                      height: 1.2,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
 
-                  // Rating
+                  // Star Rating Row
                   FutureBuilder<double>(
-                    future: reviewService.getAverageRating(
-                      widget.attraction.id,
-                    ),
+                    future: reviewService.getAverageRating(widget.attraction.id),
                     builder: (context, ratingSnapshot) {
                       return FutureBuilder<int>(
-                        future: reviewService.getReviewCount(
-                          widget.attraction.id,
-                        ),
+                        future: reviewService.getReviewCount(widget.attraction.id),
                         builder: (context, countSnapshot) {
                           if (ratingSnapshot.connectionState == ConnectionState.waiting ||
                               countSnapshot.connectionState == ConnectionState.waiting) {
                             return const SizedBox(
                               height: 24,
                               width: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppColors.primary,
-                              ),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
                             );
                           }
 
@@ -339,25 +295,25 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                                       : index < rating
                                           ? Icons.star_half_rounded
                                           : Icons.star_outline_rounded,
-                                  color: AppColors.secondary,
+                                  color: AppColors.secondary, // Warm Sand stars
                                   size: 20,
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Text(
                                 rating.toStringAsFixed(1),
-                                style: TextStyle(
+                                style: GoogleFonts.poppins(
                                   fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w600,
                                   color: AppColors.dark,
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Text(
                                 '($count reviews)',
-                                style: TextStyle(
+                                style: GoogleFonts.poppins(
                                   fontSize: 13,
-                                  color: AppColors.grey,
+                                  color: AppColors.grey, // Warm Grey
                                 ),
                               ),
                             ],
@@ -366,122 +322,61 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                       );
                     },
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
 
-                  // Description Section
-                  Row(
-                    children: [
-                      Container(
-                        width: 4,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        "About",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.dark,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ],
-                  ),
+                  // About Section Header
+                  _buildSectionHeader("About"),
                   const SizedBox(height: 12),
+                  
+                  // Description Card
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.white,
+                      color: AppColors.surface, // Pure white
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppColors.lightGrey,
-                        width: 1,
-                      ),
+                      border: Border.all(color: AppColors.lightGrey.withValues(alpha: 0.7), width: 1),
                     ),
                     child: Text(
                       widget.attraction.description,
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         fontSize: 15,
-                        color: AppColors.darkGrey,
+                        color: AppColors.darkGrey, // Warm Charcoal
                         height: 1.6,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 28),
 
-                  // Contact Information
-                  Row(
-                    children: [
-                      Container(
-                        width: 4,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        "Contact Information",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.dark,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ],
-                  ),
+                  // Contact Section Header
+                  _buildSectionHeader("Contact Information"),
                   const SizedBox(height: 12),
 
-                  // Opening Hours
+                  // Info Tiles
                   _buildInfoTile(
                     icon: Icons.access_time_rounded,
                     label: "Opening Hours",
-                    value: widget.attraction.openingHours.isEmpty
-                        ? "Not available"
-                        : widget.attraction.openingHours,
+                    value: widget.attraction.openingHours.isEmpty ? "Not available" : widget.attraction.openingHours,
                   ),
-                  const SizedBox(height: 8),
-
-                  // Phone
+                  const SizedBox(height: 10),
                   _buildInfoTile(
                     icon: Icons.phone_rounded,
                     label: "Phone",
-                    value: widget.attraction.phone.isEmpty
-                        ? "Not available"
-                        : widget.attraction.phone,
+                    value: widget.attraction.phone.isEmpty ? "Not available" : widget.attraction.phone,
                     isClickable: widget.attraction.phone.isNotEmpty,
                     onTap: () => _callAttraction(),
                   ),
-                  const SizedBox(height: 8),
-
-                  // Website
+                  const SizedBox(height: 10),
                   _buildInfoTile(
                     icon: Icons.language_rounded,
                     label: "Website",
-                    value: widget.attraction.website.isEmpty
-                        ? "Not available"
-                        : widget.attraction.website,
+                    value: widget.attraction.website.isEmpty ? "Not available" : widget.attraction.website,
                     isClickable: widget.attraction.website.isNotEmpty,
                     onTap: () => _openWebsite(),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 28),
 
-                  // Action Buttons
-                  Text(
-                    "Actions",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.dark,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
+                  // Actions Header
+                  _buildSectionHeader("Actions"),
                   const SizedBox(height: 12),
 
                   // Google Maps Button
@@ -490,27 +385,21 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                     height: 56,
                     child: ElevatedButton.icon(
                       onPressed: openGoogleMaps,
-                      icon: Icon(
-                        Icons.map_rounded,
-                        color: AppColors.white,
-                        size: 22,
-                      ),
+                      icon: const Icon(Icons.map_rounded, color: AppColors.white, size: 22),
                       label: Text(
                         "Open in Google Maps",
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
+                          color: AppColors.white,
                           letterSpacing: 0.3,
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: AppColors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 2,
-                        shadowColor: AppColors.primary.withValues(alpha: 0.3),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 0, // Flat modern style
                       ),
                     ),
                   ),
@@ -524,20 +413,13 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                ReviewScreen(attraction: widget.attraction),
-                          ),
+                          MaterialPageRoute(builder: (_) => ReviewScreen(attraction: widget.attraction)),
                         );
                       },
-                      icon: Icon(
-                        Icons.rate_review_rounded,
-                        color: AppColors.primary,
-                        size: 22,
-                      ),
+                      icon: const Icon(Icons.rate_review_rounded, color: AppColors.primary, size: 22),
                       label: Text(
                         "Write Review",
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: AppColors.primary,
@@ -546,17 +428,11 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                       ),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.primary,
-                        side: BorderSide(
-                          color: AppColors.primary,
-                          width: 1.5,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
+                        side: const BorderSide(color: AppColors.primaryLight, width: 1.5), // Softer border
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 30),
                 ],
               ),
@@ -564,6 +440,32 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  // Reusable Section Header Widget
+  Widget _buildSectionHeader(String title) {
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 24,
+          decoration: BoxDecoration(
+            color: AppColors.primary, // Cognac accent bar
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: AppColors.dark,
+            letterSpacing: 0.3,
+          ),
+        ),
+      ],
     );
   }
 
@@ -577,12 +479,9 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.lightGrey,
-          width: 1,
-        ),
+        border: Border.all(color: AppColors.lightGrey.withValues(alpha: 0.7), width: 1),
       ),
       child: InkWell(
         onTap: isClickable ? onTap : null,
@@ -592,14 +491,10 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: AppColors.primary.withValues(alpha: 0.1), // Very light cognac bg
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                color: AppColors.primary,
-                size: 22,
-              ),
+              child: Icon(icon, color: AppColors.primary, size: 22),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -608,7 +503,7 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                 children: [
                   Text(
                     label,
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 12,
                       color: AppColors.grey,
                       fontWeight: FontWeight.w500,
@@ -617,7 +512,7 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                   const SizedBox(height: 2),
                   Text(
                     value,
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 15,
                       color: AppColors.dark,
                       fontWeight: FontWeight.w500,
@@ -629,11 +524,7 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
               ),
             ),
             if (isClickable)
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 16,
-                color: AppColors.grey,
-              ),
+              const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.grey),
           ],
         ),
       ),
@@ -642,48 +533,27 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
 
   Future<void> _callAttraction() async {
     if (widget.attraction.phone.isEmpty) return;
-    
     final Uri url = Uri.parse("tel:${widget.attraction.phone}");
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
     } else {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text("Unable to make call"),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
+      _showErrorSnackBar("Unable to make call");
     }
   }
 
   Future<void> _openWebsite() async {
     if (widget.attraction.website.isEmpty) return;
-    
     String urlString = widget.attraction.website;
     if (!urlString.startsWith('http://') && !urlString.startsWith('https://')) {
       urlString = 'https://$urlString';
     }
-
     final Uri url = Uri.parse(urlString);
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text("Unable to open website"),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
+      _showErrorSnackBar("Unable to open website");
     }
   }
 }

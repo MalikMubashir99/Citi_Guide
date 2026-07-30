@@ -17,8 +17,9 @@ class SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8), // Adjusted horizontal padding to match screen edges
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end, // Aligns bottom of title with bottom of button
         children: [
           Expanded(
             child: Column(
@@ -26,21 +27,23 @@ class SectionHeader extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700, // Unified bold weight
                     color: AppColors.dark,
                     letterSpacing: 0.3,
+                    height: 1.2,
                   ),
                 ),
                 if (subtitle != null) ...[
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Text(
                     subtitle!,
                     style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.grey,
+                      color: AppColors.darkGrey, // Upgraded from grey for better readability
                       fontWeight: FontWeight.w400,
+                      height: 1.4,
                     ),
                   ),
                 ],
@@ -48,17 +51,42 @@ class SectionHeader extends StatelessWidget {
             ),
           ),
           if (onSeeAll != null)
-            TextButton(
-              onPressed: onSeeAll,
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.primary,
-              ),
-              child: Text(
-                'See All',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
+            InkWell(
+              onTap: onSeeAll,
+              borderRadius: BorderRadius.circular(10),
+              splashColor: AppColors.primary.withValues(alpha: 0.1),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.08), // Very subtle cognac tint
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.15),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Text(
+                      'See All',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                    SizedBox(width: 4),
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      color: AppColors.primary,
+                      size: 16,
+                    ),
+                  ],
                 ),
               ),
             ),

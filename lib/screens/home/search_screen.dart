@@ -13,6 +13,7 @@ import 'package:app/widgets/hotel_card.dart';
 import 'package:app/widgets/restaurant_card.dart';
 import 'package:app/widgets/event_card.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -104,7 +105,13 @@ class _SearchScreenState extends State<SearchScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error searching: $e'),
+          content: Text(
+            'Error searching: $e',
+            style: GoogleFonts.poppins(
+              color: AppColors.white,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -118,13 +125,13 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.background, // Warm Linen
       appBar: AppBar(
         title: Text(
           "Search",
-          style: TextStyle(
+          style: GoogleFonts.poppins(
             color: AppColors.dark,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             letterSpacing: 0.3,
           ),
         ),
@@ -136,32 +143,32 @@ class _SearchScreenState extends State<SearchScreen> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Container(
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: AppColors.surface, // Pure white
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: AppColors.subtleShadow,
                 border: Border.all(
-                  color: AppColors.lightGrey,
+                  color: AppColors.lightGrey.withValues(alpha: 0.7), // Flat border
                   width: 1,
                 ),
+                // Removed shadow for flat design
               ),
               child: TextField(
                 controller: searchController,
                 autofocus: true,
                 decoration: InputDecoration(
                   hintText: "Search attractions, hotels, restaurants...",
-                  hintStyle: TextStyle(
+                  hintStyle: GoogleFonts.poppins(
                     color: AppColors.grey,
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
                   ),
-                  prefixIcon: Icon(
+                  prefixIcon: const Icon(
                     Icons.search_rounded,
                     color: AppColors.primary,
                     size: 24,
                   ),
                   suffixIcon: searchController.text.isNotEmpty
                       ? IconButton(
-                          icon: Icon(
+                          icon: const Icon(
                             Icons.close_rounded,
                             color: AppColors.grey,
                           ),
@@ -188,13 +195,13 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(
+                    borderSide: const BorderSide(
                       color: AppColors.primary,
                       width: 2,
                     ),
                   ),
                   filled: true,
-                  fillColor: AppColors.white,
+                  fillColor: AppColors.surface,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 16,
@@ -213,6 +220,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildBody() {
+    // Idle State
     if (!isSearching) {
       return Center(
         child: Column(
@@ -224,7 +232,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 color: AppColors.lightGrey.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.search_rounded,
                 size: 80,
                 color: AppColors.grey,
@@ -234,7 +242,7 @@ class _SearchScreenState extends State<SearchScreen> {
             Text(
               "Search for attractions, hotels,\nrestaurants and events",
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 16,
                 color: AppColors.darkGrey,
                 height: 1.5,
@@ -245,7 +253,7 @@ class _SearchScreenState extends State<SearchScreen> {
             Text(
               "Find the best places in your city",
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 13,
                 color: AppColors.grey,
                 fontWeight: FontWeight.w400,
@@ -256,6 +264,7 @@ class _SearchScreenState extends State<SearchScreen> {
       );
     }
 
+    // Loading State
     if (isLoading) {
       return Center(
         child: Column(
@@ -268,7 +277,7 @@ class _SearchScreenState extends State<SearchScreen> {
             const SizedBox(height: 16),
             Text(
               "Searching...",
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 color: AppColors.darkGrey,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -282,6 +291,7 @@ class _SearchScreenState extends State<SearchScreen> {
     final totalResults = attractions.length + hotels.length +
         restaurants.length + events.length;
 
+    // No Results State
     if (totalResults == 0) {
       return Center(
         child: Column(
@@ -293,7 +303,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 color: AppColors.lightGrey.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.search_off_rounded,
                 size: 80,
                 color: AppColors.grey,
@@ -302,16 +312,16 @@ class _SearchScreenState extends State<SearchScreen> {
             const SizedBox(height: 20),
             Text(
               "No results found",
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: AppColors.dark,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               "Try searching with different keywords",
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 14,
                 color: AppColors.grey,
               ),
@@ -329,7 +339,7 @@ class _SearchScreenState extends State<SearchScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.lightbulb_outline_rounded,
                     size: 16,
                     color: AppColors.primary,
@@ -337,7 +347,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   const SizedBox(width: 6),
                   Text(
                     'Try: "restaurant", "hotel", "museum"',
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 12,
                       color: AppColors.primary,
                       fontWeight: FontWeight.w500,
@@ -351,6 +361,7 @@ class _SearchScreenState extends State<SearchScreen> {
       );
     }
 
+    // Results State
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -360,7 +371,7 @@ class _SearchScreenState extends State<SearchScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.trending_up_rounded,
                   size: 18,
                   color: AppColors.primary,
@@ -368,7 +379,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 const SizedBox(width: 8),
                 Text(
                   "Found $totalResults results",
-                  style: TextStyle(
+                  style: GoogleFonts.poppins(
                     fontSize: 15,
                     color: AppColors.darkGrey,
                     fontWeight: FontWeight.w500,
@@ -427,9 +438,9 @@ class _SearchScreenState extends State<SearchScreen> {
           const SizedBox(width: 10),
           Text(
             title,
-            style: TextStyle(
+            style: GoogleFonts.poppins(
               fontSize: 20,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               color: AppColors.dark,
               letterSpacing: 0.3,
             ),
@@ -446,9 +457,9 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
             child: Text(
               count.toString(),
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 color: AppColors.primary,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 fontSize: 13,
               ),
             ),

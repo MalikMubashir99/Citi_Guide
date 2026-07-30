@@ -1,8 +1,8 @@
 // lib/screens/splash/splash_screen.dart
 import 'dart:async';
-import 'dart:ui';
 import 'package:app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -12,48 +12,68 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
+  // Main reveal animation controller
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<double> _slideAnimation;
+  late Animation<double> _footerFadeAnimation;
+
+  // Subtle pulse animation for the icon
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
 
+    // --- Main Animation Setup ---
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 2000),
     );
 
     _fadeAnimation = CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeIn,
+      curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
     );
 
-    _scaleAnimation = Tween<double>(
-      begin: 0.3,
-      end: 1.0,
-    ).animate(
+    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Curves.easeOutBack,
+        curve: const Interval(0.1, 0.6, curve: Curves.easeOutBack),
       ),
     );
 
-    _slideAnimation = Tween<double>(
-      begin: 50.0,
-      end: 0.0,
-    ).animate(
+    _slideAnimation = Tween<double>(begin: 40.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Curves.easeOut,
+        curve: const Interval(0.3, 0.8, curve: Curves.easeOutCubic),
       ),
+    );
+
+    _footerFadeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.7, 1.0, curve: Curves.easeIn),
     );
 
     _controller.forward();
 
+    // --- Pulse Animation Setup ---
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true); // Loop forever
+
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
+      CurvedAnimation(
+        parent: _pulseController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    // Navigate to next screen after delay
     Timer(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.pushReplacementNamed(context, "/onboarding");
@@ -64,6 +84,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _controller.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -73,34 +94,34 @@ class _SplashScreenState extends State<SplashScreen>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Background Image
+          // Background Image - Sunset Cityscape
           Image.asset(
             "assets/images/splash.jpg",
             fit: BoxFit.cover,
             errorBuilder: (_, __, ___) => Container(
-              color: AppColors.primary,
-              child: Center(
-                child: Icon(
-                  Icons.broken_image,
-                  size: 100,
-                  color: AppColors.white.withValues(alpha: 0.5),
+              // Fallback gradient if image is missing
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF5C3D24), Color(0xFF1A110A)],
                 ),
               ),
             ),
           ),
 
-          // Gradient Overlay - Brownish Theme
+          // Cinematic Dark Overlay (Darker at bottom for text readability)
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withValues(alpha: 0.2),
-                  AppColors.primary.withValues(alpha: 0.7),
-                  AppColors.primaryDark.withValues(alpha: 0.9),
+                  Colors.black.withValues(alpha: 0.15),
+                  Colors.black.withValues(alpha: 0.4),
+                  AppColors.splashOverlayDark.withValues(alpha: 0.92),
                 ],
-                stops: const [0.0, 0.4, 0.8],
+                stops: const [0.0, 0.5, 1.0],
               ),
             ),
           ),
@@ -109,151 +130,116 @@ class _SplashScreenState extends State<SplashScreen>
           FadeTransition(
             opacity: _fadeAnimation,
             child: SafeArea(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Glass Logo with Scale Animation
-                      ScaleTransition(
-                        scale: _scaleAnimation,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(30),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                            child: Container(
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color: AppColors.white.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(30),
-                                border: Border.all(
-                                  color: AppColors.white.withValues(alpha: 0.3),
-                                  width: 1.5,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.1),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 10),
-                                  ),
-                                ],
-                              ),
-                              child: Image.asset(
-                                "assets/images/logo.jpg",
-                                width: 100,
-                                height: 100,
-                                errorBuilder: (_, __, ___) => Icon(
-                                  Icons.broken_image,
-                                  size: 80,
-                                  color: AppColors.white.withValues(alpha: 0.7),
-                                ),
-                              ),
+              child: Column(
+                children: [
+                  const Spacer(flex: 2),
+
+                  // Location Icon with Scale & Pulse Animation
+                  ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: AnimatedBuilder(
+                      animation: _pulseAnimation,
+                      builder: (context, child) {
+                        return Transform.scale(
+                          scale: _pulseAnimation.value,
+                          child: child,
+                        );
+                      },
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: AppColors.splashIconBg, // Grey-Brown from palette
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
                             ),
-                          ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.location_on_rounded,
+                          color: Colors.white,
+                          size: 40,
                         ),
                       ),
+                    ),
+                  ),
 
-                      const SizedBox(height: 30),
+                  const SizedBox(height: 40),
 
-                      // Title with Slide Animation
-                      AnimatedBuilder(
-                        animation: _slideAnimation,
-                        builder: (context, child) {
-                          return Transform.translate(
-                            offset: Offset(0, _slideAnimation.value),
-                            child: child,
-                          );
-                        },
-                        child: const Text(
-                          "Citi Guide",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 42,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.5,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black26,
-                                blurRadius: 10,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      AnimatedBuilder(
-                        animation: _slideAnimation,
-                        builder: (context, child) {
-                          return Transform.translate(
-                            offset: Offset(0, _slideAnimation.value * 0.5),
-                            child: child,
-                          );
-                        },
-                        child: const Text(
-                          "Explore • Discover • Experience",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 18,
-                            height: 1.5,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 45),
-
-                      // Loading Indicator
-                      Column(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: AppColors.white.withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppColors.white.withValues(alpha: 0.2),
-                              ),
-                            ),
-                            child: const CircularProgressIndicator(
-                              strokeWidth: 3,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          TweenAnimationBuilder<double>(
-                            duration: const Duration(seconds: 3),
-                            tween: Tween(begin: 0.0, end: 1.0),
-                            builder: (_, value, __) => Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.white.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                "Loading... ${(value * 100).toInt()}%",
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
+                  // "CityGuide" Title with Slide Animation
+                  AnimatedBuilder(
+                    animation: _slideAnimation,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(0, _slideAnimation.value),
+                        child: child,
+                      );
+                    },
+                    child: Text(
+                      "CityGuide",
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 36,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.5,
+                        shadows: const [
+                          Shadow(
+                            color: Colors.black54,
+                            blurRadius: 15,
+                            offset: Offset(0, 3),
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
+
+                  const SizedBox(height: 16),
+
+                  // Tagline with Slide Animation
+                  AnimatedBuilder(
+                    animation: _slideAnimation,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(0, _slideAnimation.value * 0.5),
+                        child: child,
+                      );
+                    },
+                    child: Text(
+                      "Explore the world,\none city at a time",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                        height: 1.6,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+
+                  const Spacer(flex: 3),
+
+                  // Bottom Branding Text with Fade Animation
+                  FadeTransition(
+                    opacity: _footerFadeAnimation,
+                    child: Text(
+                      "CITYGUIDE - MOBILE APP",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 3,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 30),
+                ],
               ),
             ),
           ),

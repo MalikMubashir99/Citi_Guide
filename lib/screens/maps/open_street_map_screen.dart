@@ -1,6 +1,8 @@
 // lib/screens/maps/open_street_map_screen.dart
+import 'package:app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
@@ -36,10 +38,9 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
   @override
   void initState() {
     super.initState();
-    _initializePosition(); // ✅ Add this
+    _initializePosition();
   }
 
-  // ✅ Initialize position
   void _initializePosition() {
     if (widget.latitude != null && widget.longitude != null) {
       setState(() {
@@ -47,7 +48,6 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
         _isLoading = false;
       });
     } else {
-      // ✅ Don't auto-request location, use default
       setState(() {
         _targetPosition = _defaultPosition;
         _isLoading = false;
@@ -119,21 +119,55 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Location Permission'),
-        content: const Text(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Text(
+          'Location Permission',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            color: AppColors.dark,
+          ),
+        ),
+        content: Text(
           'Location permission is required to show your current position on the map.',
+          style: GoogleFonts.poppins(
+            color: AppColors.darkGrey,
+            fontSize: 14,
+            height: 1.5,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.poppins(
+                color: AppColors.darkGrey,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               _getCurrentLocation();
             },
-            child: const Text('Allow'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              'Allow',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -143,12 +177,21 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background, // Warm Linen
       appBar: AppBar(
-        title: Text(widget.placeName ?? "Map"),
+        title: Text(
+          widget.placeName ?? "Map",
+          style: GoogleFonts.poppins(
+            color: AppColors.dark,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: AppColors.background,
         elevation: 0,
+        iconTheme: const IconThemeData(color: AppColors.dark),
         actions: [
           IconButton(
-            icon: const Icon(Icons.my_location),
+            icon: const Icon(Icons.my_location, color: AppColors.dark),
             onPressed: _centerOnLocation,
             tooltip: 'My Location',
           ),
@@ -179,57 +222,77 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
               ],
             ),
           
+          // Loading State
           if (_isLoading)
             Container(
-              color: Colors.white,
-              child: const Center(
+              color: AppColors.background,
+              child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text('Loading Map...'),
+                    const CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Loading Map...',
+                      style: GoogleFonts.poppins(
+                        color: AppColors.darkGrey,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
           
+          // Permission Denied Banner
           if (_permissionDenied && !_isLoading)
             Positioned(
               bottom: 30,
-              left: 20,
-              right: 20,
+              left: 16,
+              right: 16,
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 10,
-                    ),
-                  ],
+                  color: AppColors.surface, // Pure white
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: AppColors.lightGrey.withValues(alpha: 0.7),
+                    width: 1,
+                  ),
+                  // Removed drop shadow for flat design
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.location_off, color: Colors.red),
+                    const Icon(Icons.location_off, color: AppColors.error), // Burnt Sienna
                     const SizedBox(width: 12),
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         'Location permission denied. Please enable in settings.',
-                        style: TextStyle(fontSize: 13),
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: AppColors.darkGrey,
+                        ),
                       ),
                     ),
                     TextButton(
                       onPressed: _getCurrentLocation,
-                      child: const Text('Retry'),
+                      child: Text(
+                        'Retry',
+                        style: GoogleFonts.poppins(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
           
+          // Map Controls (Zoom & Location)
           Positioned(
             right: 16,
             bottom: 100,
@@ -274,7 +337,7 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
           height: 40,
           child: const Icon(
             Icons.location_pin,
-            color: Colors.red,
+            color: AppColors.primary, // Rich Cognac Pin
             size: 40,
           ),
         ),
@@ -293,13 +356,13 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
           height: 30,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.blue.withValues(alpha: 0.3),
+              color: AppColors.info.withValues(alpha: 0.3), // Dusty Blue glow
               shape: BoxShape.circle,
             ),
             child: Container(
               margin: const EdgeInsets.all(4),
               decoration: const BoxDecoration(
-                color: Colors.blue,
+                color: AppColors.info, // Dusty Blue center
                 shape: BoxShape.circle,
               ),
             ),
@@ -317,15 +380,13 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface, // Pure white
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(
+          color: AppColors.lightGrey.withValues(alpha: 0.7),
+          width: 1,
+        ),
+        // Removed drop shadow for flat design
       ),
       child: Material(
         color: Colors.transparent,
@@ -336,7 +397,7 @@ class _OpenStreetMapScreenState extends State<OpenStreetMapScreen> {
             padding: const EdgeInsets.all(12),
             child: Icon(
               icon,
-              color: Colors.blue.shade700,
+              color: AppColors.dark, // Dark espresso icon instead of blue
               size: 24,
             ),
           ),

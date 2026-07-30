@@ -3,6 +3,7 @@ import 'package:app/core/constants/app_colors.dart';
 import 'package:app/model/hotel_model.dart';
 import 'package:app/services/favorite_service.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HotelDetailScreen extends StatefulWidget {
@@ -36,7 +37,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
         });
       }
     } catch (e) {
-      print('Error loading favorite: $e');
+      debugPrint('Error loading favorite: $e');
     }
   }
 
@@ -44,83 +45,71 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
     try {
       if (isFavorite) {
         await favoriteService.removeFavoriteByAttraction(widget.hotel.id);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Removed from favorites"),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: Text("Removed from favorites", style: GoogleFonts.poppins(color: AppColors.white, fontWeight: FontWeight.w500)),
+            backgroundColor: AppColors.error, // Burnt Sienna
             behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
       } else {
         await favoriteService.addFavorite(widget.hotel.id);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Added to favorites ❤️"),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: Text("Added to favorites ❤️", style: GoogleFonts.poppins(color: AppColors.white, fontWeight: FontWeight.w500)),
+            backgroundColor: AppColors.success, // Sage Green
             behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
       }
       await loadFavorite();
     } catch (e) {
-      print('Error toggling favorite: $e');
+      debugPrint('Error toggling favorite: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Error: $e"),
-          backgroundColor: Colors.red,
+          content: Text("Error: $e", style: GoogleFonts.poppins(color: AppColors.white)),
+          backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
     }
   }
 
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: GoogleFonts.poppins(color: AppColors.white, fontWeight: FontWeight.w500)),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
   Future<void> callHotel(BuildContext context) async {
     if (widget.hotel.phone.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text("Phone number not available"),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
+      _showErrorSnackBar("Phone number not available");
       return;
     }
 
     final Uri url = Uri.parse("tel:${widget.hotel.phone}");
-
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
     } else {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text("Unable to make call"),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
+      _showErrorSnackBar("Unable to make call");
     }
   }
 
   Future<void> openWebsite(BuildContext context) async {
     if (widget.hotel.website.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text("Website URL not available"),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
+      _showErrorSnackBar("Website URL not available");
       return;
     }
 
@@ -130,67 +119,45 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
     }
 
     final Uri url = Uri.parse(urlString);
-
     if (await canLaunchUrl(url)) {
-      await launchUrl(
-        url,
-        mode: LaunchMode.externalApplication,
-      );
+      await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text("Unable to open website"),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
+      _showErrorSnackBar("Unable to open website");
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.background, // Warm Linen
       appBar: AppBar(
         title: Text(
           widget.hotel.name,
-          style: TextStyle(
+          style: GoogleFonts.poppins(
             color: AppColors.dark,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             letterSpacing: 0.3,
           ),
         ),
         backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_rounded,
-            color: AppColors.dark,
-          ),
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.dark),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          // ✅ Favorite Button
           IconButton(
             icon: Icon(
               isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-              color: isFavorite ? Colors.red : AppColors.error,
+              color: isFavorite ? AppColors.error : AppColors.darkGrey, // Burnt sienna when active
               size: 28,
             ),
             onPressed: toggleFavorite,
           ),
           IconButton(
-            icon: Icon(
-              Icons.share_rounded,
-              color: AppColors.dark,
-            ),
-            onPressed: () {
-              // TODO: Share hotel
-            },
+            icon: const Icon(Icons.share_rounded, color: AppColors.dark),
+            onPressed: () {},
           ),
         ],
       ),
@@ -206,11 +173,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                         height: 280,
                         width: double.infinity,
                         color: AppColors.lightGrey,
-                        child: Icon(
-                          Icons.hotel_rounded,
-                          size: 100,
-                          color: AppColors.grey,
-                        ),
+                        child: const Icon(Icons.hotel_rounded, size: 100, color: AppColors.grey),
                       )
                     : Image.network(
                         widget.hotel.image,
@@ -221,11 +184,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                           height: 280,
                           width: double.infinity,
                           color: AppColors.lightGrey,
-                          child: Icon(
-                            Icons.broken_image,
-                            size: 100,
-                            color: AppColors.grey,
-                          ),
+                          child: const Icon(Icons.broken_image, size: 100, color: AppColors.grey),
                         ),
                         loadingBuilder: (_, child, progress) {
                           if (progress == null) return child;
@@ -234,98 +193,77 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                             width: double.infinity,
                             color: AppColors.lightGrey,
                             child: const Center(
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppColors.primary,
-                              ),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
                             ),
                           );
                         },
                       ),
-                // Gradient overlay
+                
+                // Espresso tinted gradient overlay
                 Positioned(
                   bottom: 0,
                   left: 0,
                   right: 0,
                   child: Container(
-                    height: 80,
+                    height: 100,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          Colors.black.withValues(alpha: 0.5),
-                          Colors.black.withValues(alpha: 0.7),
+                          AppColors.splashOverlayDark.withValues(alpha: 0.6),
+                          AppColors.splashOverlayDark.withValues(alpha: 0.9),
                         ],
                       ),
                     ),
                   ),
                 ),
-                // Rating badge
+                
+                // Rating badge (Flat)
                 Positioned(
                   bottom: 16,
                   right: 16,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.9),
+                      color: AppColors.primary, // Rich Cognac
                       borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.3),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          Icons.star_rounded,
-                          color: AppColors.white,
-                          size: 18,
-                        ),
+                        const Icon(Icons.star_rounded, color: AppColors.white, size: 18),
                         const SizedBox(width: 6),
                         Text(
                           widget.hotel.rating.toStringAsFixed(1),
-                          style: TextStyle(
+                          style: GoogleFonts.poppins(
                             color: AppColors.white,
                             fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                // City badge
+                
+                // City badge (Flat)
                 Positioned(
                   bottom: 16,
                   left: 16,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.9),
+                      color: AppColors.white.withValues(alpha: 0.95),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          Icons.location_on_rounded,
-                          size: 16,
-                          color: AppColors.primary,
-                        ),
+                        const Icon(Icons.location_on_rounded, size: 16, color: AppColors.primary),
                         const SizedBox(width: 4),
                         Text(
                           widget.hotel.cityId,
-                          style: TextStyle(
+                          style: GoogleFonts.poppins(
                             fontSize: 12,
                             color: AppColors.dark,
                             fontWeight: FontWeight.w500,
@@ -347,16 +285,17 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                   // Hotel Name
                   Text(
                     widget.hotel.name,
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 28,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.dark,
+                      height: 1.2,
                       letterSpacing: 0.3,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
 
-                  // Rating
+                  // Rating Stars
                   Row(
                     children: [
                       ...List.generate(
@@ -367,23 +306,23 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                               : index < widget.hotel.rating
                                   ? Icons.star_half_rounded
                                   : Icons.star_outline_rounded,
-                          color: AppColors.secondary,
+                          color: AppColors.secondary, // Warm Sand
                           size: 20,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         widget.hotel.rating.toStringAsFixed(1),
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: AppColors.dark,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         widget.hotel.rating >= 4.5 ? '⭐ Premium' : '👍 Good',
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           fontSize: 13,
                           color: widget.hotel.rating >= 4.5 ? AppColors.success : AppColors.grey,
                           fontWeight: FontWeight.w500,
@@ -391,45 +330,23 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
 
-                  // Description Section
-                  Row(
-                    children: [
-                      Container(
-                        width: 4,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        "About",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.dark,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ],
-                  ),
+                  // About Section Header
+                  _buildSectionHeader("About"),
                   const SizedBox(height: 12),
+                  
+                  // Description Card
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.white,
+                      color: AppColors.surface,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppColors.lightGrey,
-                        width: 1,
-                      ),
+                      border: Border.all(color: AppColors.lightGrey.withValues(alpha: 0.7), width: 1),
                     ),
                     child: Text(
                       widget.hotel.description,
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         fontSize: 15,
                         color: AppColors.darkGrey,
                         height: 1.6,
@@ -438,177 +355,31 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Contact Information
-                  Row(
-                    children: [
-                      Container(
-                        width: 4,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        "Contact Information",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.dark,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ],
+                  // Contact Section Header
+                  _buildSectionHeader("Contact Information"),
+                  const SizedBox(height: 12),
+
+                  // Phone Card
+                  _buildContactTile(
+                    icon: Icons.phone_rounded,
+                    label: "Phone",
+                    value: widget.hotel.phone.isEmpty ? "Not available" : widget.hotel.phone,
+                    onTap: widget.hotel.phone.isNotEmpty ? () => callHotel(context) : null,
                   ),
                   const SizedBox(height: 12),
 
-                  // Phone
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppColors.lightGrey,
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            Icons.phone_rounded,
-                            color: AppColors.primary,
-                            size: 22,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Phone",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.grey,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                widget.hotel.phone.isEmpty
-                                    ? "Not available"
-                                    : widget.hotel.phone,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: AppColors.dark,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (widget.hotel.phone.isNotEmpty)
-                          IconButton(
-                            icon: Icon(
-                              Icons.copy_rounded,
-                              color: AppColors.primary,
-                              size: 20,
-                            ),
-                            onPressed: () {
-                              // Copy phone number
-                            },
-                          ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Website
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppColors.lightGrey,
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            Icons.language_rounded,
-                            color: AppColors.primary,
-                            size: 22,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Website",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.grey,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                widget.hotel.website.isEmpty
-                                    ? "Not available"
-                                    : widget.hotel.website,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: AppColors.dark,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (widget.hotel.website.isNotEmpty)
-                          IconButton(
-                            icon: Icon(
-                              Icons.open_in_new_rounded,
-                              color: AppColors.primary,
-                              size: 20,
-                            ),
-                            onPressed: () => openWebsite(context),
-                          ),
-                      ],
-                    ),
+                  // Website Card
+                  _buildContactTile(
+                    icon: Icons.language_rounded,
+                    label: "Website",
+                    value: widget.hotel.website.isEmpty ? "Not available" : widget.hotel.website,
+                    trailingIcon: widget.hotel.website.isNotEmpty ? Icons.open_in_new_rounded : Icons.copy_rounded,
+                    onTap: widget.hotel.website.isNotEmpty ? () => openWebsite(context) : null,
                   ),
                   const SizedBox(height: 24),
 
-                  // Action Buttons
-                  Text(
-                    "Actions",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.dark,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
+                  // Actions Section Header
+                  _buildSectionHeader("Actions"),
                   const SizedBox(height: 12),
 
                   // Call Button
@@ -617,27 +388,21 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                     height: 56,
                     child: ElevatedButton.icon(
                       onPressed: () => callHotel(context),
-                      icon: Icon(
-                        Icons.call_rounded,
-                        color: AppColors.white,
-                        size: 22,
-                      ),
+                      icon: const Icon(Icons.call_rounded, color: AppColors.white, size: 22),
                       label: Text(
                         "Call Hotel",
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
+                          color: AppColors.white,
                           letterSpacing: 0.3,
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: AppColors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 2,
-                        shadowColor: AppColors.primary.withValues(alpha: 0.3),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 0, // Flat design
                       ),
                     ),
                   ),
@@ -649,14 +414,10 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                     height: 56,
                     child: OutlinedButton.icon(
                       onPressed: () => openWebsite(context),
-                      icon: Icon(
-                        Icons.open_in_browser_rounded,
-                        color: AppColors.primary,
-                        size: 22,
-                      ),
+                      icon: const Icon(Icons.open_in_browser_rounded, color: AppColors.primary, size: 22),
                       label: Text(
                         "Visit Website",
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: AppColors.primary,
@@ -665,21 +426,93 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                       ),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.primary,
-                        side: BorderSide(
-                          color: AppColors.primary,
-                          width: 1.5,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
+                        side: const BorderSide(color: AppColors.primaryLight, width: 1.5), // Softer border
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 30),
                 ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Helper for Section Headers
+  Widget _buildSectionHeader(String title) {
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 24,
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: AppColors.dark,
+            letterSpacing: 0.3,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Helper for Contact Info Tiles
+  Widget _buildContactTile({
+    required IconData icon,
+    required String label,
+    required String value,
+    IconData? trailingIcon,
+    VoidCallback? onTap,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.lightGrey.withValues(alpha: 0.7), width: 1),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: AppColors.primary, size: 22),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: GoogleFonts.poppins(fontSize: 12, color: AppColors.grey, fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 2),
+                  Text(
+                    value,
+                    style: GoogleFonts.poppins(fontSize: 15, color: AppColors.dark, fontWeight: FontWeight.w500),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            if (onTap != null)
+              Icon(trailingIcon ?? Icons.copy_rounded, color: AppColors.primary, size: 20),
           ],
         ),
       ),

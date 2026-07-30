@@ -1,5 +1,6 @@
 // lib/main.dart
 import 'package:app/admin/dashboard/admin_dashboard_screen.dart';
+import 'package:app/core/constants/app_colors.dart';
 import 'package:app/screens/auth/forgot_password_screen.dart';
 import 'package:app/screens/auth/login_screen.dart';
 import 'package:app/screens/auth/register_screen.dart';
@@ -61,32 +62,57 @@ class CitiGuideApp extends StatelessWidget {
         "/admin-dashboard": (context) => const AdminDashboardScreen(),
       },
 
+      // ✅ Cleaned up onGenerateRoute
       onGenerateRoute: (settings) {
         return null;
       },
 
+      // ✅ Updated 404 Page to match warm earthy theme
       onUnknownRoute: (settings) {
         return MaterialPageRoute(
           builder: (_) => Scaffold(
+            backgroundColor: AppColors.background, // Warm linen background
             appBar: AppBar(
               title: const Text('Page Not Found'),
-              backgroundColor: Colors.transparent,
+              backgroundColor: AppColors.background,
               elevation: 0,
+              surfaceTintColor: Colors.transparent,
+              iconTheme: const IconThemeData(color: AppColors.dark),
             ),
-            body: const Center(
+            body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 80, color: Colors.red),
-                  SizedBox(height: 16),
-                  Text(
-                    'Page Not Found',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  // Warm error icon container
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.error_outline_rounded,
+                      size: 60,
+                      color: AppColors.error, // Burnt Sienna
+                    ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Page Not Found',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.dark,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
                     'The page you are looking for does not exist.',
-                    style: TextStyle(color: Colors.grey),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.darkGrey, // Warm Charcoal
+                    ),
                   ),
                 ],
               ),
