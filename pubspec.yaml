@@ -61,6 +61,7 @@ flutter:
   assets:
     # ✅ Images
     - assets/images/
+    - assets/images/google.jfif
     - assets/images/logo.jpg
     - assets/images/splash.jpg
     - assets/images/onboarding1.jpg

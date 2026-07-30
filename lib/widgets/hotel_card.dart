@@ -175,65 +175,69 @@ class HotelCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 10),
                       
-                      // Bottom Row (Rating & Phone)
+                      // Bottom Row (Rating & Phone) - FIXED
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Rating
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _buildRatingStars(hotel.rating),
-                              const SizedBox(width: 4),
-                              Text(
-                                hotel.rating.toStringAsFixed(1),
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF0F172A), // Dark
+                          // Rating - Wrapped in Flexible to prevent overflow
+                          Flexible(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildRatingStars(hotel.rating),
+                                const SizedBox(width: 4),
+                                Text(
+                                  hotel.rating.toStringAsFixed(1),
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF0F172A), // Dark
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                           
-                          // Phone Tag
+                          // Phone Tag - Keep as is or wrap in Flexible if needed
                           if (hotel.phone.isNotEmpty)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 7,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF2563EB).withOpacity(0.08),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(
-                                  color: const Color(0xFF2563EB).withOpacity(0.15),
-                                  width: 0.5,
+                            Flexible(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 7,
+                                  vertical: 3,
                                 ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.phone_rounded,
-                                    size: 10,
-                                    color: Color(0xFF2563EB), // Primary Blue
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF2563EB).withOpacity(0.08),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: const Color(0xFF2563EB).withOpacity(0.15),
+                                    width: 0.5,
                                   ),
-                                  const SizedBox(width: 3),
-                                  ConstrainedBox(
-                                    constraints: const BoxConstraints(maxWidth: 65),
-                                    child: Text(
-                                      hotel.phone,
-                                      style: const TextStyle(
-                                        fontSize: 9,
-                                        color: Color(0xFF2563EB), // Primary Blue
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.phone_rounded,
+                                      size: 10,
+                                      color: Color(0xFF2563EB), // Primary Blue
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 3),
+                                    ConstrainedBox(
+                                      constraints: const BoxConstraints(maxWidth: 65),
+                                      child: Text(
+                                        hotel.phone,
+                                        style: const TextStyle(
+                                          fontSize: 9,
+                                          color: Color(0xFF2563EB), // Primary Blue
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                         ],

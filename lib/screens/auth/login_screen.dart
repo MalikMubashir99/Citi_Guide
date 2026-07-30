@@ -416,7 +416,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: OutlinedButton.icon(
                             onPressed: () {},
                             icon: Image.asset(
-                              'assets/icons/google.png', // Update path if needed
+                              'assets/images/google.jfif', // Update path if needed
                               width: 20,
                               height: 20,
                               errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, color: Colors.black, size: 28),
