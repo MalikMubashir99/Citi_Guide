@@ -311,89 +311,6 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                   ),
           ),
 
-          // ─── Floating Actions ──────────────────────────────────────────────
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 12,
-            left: 20,
-            right: 20,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // ✅ FIXED: Back button with proper navigation
-                GestureDetector(
-                  onTap: () {
-                    dev.log('Back button tapped', name: 'AttractionDetail');
-                    dev.log(
-                      'Can pop: ${Navigator.canPop(context)}',
-                      name: 'AttractionDetail',
-                    );
-                    dev.log(
-                      'Current route: ${ModalRoute.of(context)?.settings.name}',
-                      name: 'AttractionDetail',
-                    );
-
-                    if (Navigator.canPop(context)) {
-                      dev.log(
-                        'Navigator can pop, going back...',
-                        name: 'AttractionDetail',
-                      );
-                      Navigator.pop(context);
-                    } else {
-                      dev.log(
-                        'Cannot pop, no previous screen!',
-                        name: 'AttractionDetail',
-                      );
-                      // Fallback: Go to home or close the app
-                      // For web, you might want to use:
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()));
-                    }
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.35),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.all(8),
-                      child: Icon(
-                        Icons.arrow_back_rounded,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                ),
-
-                Row(
-                  children: [
-                    _circleIconButton(
-                      isFavorite
-                          ? Icons.favorite_rounded
-                          : Icons.favorite_border_rounded,
-                      () async {
-                        if (isFavorite) {
-                          await favoriteService.removeFavoriteByAttraction(
-                            widget.attraction.id,
-                          );
-                        } else {
-                          await favoriteService.addFavorite(
-                            widget.attraction.id,
-                          );
-                        }
-                        await loadFavorite();
-                      },
-                      color: isFavorite ? _AppColors.error : Colors.white,
-                    ),
-                    const SizedBox(width: 10),
-                    _circleIconButton(Icons.share_rounded, () {
-                      /* share logic */
-                    }),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
           // ─── Scrollable Content Sheet ──────────────────────────────────────
           Positioned.fill(
             child: SingleChildScrollView(
@@ -613,8 +530,7 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                         ],
                       ),
                     ),
-               
-                   
+
                     const SizedBox(height: 30),
 
                     // ─── Reviews Section ──────────────────────────────────────
@@ -717,6 +633,64 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                   ],
                 ),
               ),
+            ),
+          ),
+
+          // ─── Floating Actions ──────────────────────────────────────────────
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 12,
+            left: 20,
+            right: 20,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.35),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.all(8),
+                      child: Icon(
+                        Icons.arrow_back_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ),
+
+                Row(
+                  children: [
+                    _circleIconButton(
+                      isFavorite
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
+                      () async {
+                        if (isFavorite) {
+                          await favoriteService.removeFavoriteByAttraction(
+                            widget.attraction.id,
+                          );
+                        } else {
+                          await favoriteService.addFavorite(
+                            widget.attraction.id,
+                          );
+                        }
+                        await loadFavorite();
+                      },
+                      color: isFavorite ? _AppColors.error : Colors.white,
+                    ),
+                    const SizedBox(width: 10),
+                    _circleIconButton(Icons.share_rounded, () {
+                      /* share logic */
+                    }),
+                  ],
+                ),
+              ],
             ),
           ),
         ],

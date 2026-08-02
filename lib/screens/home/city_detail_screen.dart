@@ -66,8 +66,11 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
                     height: 340,
                     width: double.infinity,
                     color: _AppColors.lightGrey,
-                    child: const Icon(Icons.location_city_rounded,
-                        size: 100, color: _AppColors.grey),
+                    child: const Icon(
+                      Icons.location_city_rounded,
+                      size: 100,
+                      color: _AppColors.grey,
+                    ),
                   )
                 : CachedNetworkImage(
                     imageUrl: widget.cityImage!,
@@ -79,15 +82,20 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
                       color: _AppColors.lightGrey,
                       child: const Center(
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: _AppColors.primary),
+                          strokeWidth: 2,
+                          color: _AppColors.primary,
+                        ),
                       ),
                     ),
                     errorWidget: (context, url, error) => Container(
                       height: 340,
                       width: double.infinity,
                       color: _AppColors.lightGrey,
-                      child: const Icon(Icons.broken_image,
-                          size: 100, color: _AppColors.grey),
+                      child: const Icon(
+                        Icons.broken_image,
+                        size: 100,
+                        color: _AppColors.grey,
+                      ),
                     ),
                   ),
           ),
@@ -112,52 +120,6 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
               ),
             ),
           ),
-
-          // Floating Top Actions (Back and Share)
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 12,
-            left: 20,
-            right: 20,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.35),
-                    shape: BoxShape.circle,
-                  ),
-                  child: GestureDetector(
-                    onTap: () {
-                      print('Back button pressed');
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.35),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.arrow_back_rounded,
-                          color: Colors.white),
-                    ),
-                  ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.35),
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.share_rounded, color: Colors.white),
-                    onPressed: () {
-                      // Share city logic
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-
           // Scrollable Content Sheet overlapping the header image
           Positioned.fill(
             child: SingleChildScrollView(
@@ -174,8 +136,10 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
                     ),
                   ],
                 ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 24,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -218,6 +182,52 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
               ),
             ),
           ),
+
+          // Floating Top Actions (Back and Share)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 12,
+            left: 20,
+            right: 20,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.35),
+                    shape: BoxShape.circle,
+                  ),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.35),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.35),
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.share_rounded, color: Colors.white),
+                    onPressed: () {
+                      // Share city logic
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -245,8 +255,11 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
                     color: _AppColors.white,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.place_rounded,
-                      color: _AppColors.primary, size: 22),
+                  child: const Icon(
+                    Icons.place_rounded,
+                    color: _AppColors.primary,
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -299,8 +312,11 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
                     color: _AppColors.white,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.star_rounded,
-                      color: _AppColors.star, size: 22),
+                  child: const Icon(
+                    Icons.star_rounded,
+                    color: _AppColors.star,
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -403,11 +419,12 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
     );
   }
 
-  Widget _buildStatePlaceholder(
-      {required IconData icon,
-      required String title,
-      String? subtitle,
-      bool isError = false}) {
+  Widget _buildStatePlaceholder({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    bool isError = false,
+  }) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
@@ -416,8 +433,9 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color:
-                    isError ? const Color(0xFFFEE2E2) : _AppColors.primaryLight,
+                color: isError
+                    ? const Color(0xFFFEE2E2)
+                    : _AppColors.primaryLight,
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -468,7 +486,9 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
                 padding: EdgeInsets.all(24),
                 child: Center(
                   child: CircularProgressIndicator(
-                      strokeWidth: 2, color: _AppColors.primary),
+                    strokeWidth: 2,
+                    color: _AppColors.primary,
+                  ),
                 ),
               );
             }
@@ -513,7 +533,9 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
                 padding: EdgeInsets.all(24),
                 child: Center(
                   child: CircularProgressIndicator(
-                      strokeWidth: 2, color: _AppColors.primary),
+                    strokeWidth: 2,
+                    color: _AppColors.primary,
+                  ),
                 ),
               );
             }
@@ -557,7 +579,9 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
                 padding: EdgeInsets.all(24),
                 child: Center(
                   child: CircularProgressIndicator(
-                      strokeWidth: 2, color: _AppColors.primary),
+                    strokeWidth: 2,
+                    color: _AppColors.primary,
+                  ),
                 ),
               );
             }
@@ -601,7 +625,9 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
                 padding: EdgeInsets.all(24),
                 child: Center(
                   child: CircularProgressIndicator(
-                      strokeWidth: 2, color: _AppColors.primary),
+                    strokeWidth: 2,
+                    color: _AppColors.primary,
+                  ),
                 ),
               );
             }
