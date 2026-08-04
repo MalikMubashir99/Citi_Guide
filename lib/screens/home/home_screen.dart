@@ -13,7 +13,7 @@ import 'package:app/services/hotel_service.dart';
 import 'package:app/services/restaurant_service.dart';
 import 'package:app/services/event_service.dart';
 import 'package:app/services/city_service.dart';
-import 'package:app/widgets/city_card.dart'; // ✅ This imports the correct CityCard
+import 'package:app/widgets/city_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +28,19 @@ import 'package:app/widgets/event_card.dart';
 import 'package:app/widgets/bottom_navbar.dart';
 import 'package:app/screens/profile/favorites_screen.dart';
 
+// ─── Local Blue Theme ──────────────────────────────────────────────────────────
+class _AppColors {
+  static const Color background = Color(0xFFF8FAFC);
+  static const Color white = Colors.white;
+  static const Color dark = Color(0xFF0F172A);
+  static const Color primary = Color(0xFF2563EB);
+  static const Color primaryLight = Color(0xFFEFF6FF);
+  static const Color error = Color(0xFFDC2626);
+  static const Color lightGrey = Color(0xFFE2E8F0);
+  static const Color grey = Color(0xFF64748B);
+  static const Color star = Color(0xFFF59E0B);
+}
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -41,17 +54,14 @@ class _HomeScreenState extends State<HomeScreen> {
   String userName = "";
   String userImage = "";
 
-  // ✅ Search state
   bool isSearching = false;
   String searchQuery = "";
 
-  // ✅ Search results
   List<AttractionModel> searchAttractions = [];
   List<HotelModel> searchHotels = [];
   List<RestaurantModel> searchRestaurants = [];
   List<EventModel> searchEvents = [];
 
-  // Services
   final AttractionService attractionService = AttractionService();
   final HotelService hotelService = HotelService();
   final RestaurantService restaurantService = RestaurantService();
@@ -79,16 +89,13 @@ class _HomeScreenState extends State<HomeScreen> {
               .collection('users')
               .doc(user.uid)
               .get();
-
           if (userDoc.exists) {
             final data = userDoc.data();
             String name = data?['name'] ?? '';
             String image = data?['image'] ?? '';
-
             if (name.trim().isEmpty) {
               name = user.displayName ?? user.email?.split('@').first ?? "User";
             }
-
             setState(() {
               userName = name;
               userImage = image;
@@ -98,7 +105,6 @@ class _HomeScreenState extends State<HomeScreen> {
         } catch (e) {
           print('Firestore error: $e');
         }
-
         setState(() {
           userName = user.displayName ?? user.email?.split('@').first ?? "User";
         });
@@ -115,11 +121,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void refreshUserName() {
-    print('🔄 Refreshing user name...');
     _getUserName();
   }
 
-  // ✅ Search Logic
+  // ─── Search Logic ──────────────────────────────────────────────────────────
+
   Future<void> _performSearch(String query) async {
     if (query.trim().isEmpty) {
       setState(() {
@@ -132,12 +138,10 @@ class _HomeScreenState extends State<HomeScreen> {
       });
       return;
     }
-
     setState(() {
       isSearching = true;
       searchQuery = query.trim().toLowerCase();
     });
-
     try {
       final results = await Future.wait([
         attractionService.getAllAttractions(),
@@ -145,28 +149,23 @@ class _HomeScreenState extends State<HomeScreen> {
         restaurantService.getAllRestaurants(),
         eventService.getAllEvents(),
       ]);
-
       final allAttractions = results[0] as List<AttractionModel>;
       final allHotels = results[1] as List<HotelModel>;
       final allRestaurants = results[2] as List<RestaurantModel>;
       final allEvents = results[3] as List<EventModel>;
-
       setState(() {
         searchAttractions = allAttractions.where((item) {
           return item.name.toLowerCase().contains(searchQuery) ||
               item.description.toLowerCase().contains(searchQuery);
         }).toList();
-
         searchHotels = allHotels.where((item) {
           return item.name.toLowerCase().contains(searchQuery) ||
               item.description.toLowerCase().contains(searchQuery);
         }).toList();
-
         searchRestaurants = allRestaurants.where((item) {
           return item.name.toLowerCase().contains(searchQuery) ||
               item.description.toLowerCase().contains(searchQuery);
         }).toList();
-
         searchEvents = allEvents.where((item) {
           return item.title.toLowerCase().contains(searchQuery) ||
               item.description.toLowerCase().contains(searchQuery);
@@ -192,6 +191,8 @@ class _HomeScreenState extends State<HomeScreen> {
     searchController.clear();
   }
 
+  // ─── Build ──────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     final screens = [
@@ -203,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: _AppColors.background,
       body: isSearching
           ? _buildSearchResults()
           : IndexedStack(index: currentIndex, children: screens),
@@ -214,7 +215,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ✅ Build Search Results
+  // ─── Search Results Screen (unchanged) ─────────────────────────────────────
+
   Widget _buildSearchResults() {
     final totalResults = searchAttractions.length +
         searchHotels.length +
@@ -222,17 +224,26 @@ class _HomeScreenState extends State<HomeScreen> {
         searchEvents.length;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: _AppColors.background,
       appBar: AppBar(
-        title: Text('Search Results', style: GoogleFonts.poppins(color: AppColors.dark, fontWeight: FontWeight.w600)),
-        backgroundColor: AppColors.background,
+        title: Text(
+          'Search Results',
+          style: GoogleFonts.poppins(
+            color: _AppColors.dark,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: _AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.dark),
+          icon: const Icon(Icons.arrow_back_rounded, color: _AppColors.dark),
           onPressed: _clearSearch,
         ),
         actions: [
-          IconButton(icon: const Icon(Icons.close_rounded, color: AppColors.darkGrey), onPressed: _clearSearch),
+          IconButton(
+            icon: const Icon(Icons.close_rounded, color: _AppColors.grey),
+            onPressed: _clearSearch,
+          ),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(70),
@@ -251,20 +262,27 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.search_off_rounded, size: 80, color: AppColors.grey),
+                  const Icon(
+                    Icons.search_off_rounded,
+                    size: 80,
+                    color: _AppColors.grey,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'No results found for "$searchQuery"',
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.dark,
+                      color: _AppColors.dark,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Try searching with different keywords',
-                    style: GoogleFonts.poppins(fontSize: 14, color: AppColors.grey),
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: _AppColors.grey,
+                    ),
                   ),
                 ],
               ),
@@ -276,7 +294,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(
                     'Found $totalResults results for "$searchQuery"',
-                    style: GoogleFonts.poppins(fontSize: 16, color: AppColors.darkGrey),
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: _AppColors.grey,
+                    ),
                   ),
                   const SizedBox(height: 20),
 
@@ -316,19 +337,23 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Text(
             title,
-            style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.dark),
+            style: GoogleFonts.poppins(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: _AppColors.dark,
+            ),
           ),
           const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: _AppColors.primaryLight,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               count.toString(),
               style: GoogleFonts.poppins(
-                color: AppColors.primary,
+                color: _AppColors.primary,
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
@@ -339,164 +364,194 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Reusable Section Header for Home Content
-  Widget _buildHomeSectionHeader(String title) {
-    return Text(
-      title,
-      style: GoogleFonts.poppins(
-        fontSize: 22,
-        fontWeight: FontWeight.w600,
-        color: AppColors.dark,
-        letterSpacing: 0.3,
-      ),
-    );
-  }
+  // ─── NEW HOME CONTENT (all sections) ─────────────────────────────────────
 
-  // ✅ Home Content
   Widget _buildHomeContent() {
     return SafeArea(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            HomeAppBar(userName: userName, profileImage: userImage),
-            const SizedBox(height: 25),
+            // ── Greeting ──────────────────────────────────────────────────────
+            Row(
+              children: [
+                Text(
+                  'Good morning',
+                  style: GoogleFonts.poppins(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w500,
+                    color: _AppColors.grey,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  userName.isNotEmpty ? userName : 'User',
+                  style: GoogleFonts.poppins(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: _AppColors.dark,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Text('🌟', style: TextStyle(fontSize: 22)),
+              ],
+            ),
+            const SizedBox(height: 8),
 
+            // ── Location ────────────────────────────────────────────────────
+            Row(
+              children: [
+                const Icon(Icons.location_on_rounded,
+                    color: _AppColors.primary, size: 18),
+                const SizedBox(width: 4),
+                Text(
+                  'Paris, France', // You can make this dynamic later
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: _AppColors.dark,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // ── Search Bar ──────────────────────────────────────────────────
             SearchBarWidget(
               controller: searchController,
               onSearch: () => _performSearch(searchController.text),
               onChanged: (value) => _performSearch(value),
             ),
-
             const SizedBox(height: 30),
 
-            // Categories Section
-            _buildHomeSectionHeader("Categories"),
-            const SizedBox(height: 18),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                CategoryCard(
-                  icon: Icons.place_rounded,
-                  title: "Places",
-                  color: AppColors.info,
-                  onTap: () {},
-                ),
-                CategoryCard(
-                  icon: Icons.hotel_rounded,
-                  title: "Hotels",
-                  color: AppColors.secondary,
-                  onTap: () {},
-                ),
-                CategoryCard(
-                  icon: Icons.restaurant_rounded,
-                  title: "Food",
-                  color: AppColors.accent,
-                  onTap: () {},
-                ),
-                CategoryCard(
-                  icon: Icons.event_rounded,
-                  title: "Events",
-                  color: AppColors.success,
-                  onTap: () {},
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 35),
-
-            // Popular Attractions Section
-            _buildHomeSectionHeader("Popular Attractions"),
-            const SizedBox(height: 18),
-
+            // ── Popular Destinations ────────────────────────────────────────
+            _buildSectionHeader('Popular Destinations', seeAll: true),
+            const SizedBox(height: 16),
             SizedBox(
-              height: 245,
-              child: FutureBuilder<List<AttractionModel>>(
-                future: attractionService.getAllAttractions(),
+              height: 200,
+              child: FutureBuilder<List<CityModel>>(
+                future: cityService.getCities(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary));
+                    return const Center(child: CircularProgressIndicator(
+                        strokeWidth: 2, color: _AppColors.primary));
                   }
-                  if (snapshot.hasError) {
-                    return Center(child: Text('Error loading attractions', style: GoogleFonts.poppins(color: AppColors.error, fontWeight: FontWeight.w500)));
+                  if (snapshot.hasError || !snapshot.hasData) {
+                    return const SizedBox.shrink();
                   }
-                  final attractions = snapshot.data ?? [];
-                  if (attractions.isEmpty) {
-                    return Center(child: Text('No attractions available', style: GoogleFonts.poppins(color: AppColors.grey, fontSize: 16)));
-                  }
-                  return ListView.builder(
+                  final cities = snapshot.data!;
+                  if (cities.isEmpty) return const SizedBox.shrink();
+                  return ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    itemCount: attractions.length,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    itemCount: cities.length > 4 ? 4 : cities.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 16),
                     itemBuilder: (context, index) {
-                      return AttractionCard(attraction: attractions[index]);
+                      final city = cities[index];
+                      return _DestinationCard(city: city);
                     },
                   );
                 },
               ),
             ),
+            const SizedBox(height: 30),
 
-            const SizedBox(height: 35),
+            // ── Categories ──────────────────────────────────────────────────
+            _buildSectionHeader('Categories', seeAll: false),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                _CategoryItem(icon: Icons.place_rounded, label: 'Attractions'),
+                _CategoryItem(icon: Icons.restaurant_rounded, label: 'Restaurants'),
+                _CategoryItem(icon: Icons.hotel_rounded, label: 'Hotels'),
+                _CategoryItem(icon: Icons.event_rounded, label: 'Events'),
+              ],
+            ),
+            const SizedBox(height: 30),
 
-            // Top Hotels Section
-            _buildHomeSectionHeader("Top Hotels"),
-            const SizedBox(height: 18),
+            // ── Popular Nearby (Attractions) ──────────────────────────────
+            _buildSectionHeader('Popular Nearby', seeAll: true),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 280,
+              child: FutureBuilder<List<AttractionModel>>(
+                future: attractionService.getAllAttractions(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator(
+                        strokeWidth: 2, color: _AppColors.primary));
+                  }
+                  if (snapshot.hasError || !snapshot.hasData) {
+                    return const SizedBox.shrink();
+                  }
+                  final attractions = snapshot.data!;
+                  if (attractions.isEmpty) return const SizedBox.shrink();
+                  return ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: attractions.length > 4 ? 4 : attractions.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 16),
+                    itemBuilder: (context, index) {
+                      final attraction = attractions[index];
+                      return _NearbyCard(attraction: attraction);
+                    },
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 30),
 
+            // ── Top Hotels ──────────────────────────────────────────────────
+            _buildSectionHeader('Top Hotels', seeAll: true),
+            const SizedBox(height: 16),
             SizedBox(
               height: 245,
               child: FutureBuilder<List<HotelModel>>(
                 future: hotelService.getAllHotels(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary));
+                    return const Center(child: CircularProgressIndicator(
+                        strokeWidth: 2, color: _AppColors.primary));
                   }
-                  if (snapshot.hasError) {
-                    return Center(child: Text('Error loading hotels', style: GoogleFonts.poppins(color: AppColors.error, fontWeight: FontWeight.w500)));
+                  if (snapshot.hasError || !snapshot.hasData) {
+                    return const SizedBox.shrink();
                   }
-                  final hotels = snapshot.data ?? [];
-                  if (hotels.isEmpty) {
-                    return Center(child: Text('No hotels available', style: GoogleFonts.poppins(color: AppColors.grey, fontSize: 16)));
-                  }
-                  return ListView.builder(
+                  final hotels = snapshot.data!;
+                  if (hotels.isEmpty) return const SizedBox.shrink();
+                  return ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    itemCount: hotels.length,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    itemCount: hotels.length > 4 ? 4 : hotels.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 16),
                     itemBuilder: (context, index) {
-                      print('🟢 Building HotelCard for: ${hotels[index].name}');
                       return HotelCard(hotel: hotels[index]);
                     },
                   );
                 },
               ),
             ),
+            const SizedBox(height: 30),
 
-            const SizedBox(height: 35),
-
-            // Restaurants Section
-            _buildHomeSectionHeader("Popular Restaurants"),
-            const SizedBox(height: 18),
-
+            // ── Popular Restaurants ─────────────────────────────────────────
+            _buildSectionHeader('Popular Restaurants', seeAll: true),
+            const SizedBox(height: 16),
             SizedBox(
               height: 245,
               child: FutureBuilder<List<RestaurantModel>>(
                 future: restaurantService.getAllRestaurants(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary));
+                    return const Center(child: CircularProgressIndicator(
+                        strokeWidth: 2, color: _AppColors.primary));
                   }
-                  if (snapshot.hasError) {
-                    return Center(child: Text('Error loading restaurants', style: GoogleFonts.poppins(color: AppColors.error, fontWeight: FontWeight.w500)));
+                  if (snapshot.hasError || !snapshot.hasData) {
+                    return const SizedBox.shrink();
                   }
-                  final restaurants = snapshot.data ?? [];
-                  if (restaurants.isEmpty) {
-                    return Center(child: Text('No restaurants found', style: GoogleFonts.poppins(color: AppColors.grey, fontSize: 16)));
-                  }
-                  return ListView.builder(
+                  final restaurants = snapshot.data!;
+                  if (restaurants.isEmpty) return const SizedBox.shrink();
+                  return ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    itemCount: restaurants.length,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    itemCount: restaurants.length > 4 ? 4 : restaurants.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 16),
                     itemBuilder: (context, index) {
                       return RestaurantCard(restaurant: restaurants[index]);
                     },
@@ -504,32 +559,29 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
             ),
+            const SizedBox(height: 30),
 
-            const SizedBox(height: 35),
-
-            // Events Section
-            _buildHomeSectionHeader("Upcoming Events"),
-            const SizedBox(height: 18),
-
+            // ── Upcoming Events ─────────────────────────────────────────────
+            _buildSectionHeader('Upcoming Events', seeAll: true),
+            const SizedBox(height: 16),
             SizedBox(
               height: 260,
               child: FutureBuilder<List<EventModel>>(
                 future: eventService.getAllEvents(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary));
+                    return const Center(child: CircularProgressIndicator(
+                        strokeWidth: 2, color: _AppColors.primary));
                   }
-                  if (snapshot.hasError) {
-                    return Center(child: Text('Error loading events', style: GoogleFonts.poppins(color: AppColors.error, fontWeight: FontWeight.w500)));
+                  if (snapshot.hasError || !snapshot.hasData) {
+                    return const SizedBox.shrink();
                   }
-                  final events = snapshot.data ?? [];
-                  if (events.isEmpty) {
-                    return Center(child: Text('No upcoming events', style: GoogleFonts.poppins(color: AppColors.grey, fontSize: 16)));
-                  }
-                  return ListView.builder(
+                  final events = snapshot.data!;
+                  if (events.isEmpty) return const SizedBox.shrink();
+                  return ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    itemCount: events.length,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    itemCount: events.length > 4 ? 4 : events.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 16),
                     itemBuilder: (context, index) {
                       return EventCard(event: events[index]);
                     },
@@ -537,46 +589,267 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
             ),
-
-            const SizedBox(height: 35),
-
-            // ✅ FIXED: Top Cities Section
-            _buildHomeSectionHeader("Top Cities"),
-            const SizedBox(height: 18),
-
-            SizedBox(
-              height: 190,
-              child: FutureBuilder<List<CityModel>>(
-                future: cityService.getCities(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary));
-                  }
-                  if (snapshot.hasError) {
-                    return Center(child: Text('Error loading cities', style: GoogleFonts.poppins(color: AppColors.error, fontWeight: FontWeight.w500)));
-                  }
-                  final cities = snapshot.data ?? [];
-                  if (cities.isEmpty) {
-                    return Center(child: Text('No cities found', style: GoogleFonts.poppins(color: AppColors.grey, fontSize: 16)));
-                  }
-                  return ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: cities.map((city) {
-                      return CityCard(
-                        image: city.image ?? '',
-                        city: city.name,
-                        cityId: city.id,
-                      );
-                    }).toList(),
-                  );
-                },
-              ),
-            ),
-
             const SizedBox(height: 20),
           ],
         ),
       ),
     );
+  }
+
+  // ─── Helper: Section Header with optional "See all" ──────────────────────
+
+  Widget _buildSectionHeader(String title, {bool seeAll = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: _AppColors.dark,
+          ),
+        ),
+        if (seeAll)
+          Text(
+            'See all',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: _AppColors.primary,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// ─── Destination Card (for Popular Destinations) ────────────────────────────
+
+class _DestinationCard extends StatelessWidget {
+  final CityModel city;
+  const _DestinationCard({required this.city});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 160,
+      height: 200,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        image: DecorationImage(
+          image: city.image != null && city.image!.isNotEmpty
+              ? NetworkImage(city.image!)
+              : const AssetImage('assets/default_city.jpg') as ImageProvider,
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Stack(
+        children: [
+          // Gradient overlay
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.7),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  city.name,
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.star_rounded,
+                        color: _AppColors.star, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      '4.9', // static rating – can be dynamic if you have it
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Category Item ────────────────────────────────────────────────────────────
+
+class _CategoryItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _CategoryItem({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            color: _AppColors.primaryLight,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Icon(icon, color: _AppColors.primary, size: 28),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: _AppColors.dark,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Nearby Card (for Popular Nearby) ────────────────────────────────────────
+
+class _NearbyCard extends StatelessWidget {
+  final AttractionModel attraction;
+  const _NearbyCard({required this.attraction});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 210,
+      decoration: BoxDecoration(
+        color: _AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Image
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: attraction.image.isNotEmpty
+                ? Image.network(
+                    attraction.image,
+                    height: 140,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      height: 140,
+                      color: _AppColors.lightGrey,
+                      child: const Icon(Icons.broken_image,
+                          color: _AppColors.grey),
+                    ),
+                  )
+                : Container(
+                    height: 140,
+                    color: _AppColors.lightGrey,
+                    child: const Icon(Icons.landscape_rounded,
+                        color: _AppColors.grey),
+                  ),
+          ),
+          // Details
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  attraction.name,
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: _AppColors.dark,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  attraction.cityId.isNotEmpty ? attraction.cityId : 'Landmark',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    color: _AppColors.grey,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    ...List.generate(5, (i) => Icon(
+                      i < attraction.rating.floor()
+                          ? Icons.star_rounded
+                          : i < attraction.rating
+                              ? Icons.star_half_rounded
+                              : Icons.star_border_rounded,
+                      color: _AppColors.star,
+                      size: 16,
+                    )),
+                    const SizedBox(width: 4),
+                    Text(
+                      '(${_formatReviewCount(attraction.rating * 10000 ~/ 5)})', // dummy count
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: _AppColors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '€${(attraction.rating * 6).ceil()}', // dummy price
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: _AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatReviewCount(int count) {
+    if (count >= 1000) {
+      return '${(count / 1000).toStringAsFixed(1)}k';
+    }
+    return count.toString();
   }
 }

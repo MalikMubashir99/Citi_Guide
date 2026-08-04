@@ -1,541 +1,29 @@
-// // lib/screens/home/restaurant_detail_screen.dart
-// import 'package:app/model/restaurant_model.dart';
-// import 'package:app/services/favorite_service.dart';
-// import 'package:flutter/material.dart';
-// import 'package:google_fonts/google_fonts.dart';
-// import 'package:url_launcher/url_launcher.dart';
-
-// class RestaurantDetailScreen extends StatefulWidget {
-//   final RestaurantModel restaurant;
-
-//   const RestaurantDetailScreen({
-//     super.key,
-//     required this.restaurant,
-//   });
-
-//   @override
-//   State<RestaurantDetailScreen> createState() => _RestaurantDetailScreenState();
-// }
-
-// class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
-//   final FavoriteService favoriteService = FavoriteService();
-//   bool isFavorite = false;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     loadFavorite();
-//   }
-
-//   Future<void> loadFavorite() async {
-//     try {
-//       bool favorite = await favoriteService.isFavorite(widget.restaurant.id);
-//       if (mounted) {
-//         setState(() {
-//           isFavorite = favorite;
-//         });
-//       }
-//     } catch (e) {
-//       debugPrint('Error loading favorite: $e');
-//     }
-//   }
-
-//   Future<void> toggleFavorite() async {
-//     try {
-//       if (isFavorite) {
-//         await favoriteService.removeFavoriteByAttraction(widget.restaurant.id);
-//         if (!mounted) return;
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(
-//             content: Text("Removed from favorites", style: GoogleFonts.poppins(color: const Color(0xFFFFFFFF), fontWeight: FontWeight.w500)),
-//             backgroundColor: const Color(0xFFBC4749),
-//             behavior: SnackBarBehavior.floating,
-//             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-//           ),
-//         );
-//       } else {
-//         await favoriteService.addFavorite(widget.restaurant.id);
-//         if (!mounted) return;
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(
-//             content: Text("Added to favorites ❤️", style: GoogleFonts.poppins(color: const Color(0xFFFFFFFF), fontWeight: FontWeight.w500)),
-//             backgroundColor: const Color(0xFF6A994E),
-//             behavior: SnackBarBehavior.floating,
-//             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-//           ),
-//         );
-//       }
-//       await loadFavorite();
-//     } catch (e) {
-//       debugPrint('Error toggling favorite: $e');
-//       if (!mounted) return;
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(
-//           content: Text("Error: $e", style: GoogleFonts.poppins(color: const Color(0xFFFFFFFF))),
-//           backgroundColor: const Color(0xFFBC4749),
-//           behavior: SnackBarBehavior.floating,
-//           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-//         ),
-//       );
-//     }
-//   }
-
-//   void _showErrorSnackBar(String message) {
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       SnackBar(
-//         content: Text(message, style: GoogleFonts.poppins(color: const Color(0xFFFFFFFF), fontWeight: FontWeight.w500)),
-//         backgroundColor: const Color(0xFFBC4749),
-//         behavior: SnackBarBehavior.floating,
-//         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-//       ),
-//     );
-//   }
-
-//   Future<void> openGoogleMaps(BuildContext context) async {
-//     if (widget.restaurant.latitude == 0 && widget.restaurant.longitude == 0) {
-//       _showErrorSnackBar("Location not available");
-//       return;
-//     }
-
-//     final Uri url = Uri.parse(
-//       "https://www.google.com/maps/search/?api=1&query=${widget.restaurant.latitude},${widget.restaurant.longitude}",
-//     );
-
-//     if (await canLaunchUrl(url)) {
-//       await launchUrl(url, mode: LaunchMode.externalApplication);
-//     } else {
-//       if (!context.mounted) return;
-//       _showErrorSnackBar("Unable to open Google Maps");
-//     }
-//   }
-
-//   Future<void> callRestaurant(BuildContext context) async {
-//     if (widget.restaurant.phone.isEmpty) {
-//       _showErrorSnackBar("Phone number not available");
-//       return;
-//     }
-
-//     final Uri url = Uri.parse("tel:${widget.restaurant.phone}");
-//     if (await canLaunchUrl(url)) {
-//       await launchUrl(url);
-//     } else {
-//       if (!context.mounted) return;
-//       _showErrorSnackBar("Unable to make call");
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: const Color(0xFFFDFBF7),
-//       appBar: AppBar(
-//         title: Text(
-//           widget.restaurant.name,
-//           style: GoogleFonts.poppins(
-//             color: const Color(0xFF2C221E),
-//             fontWeight: FontWeight.w600,
-//             letterSpacing: 0.3,
-//           ),
-//         ),
-//         backgroundColor: const Color(0xFFFDFBF7),
-//         elevation: 0,
-//         leading: IconButton(
-//           icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF2C221E)),
-//           onPressed: () => Navigator.pop(context),
-//         ),
-//         actions: [
-//           IconButton(
-//             icon: Icon(
-//               isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-//               color: isFavorite ? const Color(0xFFBC4749) : const Color(0xFF5C524E),
-//               size: 28,
-//             ),
-//             onPressed: toggleFavorite,
-//           ),
-//           IconButton(
-//             icon: const Icon(Icons.share_rounded, color: Color(0xFF2C221E)),
-//             onPressed: () {},
-//           ),
-//         ],
-//       ),
-//       body: SingleChildScrollView(
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             // Image Section
-//             Stack(
-//               children: [
-//                 widget.restaurant.image.isEmpty
-//                     ? Container(
-//                         height: 280,
-//                         width: double.infinity,
-//                         color: const Color(0xFFE6E1DC),
-//                         child: const Icon(Icons.restaurant_rounded, size: 100, color: Color(0xFF8C827E)),
-//                       )
-//                     : Image.network(
-//                         widget.restaurant.image,
-//                         width: double.infinity,
-//                         height: 280,
-//                         fit: BoxFit.cover,
-//                         errorBuilder: (_, __, ___) => Container(
-//                           height: 280,
-//                           width: double.infinity,
-//                           color: const Color(0xFFE6E1DC),
-//                           child: const Icon(Icons.broken_image, size: 100, color: Color(0xFF8C827E)),
-//                         ),
-//                         loadingBuilder: (_, child, progress) {
-//                           if (progress == null) return child;
-//                           return Container(
-//                             height: 280,
-//                             width: double.infinity,
-//                             color: const Color(0xFFE6E1DC),
-//                             child: const Center(
-//                               child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFA0522D)),
-//                             ),
-//                           );
-//                         },
-//                       ),
-                
-//                 // Espresso tinted gradient overlay
-//                 Positioned(
-//                   bottom: 0,
-//                   left: 0,
-//                   right: 0,
-//                   child: Container(
-//                     height: 100,
-//                     decoration: BoxDecoration(
-//                       gradient: LinearGradient(
-//                         begin: Alignment.topCenter,
-//                         end: Alignment.bottomCenter,
-//                         colors: [
-//                           Colors.transparent,
-//                           const Color(0xFF1A120B).withValues(alpha: 0.6),
-//                           const Color(0xFF1A120B).withValues(alpha: 0.9),
-//                         ],
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-                
-//                 // Rating badge (Flat)
-//                 Positioned(
-//                   bottom: 16,
-//                   right: 16,
-//                   child: Container(
-//                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-//                     decoration: BoxDecoration(
-//                       color: const Color(0xFFA0522D),
-//                       borderRadius: BorderRadius.circular(20),
-//                     ),
-//                     child: Row(
-//                       children: [
-//                         const Icon(Icons.star_rounded, color: Color(0xFFFFFFFF), size: 18),
-//                         const SizedBox(width: 6),
-//                         Text(
-//                           widget.restaurant.rating.toStringAsFixed(1),
-//                           style: GoogleFonts.poppins(
-//                             color: const Color(0xFFFFFFFF),
-//                             fontSize: 16,
-//                             fontWeight: FontWeight.w600,
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                 ),
-                
-//                 // City badge (Flat)
-//                 Positioned(
-//                   bottom: 16,
-//                   left: 16,
-//                   child: Container(
-//                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-//                     decoration: BoxDecoration(
-//                       color: const Color(0xFFFFFFFF).withValues(alpha: 0.95),
-//                       borderRadius: BorderRadius.circular(12),
-//                     ),
-//                     child: Row(
-//                       children: [
-//                         const Icon(Icons.location_on_rounded, size: 16, color: Color(0xFFA0522D)),
-//                         const SizedBox(width: 4),
-//                         Text(
-//                           widget.restaurant.cityId,
-//                           style: GoogleFonts.poppins(
-//                             fontSize: 12,
-//                             color: const Color(0xFF2C221E),
-//                             fontWeight: FontWeight.w500,
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                 ),
-//               ],
-//             ),
-
-//             // Content
-//             Padding(
-//               padding: const EdgeInsets.all(20),
-//               child: Column(
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   // Restaurant Name
-//                   Text(
-//                     widget.restaurant.name,
-//                     style: GoogleFonts.poppins(
-//                       fontSize: 28,
-//                       fontWeight: FontWeight.w600,
-//                       color: const Color(0xFF2C221E),
-//                       height: 1.2,
-//                       letterSpacing: 0.3,
-//                     ),
-//                   ),
-//                   const SizedBox(height: 12),
-
-//                   // Rating Stars
-//                   Row(
-//                     children: [
-//                       ...List.generate(
-//                         5,
-//                         (index) => Icon(
-//                           index < widget.restaurant.rating.floor()
-//                               ? Icons.star_rounded
-//                               : index < widget.restaurant.rating
-//                                   ? Icons.star_half_rounded
-//                                   : Icons.star_outline_rounded,
-//                           color: const Color(0xFFD4A373),
-//                           size: 20,
-//                         ),
-//                       ),
-//                       const SizedBox(width: 8),
-//                       Text(
-//                         widget.restaurant.rating.toStringAsFixed(1),
-//                         style: GoogleFonts.poppins(
-//                           fontSize: 16,
-//                           fontWeight: FontWeight.w600,
-//                           color: const Color(0xFF2C221E),
-//                         ),
-//                       ),
-//                       const SizedBox(width: 8),
-//                       Text(
-//                         widget.restaurant.rating >= 4.5 ? '(Popular)' : '(Good)',
-//                         style: GoogleFonts.poppins(
-//                           fontSize: 13,
-//                           color: const Color(0xFF8C827E),
-//                           fontWeight: FontWeight.w500,
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                   const SizedBox(height: 24),
-
-//                   // About Section
-//                   _buildSectionHeader("About"),
-//                   const SizedBox(height: 12),
-//                   Container(
-//                     padding: const EdgeInsets.all(16),
-//                     decoration: BoxDecoration(
-//                       color: const Color(0xFFFFFFFF),
-//                       borderRadius: BorderRadius.circular(16),
-//                       border: Border.all(color: const Color(0xFFE6E1DC).withValues(alpha: 0.7), width: 1),
-//                     ),
-//                     child: Text(
-//                       widget.restaurant.description,
-//                       style: GoogleFonts.poppins(
-//                         fontSize: 15,
-//                         color: const Color(0xFF5C524E),
-//                         height: 1.6,
-//                       ),
-//                     ),
-//                   ),
-//                   const SizedBox(height: 24),
-
-//                   // Contact Section
-//                   _buildSectionHeader("Contact Information"),
-//                   const SizedBox(height: 12),
-
-//                   // Phone Card
-//                   _buildContactTile(
-//                     icon: Icons.phone_rounded,
-//                     label: "Phone",
-//                     value: widget.restaurant.phone.isEmpty ? "Not available" : widget.restaurant.phone,
-//                     onTap: widget.restaurant.phone.isNotEmpty ? () => callRestaurant(context) : null,
-//                   ),
-//                   const SizedBox(height: 12),
-
-//                   // Location Card
-//                   _buildContactTile(
-//                     icon: Icons.location_on_rounded,
-//                     label: "Location",
-//                     value: widget.restaurant.latitude != 0 && widget.restaurant.longitude != 0
-//                         ? "${widget.restaurant.latitude.toStringAsFixed(4)}, ${widget.restaurant.longitude.toStringAsFixed(4)}"
-//                         : "Location not available",
-//                     trailingIcon: Icons.open_in_new_rounded,
-//                     onTap: widget.restaurant.latitude != 0 && widget.restaurant.longitude != 0
-//                         ? () => openGoogleMaps(context)
-//                         : null,
-//                   ),
-//                   const SizedBox(height: 24),
-
-//                   // Actions Section
-//                   _buildSectionHeader("Actions"),
-//                   const SizedBox(height: 12),
-
-//                   // Call Button
-//                   SizedBox(
-//                     width: double.infinity,
-//                     height: 56,
-//                     child: ElevatedButton.icon(
-//                       onPressed: () => callRestaurant(context),
-//                       icon: const Icon(Icons.call_rounded, color: Color(0xFFFFFFFF), size: 22),
-//                       label: Text(
-//                         "Call Restaurant",
-//                         style: GoogleFonts.poppins(
-//                           fontSize: 16,
-//                           fontWeight: FontWeight.w600,
-//                           color: const Color(0xFFFFFFFF),
-//                           letterSpacing: 0.3,
-//                         ),
-//                       ),
-//                       style: ElevatedButton.styleFrom(
-//                         backgroundColor: const Color(0xFFA0522D),
-//                         foregroundColor: const Color(0xFFFFFFFF),
-//                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-//                         elevation: 0,
-//                       ),
-//                     ),
-//                   ),
-//                   const SizedBox(height: 12),
-
-//                   // Maps Button
-//                   SizedBox(
-//                     width: double.infinity,
-//                     height: 56,
-//                     child: OutlinedButton.icon(
-//                       onPressed: () => openGoogleMaps(context),
-//                       icon: const Icon(Icons.location_on_rounded, color: Color(0xFFA0522D), size: 22),
-//                       label: Text(
-//                         "Open in Google Maps",
-//                         style: GoogleFonts.poppins(
-//                           fontSize: 16,
-//                           fontWeight: FontWeight.w600,
-//                           color: const Color(0xFFA0522D),
-//                           letterSpacing: 0.3,
-//                         ),
-//                       ),
-//                       style: OutlinedButton.styleFrom(
-//                         foregroundColor: const Color(0xFFA0522D),
-//                         side: const BorderSide(color: Color(0xFFD2B48C), width: 1.5),
-//                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-//                       ),
-//                     ),
-//                   ),
-//                   const SizedBox(height: 30),
-//                 ],
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-
-//   // Helper for Section Headers
-//   Widget _buildSectionHeader(String title) {
-//     return Row(
-//       children: [
-//         Container(
-//           width: 4,
-//           height: 24,
-//           decoration: BoxDecoration(
-//             color: const Color(0xFFA0522D),
-//             borderRadius: BorderRadius.circular(2),
-//           ),
-//         ),
-//         const SizedBox(width: 10),
-//         Text(
-//           title,
-//           style: GoogleFonts.poppins(
-//             fontSize: 20,
-//             fontWeight: FontWeight.w600,
-//             color: const Color(0xFF2C221E),
-//             letterSpacing: 0.3,
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-
-//   // Helper for Contact Info Tiles
-//   Widget _buildContactTile({
-//     required IconData icon,
-//     required String label,
-//     required String value,
-//     IconData? trailingIcon,
-//     VoidCallback? onTap,
-//   }) {
-//     return Container(
-//       padding: const EdgeInsets.all(16),
-//       decoration: BoxDecoration(
-//         color: const Color(0xFFFFFFFF),
-//         borderRadius: BorderRadius.circular(16),
-//         border: Border.all(color: const Color(0xFFE6E1DC).withValues(alpha: 0.7), width: 1),
-//       ),
-//       child: InkWell(
-//         onTap: onTap,
-//         borderRadius: BorderRadius.circular(16),
-//         child: Row(
-//           children: [
-//             Container(
-//               padding: const EdgeInsets.all(10),
-//               decoration: BoxDecoration(
-//                 color: const Color(0xFFA0522D).withValues(alpha: 0.1),
-//                 borderRadius: BorderRadius.circular(12),
-//               ),
-//               child: Icon(icon, color: const Color(0xFFA0522D), size: 22),
-//             ),
-//             const SizedBox(width: 14),
-//             Expanded(
-//               child: Column(
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   Text(label, style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF8C827E), fontWeight: FontWeight.w500)),
-//                   const SizedBox(height: 2),
-//                   Text(
-//                     value,
-//                     style: GoogleFonts.poppins(fontSize: 15, color: const Color(0xFF2C221E), fontWeight: FontWeight.w500),
-//                     maxLines: 1,
-//                     overflow: TextOverflow.ellipsis,
-//                   ),
-//                 ],
-//               ),
-//             ),
-//             if (onTap != null)
-//               Icon(trailingIcon ?? Icons.arrow_forward_ios_rounded, size: 16, color: const Color(0xFF8C827E)),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-// lib/screens/home/restaurant_detail_screen.dart
 import 'package:app/model/restaurant_model.dart';
 import 'package:app/services/favorite_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+// ─── Local Blue Theme ──────────────────────────────────────────────────────────
+class _AppColors {
+  static const Color background = Color(0xFFF8FAFC);
+  static const Color white = Colors.white;
+  static const Color dark = Color(0xFF0F172A);
+  static const Color primary = Color(0xFF2563EB);
+  static const Color primaryLight = Color(0xFFEFF6FF);
+  static const Color error = Color(0xFFDC2626);
+  static const Color lightGrey = Color(0xFFE2E8F0);
+  static const Color grey = Color(0xFF64748B);
+  static const Color star = Color(0xFFF59E0B);
+}
+
 class RestaurantDetailScreen extends StatefulWidget {
   final RestaurantModel restaurant;
-
-  const RestaurantDetailScreen({
-    super.key,
-    required this.restaurant,
-  });
+  const RestaurantDetailScreen({super.key, required this.restaurant});
 
   @override
-  State<RestaurantDetailScreen> createState() => _RestaurantDetailScreenState();
+  State<RestaurantDetailScreen> createState() =>
+      _RestaurantDetailScreenState();
 }
 
 class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
@@ -548,14 +36,12 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     loadFavorite();
   }
 
+  // ─── Core Logic ──────────────────────────────────────────────────────────────
+
   Future<void> loadFavorite() async {
     try {
       bool favorite = await favoriteService.isFavorite(widget.restaurant.id);
-      if (mounted) {
-        setState(() {
-          isFavorite = favorite;
-        });
-      }
+      if (mounted) setState(() => isFavorite = favorite);
     } catch (e) {
       debugPrint('Error loading favorite: $e');
     }
@@ -568,10 +54,13 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Removed from favorites", style: GoogleFonts.poppins(color: const Color(0xFFFFFFFF), fontWeight: FontWeight.w500)),
-            backgroundColor: const Color(0xFFBC4749),
+            content: Text("Removed from favorites",
+                style: GoogleFonts.poppins(
+                    color: _AppColors.white, fontWeight: FontWeight.w500)),
+            backgroundColor: _AppColors.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
           ),
         );
       } else {
@@ -579,10 +68,13 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Added to favorites ❤️", style: GoogleFonts.poppins(color: const Color(0xFFFFFFFF), fontWeight: FontWeight.w500)),
-            backgroundColor: const Color(0xFF6A994E),
+            content: Text("Added to favorites ❤️",
+                style: GoogleFonts.poppins(
+                    color: _AppColors.white, fontWeight: FontWeight.w500)),
+            backgroundColor: _AppColors.primary,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
           ),
         );
       }
@@ -590,378 +82,115 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     } catch (e) {
       debugPrint('Error toggling favorite: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error: $e", style: GoogleFonts.poppins(color: const Color(0xFFFFFFFF))),
-          backgroundColor: const Color(0xFFBC4749),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
+      _showErrorSnackBar("Error: $e");
     }
   }
 
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: GoogleFonts.poppins(color: const Color(0xFFFFFFFF), fontWeight: FontWeight.w500)),
-        backgroundColor: const Color(0xFFBC4749),
+        content: Text(message,
+            style: GoogleFonts.poppins(
+                color: _AppColors.white, fontWeight: FontWeight.w500)),
+        backgroundColor: _AppColors.error,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
 
-  Future<void> openGoogleMaps(BuildContext context) async {
+  Future<void> openGoogleMaps() async {
     if (widget.restaurant.latitude == 0 && widget.restaurant.longitude == 0) {
       _showErrorSnackBar("Location not available");
       return;
     }
-
     final Uri url = Uri.parse(
       "https://www.google.com/maps/search/?api=1&query=${widget.restaurant.latitude},${widget.restaurant.longitude}",
     );
-
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      if (!context.mounted) return;
+    } else if (mounted) {
       _showErrorSnackBar("Unable to open Google Maps");
     }
   }
 
-  Future<void> callRestaurant(BuildContext context) async {
+  Future<void> callRestaurant() async {
     if (widget.restaurant.phone.isEmpty) {
       _showErrorSnackBar("Phone number not available");
       return;
     }
-
     final Uri url = Uri.parse("tel:${widget.restaurant.phone}");
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
-    } else {
-      if (!context.mounted) return;
+    } else if (mounted) {
       _showErrorSnackBar("Unable to make call");
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFDFBF7),
-      appBar: AppBar(
-        title: Text(
-          widget.restaurant.name,
-          style: GoogleFonts.poppins(
-            color: const Color(0xFF2C221E),
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.3,
-          ),
-        ),
-        backgroundColor: const Color(0xFFFDFBF7),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF2C221E)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-              color: isFavorite ? const Color(0xFFBC4749) : const Color(0xFF5C524E),
-              size: 28,
-            ),
-            onPressed: toggleFavorite,
-          ),
-          IconButton(
-            icon: const Icon(Icons.share_rounded, color: Color(0xFF2C221E)),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image Section
-            Stack(
-              children: [
-                widget.restaurant.image.isEmpty
-                    ? Container(
-                        height: 280,
-                        width: double.infinity,
-                        color: const Color(0xFFE6E1DC),
-                        child: const Icon(Icons.restaurant_rounded, size: 100, color: Color(0xFF8C827E)),
-                      )
-                    : Image.network(
-                        widget.restaurant.image,
-                        width: double.infinity,
-                        height: 280,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          height: 280,
-                          width: double.infinity,
-                          color: const Color(0xFFE6E1DC),
-                          child: const Icon(Icons.broken_image, size: 100, color: Color(0xFF8C827E)),
-                        ),
-                        loadingBuilder: (_, child, progress) {
-                          if (progress == null) return child;
-                          return Container(
-                            height: 280,
-                            width: double.infinity,
-                            color: const Color(0xFFE6E1DC),
-                            child: const Center(
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFA0522D)),
-                            ),
-                          );
-                        },
-                      ),
-                
-                // Espresso tinted gradient overlay
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    height: 100,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          const Color(0xFF1A120B).withValues(alpha: 0.6),
-                          const Color(0xFF1A120B).withValues(alpha: 0.9),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                
-                // Rating badge (Flat)
-                Positioned(
-                  bottom: 16,
-                  right: 16,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFA0522D),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.star_rounded, color: Color(0xFFFFFFFF), size: 18),
-                        const SizedBox(width: 6),
-                        Text(
-                          widget.restaurant.rating.toStringAsFixed(1),
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFFFFFFFF),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                
-                // City badge (Flat)
-                Positioned(
-                  bottom: 16,
-                  left: 16,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFFFFF).withValues(alpha: 0.95),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.location_on_rounded, size: 16, color: Color(0xFFA0522D)),
-                        const SizedBox(width: 4),
-                        Text(
-                          widget.restaurant.cityId,
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: const Color(0xFF2C221E),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+  // ─── UI Helpers ──────────────────────────────────────────────────────────────
 
-            // Content
-            Padding(
-              padding: const EdgeInsets.all(20),
+  Widget _buildInfoTile({
+    required IconData icon,
+    required String label,
+    required String value,
+    bool isClickable = false,
+    VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: isClickable ? onTap : null,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: _AppColors.primaryLight,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: _AppColors.primary, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Restaurant Name
                   Text(
-                    widget.restaurant.name,
+                    label,
                     style: GoogleFonts.poppins(
-                      fontSize: 28,
+                      fontSize: 11,
+                      color: _AppColors.grey,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    value,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: _AppColors.dark,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF2C221E),
-                      height: 1.2,
-                      letterSpacing: 0.3,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 12),
-
-                  // Rating Stars
-                  Row(
-                    children: [
-                      ...List.generate(
-                        5,
-                        (index) => Icon(
-                          index < widget.restaurant.rating.floor()
-                              ? Icons.star_rounded
-                              : index < widget.restaurant.rating
-                                  ? Icons.star_half_rounded
-                                  : Icons.star_outline_rounded,
-                          color: const Color(0xFFD4A373),
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        widget.restaurant.rating.toStringAsFixed(1),
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF2C221E),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        widget.restaurant.rating >= 4.5 ? '(Popular)' : '(Good)',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: const Color(0xFF8C827E),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // About Section
-                  _buildSectionHeader("About"),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFFFFF),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFE6E1DC).withValues(alpha: 0.7), width: 1),
-                    ),
-                    child: Text(
-                      widget.restaurant.description,
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        color: const Color(0xFF5C524E),
-                        height: 1.6,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Contact Section
-                  _buildSectionHeader("Contact Information"),
-                  const SizedBox(height: 12),
-
-                  // Phone Card
-                  _buildContactTile(
-                    icon: Icons.phone_rounded,
-                    label: "Phone",
-                    value: widget.restaurant.phone.isEmpty ? "Not available" : widget.restaurant.phone,
-                    onTap: widget.restaurant.phone.isNotEmpty ? () => callRestaurant(context) : null,
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Location Card
-                  _buildContactTile(
-                    icon: Icons.location_on_rounded,
-                    label: "Location",
-                    value: widget.restaurant.latitude != 0 && widget.restaurant.longitude != 0
-                        ? "${widget.restaurant.latitude.toStringAsFixed(4)}, ${widget.restaurant.longitude.toStringAsFixed(4)}"
-                        : "Location not available",
-                    trailingIcon: Icons.open_in_new_rounded,
-                    onTap: widget.restaurant.latitude != 0 && widget.restaurant.longitude != 0
-                        ? () => openGoogleMaps(context)
-                        : null,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Actions Section
-                  _buildSectionHeader("Actions"),
-                  const SizedBox(height: 12),
-
-                  // Call Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton.icon(
-                      onPressed: () => callRestaurant(context),
-                      icon: const Icon(Icons.call_rounded, color: Color(0xFFFFFFFF), size: 22),
-                      label: Text(
-                        "Call Restaurant",
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFFFFFFFF),
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFA0522D),
-                        foregroundColor: const Color(0xFFFFFFFF),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        elevation: 0,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Maps Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: OutlinedButton.icon(
-                      onPressed: () => openGoogleMaps(context),
-                      icon: const Icon(Icons.location_on_rounded, color: Color(0xFFA0522D), size: 22),
-                      label: Text(
-                        "Open in Google Maps",
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFFA0522D),
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFFA0522D),
-                        side: const BorderSide(color: Color(0xFFD2B48C), width: 1.5),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
                 ],
               ),
             ),
+            if (isClickable)
+              const Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 14,
+                color: _AppColors.grey,
+              ),
           ],
         ),
       ),
     );
   }
 
-  // Helper for Section Headers
   Widget _buildSectionHeader(String title) {
     return Row(
       children: [
@@ -969,7 +198,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
           width: 4,
           height: 24,
           decoration: BoxDecoration(
-            color: const Color(0xFFA0522D),
+            color: _AppColors.primary,
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -979,62 +208,398 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF2C221E),
-            letterSpacing: 0.3,
+            color: _AppColors.dark,
           ),
         ),
       ],
     );
   }
 
-  // Helper for Contact Info Tiles
-  Widget _buildContactTile({
-    required IconData icon,
-    required String label,
-    required String value,
-    IconData? trailingIcon,
-    VoidCallback? onTap,
+  Widget _circleIconButton(
+    IconData icon,
+    VoidCallback onPressed, {
+    Color? color,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFFFFF),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE6E1DC).withValues(alpha: 0.7), width: 1),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFA0522D).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: const Color(0xFFA0522D), size: 22),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label, style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF8C827E), fontWeight: FontWeight.w500)),
-                  const SizedBox(height: 2),
-                  Text(
-                    value,
-                    style: GoogleFonts.poppins(fontSize: 15, color: const Color(0xFF2C221E), fontWeight: FontWeight.w500),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            if (onTap != null)
-              Icon(trailingIcon ?? Icons.arrow_forward_ios_rounded, size: 16, color: const Color(0xFF8C827E)),
-          ],
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.35),
+          shape: BoxShape.circle,
         ),
+        padding: const EdgeInsets.all(8),
+        child: Icon(icon, color: color ?? Colors.white, size: 24),
+      ),
+    );
+  }
+
+  // ─── Build ──────────────────────────────────────────────────────────────────
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: _AppColors.background,
+      body: Stack(
+        children: [
+          // ─── Image Header ──────────────────────────────────────────────────
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: widget.restaurant.image.isEmpty
+                ? Container(
+                    height: 380,
+                    width: double.infinity,
+                    color: _AppColors.lightGrey,
+                    child: const Icon(
+                      Icons.restaurant_rounded,
+                      size: 100,
+                      color: _AppColors.grey,
+                    ),
+                  )
+                : Image.network(
+                    widget.restaurant.image,
+                    width: double.infinity,
+                    height: 380,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      height: 380,
+                      color: _AppColors.lightGrey,
+                      child: const Icon(
+                        Icons.broken_image,
+                        size: 100,
+                        color: _AppColors.grey,
+                      ),
+                    ),
+                    loadingBuilder: (_, child, progress) => progress == null
+                        ? child
+                        : Container(
+                            height: 380,
+                            color: _AppColors.lightGrey,
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: _AppColors.primary,
+                              ),
+                            ),
+                          ),
+                  ),
+          ),
+
+          // ─── Scrollable Content Sheet ──────────────────────────────────────
+          Positioned.fill(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(top: 330),
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: _AppColors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 10,
+                      offset: Offset(0, -5),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ─── Title & City ──────────────────────────────────────
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            widget.restaurant.name,
+                            style: GoogleFonts.poppins(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w700,
+                              color: _AppColors.dark,
+                              height: 1.2,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // ─── Category & City ────────────────────────────────────
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _AppColors.primaryLight,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            "Restaurant",
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              color: _AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Icon(
+                          Icons.location_on_rounded,
+                          size: 16,
+                          color: _AppColors.grey,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          widget.restaurant.cityId,
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: _AppColors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // ─── Rating Summary ──────────────────────────────────────
+                    Row(
+                      children: [
+                        ...List.generate(
+                          5,
+                          (i) => Icon(
+                            i < widget.restaurant.rating.floor()
+                                ? Icons.star_rounded
+                                : i < widget.restaurant.rating
+                                    ? Icons.star_half_rounded
+                                    : Icons.star_border_rounded,
+                            color: _AppColors.star,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          widget.restaurant.rating.toStringAsFixed(1),
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: _AppColors.dark,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          widget.restaurant.rating >= 4.5
+                              ? '(Popular)'
+                              : '(Good)',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: _AppColors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: Divider(color: _AppColors.lightGrey, thickness: 1),
+                    ),
+
+                    // ─── Description ──────────────────────────────────────────
+                    Text(
+                      widget.restaurant.description,
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: _AppColors.dark.withOpacity(0.8),
+                        height: 1.6,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // ─── Info Tiles ────────────────────────────────────────────
+                    Container(
+                      decoration: BoxDecoration(
+                        color: _AppColors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: _AppColors.lightGrey,
+                          width: 1,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildInfoTile(
+                            icon: Icons.phone_outlined,
+                            label: "Phone",
+                            value: widget.restaurant.phone.isEmpty
+                                ? "Not available"
+                                : widget.restaurant.phone,
+                            isClickable: widget.restaurant.phone.isNotEmpty,
+                            onTap:
+                                widget.restaurant.phone.isNotEmpty
+                                    ? callRestaurant
+                                    : null,
+                          ),
+                          if (widget.restaurant.phone.isNotEmpty)
+                            const Divider(
+                              height: 1,
+                              color: _AppColors.lightGrey,
+                              indent: 64,
+                            ),
+                          _buildInfoTile(
+                            icon: Icons.location_on_outlined,
+                            label: "Location",
+                            value: widget.restaurant.latitude != 0 &&
+                                    widget.restaurant.longitude != 0
+                                ? "${widget.restaurant.latitude.toStringAsFixed(4)}, ${widget.restaurant.longitude.toStringAsFixed(4)}"
+                                : "Location not available",
+                            isClickable: widget.restaurant.latitude != 0 &&
+                                widget.restaurant.longitude != 0,
+                            onTap:
+                                widget.restaurant.latitude != 0 &&
+                                        widget.restaurant.longitude != 0
+                                    ? openGoogleMaps
+                                    : null,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 30),
+
+                    // ─── (Optional) Write Review / Actions ──────────────────
+                    // Since we don't have a review service for restaurants,
+                    // we'll add a simple "Call" and "Maps" action buttons
+                    // to replace the old action buttons, but in the new style.
+                    _buildSectionHeader("Actions"),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 52,
+                            child: OutlinedButton.icon(
+                              onPressed:
+                                  widget.restaurant.phone.isNotEmpty
+                                      ? callRestaurant
+                                      : null,
+                              icon: const Icon(
+                                Icons.call_rounded,
+                                color: _AppColors.primary,
+                                size: 20,
+                              ),
+                              label: Text(
+                                "Call",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: _AppColors.primary,
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(
+                                  color: _AppColors.primary,
+                                  width: 1.5,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: SizedBox(
+                            height: 52,
+                            child: OutlinedButton.icon(
+                              onPressed:
+                                  (widget.restaurant.latitude != 0 &&
+                                          widget.restaurant.longitude != 0)
+                                      ? openGoogleMaps
+                                      : null,
+                              icon: const Icon(
+                                Icons.map_rounded,
+                                color: _AppColors.primary,
+                                size: 20,
+                              ),
+                              label: Text(
+                                "Maps",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: _AppColors.primary,
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(
+                                  color: _AppColors.primary,
+                                  width: 1.5,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // ─── Floating Actions ──────────────────────────────────────────────
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 12,
+            left: 20,
+            right: 20,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.35),
+                      shape: BoxShape.circle,
+                    ),
+                    padding: const EdgeInsets.all(8),
+                    child: const Icon(
+                      Icons.arrow_back_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                ),
+                Row(
+                  children: [
+                    _circleIconButton(
+                      isFavorite
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
+                      toggleFavorite,
+                      color: isFavorite ? _AppColors.error : Colors.white,
+                    ),
+                    const SizedBox(width: 10),
+                    _circleIconButton(
+                      Icons.share_rounded,
+                      () {
+                        // Add share logic if needed
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

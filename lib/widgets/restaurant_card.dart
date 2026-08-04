@@ -3,6 +3,7 @@ import 'package:app/core/constants/app_colors.dart';
 import 'package:app/model/restaurant_model.dart';
 import 'package:app/screens/home/restaurant_detail_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class RestaurantCard extends StatelessWidget {
   final RestaurantModel restaurant;
@@ -18,7 +19,7 @@ class RestaurantCard extends StatelessWidget {
       if (i < fullStars) {
         stars.add(const Icon(
           Icons.star_rounded,
-          color: AppColors.warning, // Marigold color for stars
+          color: AppColors.warning, // gold/yellow
           size: 13,
         ));
       } else if (i == fullStars && hasHalfStar) {
@@ -29,7 +30,7 @@ class RestaurantCard extends StatelessWidget {
         ));
       } else {
         stars.add(const Icon(
-          Icons.star_outline_rounded,
+          Icons.star_border_rounded,
           color: AppColors.lightGrey,
           size: 13,
         ));
@@ -38,12 +39,12 @@ class RestaurantCard extends StatelessWidget {
     return Row(mainAxisSize: MainAxisSize.min, children: stars);
   }
 
-  // ✅ Unified Placeholder Widget
+  // Placeholder for missing image / loading
   Widget _buildPlaceholder({bool isLoading = false}) {
     return Container(
       height: 120,
       width: double.infinity,
-      color: AppColors.primarySurface, // Warm ultra-light tint
+      color: AppColors.lightGrey.withOpacity(0.5),
       child: isLoading
           ? Center(
               child: SizedBox(
@@ -51,12 +52,12 @@ class RestaurantCard extends StatelessWidget {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: AppColors.primary.withValues(alpha: 0.6),
+                  color: AppColors.primary.withOpacity(0.6),
                 ),
               ),
             )
-          : const Icon(
-              Icons.restaurant_outlined, // Outlined icon
+          : Icon(
+              Icons.restaurant_outlined,
               size: 36,
               color: AppColors.grey,
             ),
@@ -66,17 +67,23 @@ class RestaurantCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 210, // Unified width with Hotel & Attraction cards
+      width: 210,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: AppColors.lightGrey.withValues(alpha: 0.5),
+            color: AppColors.lightGrey.withOpacity(0.5),
             width: 1,
           ),
-          boxShadow: AppColors.subtleShadow, // Warm shadow instead of stark black
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Material(
           color: Colors.transparent,
@@ -94,7 +101,7 @@ class RestaurantCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Image Section
+                // ── Image ──────────────────────────────────────────────────
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(15),
@@ -104,7 +111,7 @@ class RestaurantCard extends StatelessWidget {
                       : Image.network(
                           restaurant.image,
                           height: 120,
-                          width: double.infinity, // Properly fills container
+                          width: double.infinity,
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => _buildPlaceholder(),
                           loadingBuilder: (_, child, progress) {
@@ -113,17 +120,17 @@ class RestaurantCard extends StatelessWidget {
                           },
                         ),
                 ),
-                
-                // Content Section
+
+                // ── Content ────────────────────────────────────────────────
                 Padding(
                   padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Title
+                      // Name
                       Text(
                         restaurant.name,
-                        style: const TextStyle(
+                        style: GoogleFonts.poppins(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w600,
                           color: AppColors.dark,
@@ -133,11 +140,11 @@ class RestaurantCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
-                      
-                      // Location
+
+                      // City
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.location_on_rounded,
                             size: 12,
                             color: AppColors.primary,
@@ -146,7 +153,7 @@ class RestaurantCard extends StatelessWidget {
                           Expanded(
                             child: Text(
                               restaurant.cityId,
-                              style: TextStyle(
+                              style: GoogleFonts.poppins(
                                 fontSize: 11,
                                 color: AppColors.darkGrey,
                               ),
@@ -157,28 +164,28 @@ class RestaurantCard extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 6),
-                      
+
                       // Description
                       Text(
                         restaurant.description,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           fontSize: 11,
                           color: AppColors.darkGrey,
                           height: 1.4,
                         ),
                       ),
                       const SizedBox(height: 10),
-                      
-                      // Rating Row
+
+                      // Rating
                       Row(
                         children: [
                           _buildRatingStars(restaurant.rating),
                           const SizedBox(width: 4),
                           Text(
                             restaurant.rating.toStringAsFixed(1),
-                            style: const TextStyle(
+                            style: GoogleFonts.poppins(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                               color: AppColors.dark,
