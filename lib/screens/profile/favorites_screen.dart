@@ -1,8 +1,27 @@
 // lib/screens/profile/favorites_screen.dart
-import 'package:app/core/constants/app_colors.dart';
+import 'package:app/model/attraction_model.dart';
+import 'package:app/model/hotel_model.dart';
+import 'package:app/model/restaurant_model.dart';
+import 'package:app/screens/home/attraction_details.dart';
+import 'package:app/screens/home/hotel_detail_screen.dart';
+import 'package:app/screens/home/restaurant_detail_screen.dart';
+import 'package:app/services/favorite_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import '../../services/favorite_service.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+// ─── Local Blue Theme ──────────────────────────────────────────────────────────
+class _AppColors {
+  static const Color background = Color(0xFFF8FAFC);
+  static const Color white = Colors.white;
+  static const Color dark = Color(0xFF0F172A);
+  static const Color primary = Color(0xFF2563EB);
+  static const Color primaryLight = Color(0xFFEFF6FF);
+  static const Color error = Color(0xFFDC2626);
+  static const Color lightGrey = Color(0xFFE2E8F0);
+  static const Color grey = Color(0xFF64748B);
+  static const Color star = Color(0xFFF59E0B);
+}
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -39,122 +58,78 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     return null;
   }
 
-  IconData _getIconForType(String type) {
+  // ─── Navigation ──────────────────────────────────────────────────────────────
+
+  void _navigateToDetail(String type, String itemId, Map<String, dynamic> data) {
+    Widget screen;
     switch (type) {
+      case 'attraction':
+        screen = AttractionDetailScreen(
+          attraction: AttractionModel.fromFirestore(data, itemId),
+        );
+        break;
       case 'hotel':
-        return Icons.hotel_rounded;
+        screen = HotelDetailScreen(
+          hotel: HotelModel.fromFirestore(data, itemId),
+        );
+        break;
       case 'restaurant':
-        return Icons.restaurant_rounded;
+        screen = RestaurantDetailScreen(
+          restaurant: RestaurantModel.fromFirestore(data, itemId),
+        );
+        break;
       default:
-        return Icons.place_rounded;
+        return;
     }
+    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
   }
 
-  Color _getTypeColor(String type) {
-    switch (type) {
-      case 'hotel':
-        return AppColors.secondaryDark; // Deep Gold
-      case 'restaurant':
-        return AppColors.accent; // Terracotta
-      default:
-        return AppColors.primary; // Cognac
-    }
-  }
-
-  String _getTypeLabel(String type) {
-    switch (type) {
-      case 'hotel':
-        return 'Hotel';
-      case 'restaurant':
-        return 'Restaurant';
-      default:
-        return 'Attraction';
-    }
-  }
+  // ─── Remove dialog ──────────────────────────────────────────────────────────
 
   void _showRemoveDialog(String name, String favoriteId) async {
     bool? confirm = await showDialog(
       context: context,
-      builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        backgroundColor: AppColors.surface,
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.favorite_border_rounded,
-                  color: AppColors.error,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                "Remove Favorite",
-                style: TextStyle(
-                  color: AppColors.dark,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                "Remove \"$name\" from your favorites?",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.darkGrey,
-                  fontSize: 14,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.darkGrey,
-                        side: const BorderSide(color: AppColors.lightGrey),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text("Cancel"),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.error,
-                        foregroundColor: AppColors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text("Remove"),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+      builder: (_) => AlertDialog(
+        backgroundColor: _AppColors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          "Remove Favorite",
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            color: _AppColors.dark,
           ),
         ),
+        content: Text(
+          "Remove '$name' from your favorites?",
+          style: GoogleFonts.poppins(color: _AppColors.grey),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              "Cancel",
+              style: GoogleFonts.poppins(
+                color: _AppColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _AppColors.error,
+              foregroundColor: _AppColors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: Text(
+              "Remove",
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
       ),
     );
 
@@ -168,14 +143,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   void _showRemovedSnackBar() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.heart_broken, color: AppColors.white, size: 18),
-            const SizedBox(width: 10),
-            const Text("Removed from favorites"),
-          ],
+        content: Text(
+          "Removed from favorites",
+          style: GoogleFonts.poppins(
+            color: _AppColors.white,
+            fontWeight: FontWeight.w500,
+          ),
         ),
-        backgroundColor: AppColors.darkGrey,
+        backgroundColor: _AppColors.dark,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -183,29 +158,34 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
+  // ─── Build ──────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: _AppColors.background,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           "Favorites",
-          style: TextStyle(
-            color: AppColors.dark,
+          style: GoogleFonts.poppins(
+            color: _AppColors.dark,
             fontWeight: FontWeight.w700,
             fontSize: 20,
           ),
         ),
-        backgroundColor: AppColors.background,
+        backgroundColor: _AppColors.background,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         centerTitle: false,
-        iconTheme: const IconThemeData(color: AppColors.dark),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: _AppColors.dark),
+          onPressed: () => Navigator.pop(context),
+        ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
             height: 1,
-            color: AppColors.lightGrey,
+            color: _AppColors.lightGrey,
           ),
         ),
       ),
@@ -223,14 +203,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     height: 36,
                     child: CircularProgressIndicator(
                       strokeWidth: 3,
-                      color: AppColors.primary,
+                      color: _AppColors.primary,
                     ),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     "Loading favorites...",
-                    style: TextStyle(
-                      color: AppColors.grey,
+                    style: GoogleFonts.poppins(
+                      color: _AppColors.grey,
                       fontSize: 14,
                     ),
                   ),
@@ -251,20 +231,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       width: 72,
                       height: 72,
                       decoration: BoxDecoration(
-                        color: AppColors.error.withValues(alpha: 0.1),
+                        color: _AppColors.error.withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.error_outline_rounded,
                         size: 36,
-                        color: AppColors.error,
+                        color: _AppColors.error,
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       "Something went wrong",
-                      style: TextStyle(
-                        color: AppColors.dark,
+                      style: GoogleFonts.poppins(
+                        color: _AppColors.dark,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -273,8 +253,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     Text(
                       '${snapshot.error}',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AppColors.darkGrey,
+                      style: GoogleFonts.poppins(
+                        color: _AppColors.grey,
                         fontSize: 13,
                       ),
                     ),
@@ -284,10 +264,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       child: ElevatedButton.icon(
                         onPressed: () => setState(() {}),
                         icon: const Icon(Icons.refresh_rounded, size: 18),
-                        label: const Text("Try Again"),
+                        label: Text(
+                          "Try Again",
+                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                        ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: AppColors.white,
+                          backgroundColor: _AppColors.primary,
+                          foregroundColor: _AppColors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -313,20 +296,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
-                        color: AppColors.secondaryLight.withValues(alpha: 0.5),
+                        color: _AppColors.lightGrey.withOpacity(0.3),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.favorite_border_rounded,
                         size: 48,
-                        color: AppColors.grey,
+                        color: _AppColors.grey,
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const Text(
+                    Text(
                       "No Favorites Yet",
-                      style: TextStyle(
-                        color: AppColors.dark,
+                      style: GoogleFonts.poppins(
+                        color: _AppColors.dark,
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
                       ),
@@ -335,8 +318,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     Text(
                       "Start exploring and save your\nfavorite places to find them here.",
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AppColors.darkGrey,
+                      style: GoogleFonts.poppins(
+                        color: _AppColors.grey,
                         fontSize: 14,
                         height: 1.6,
                       ),
@@ -349,30 +332,24 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
           final docs = snapshot.data!.docs;
 
-          // ── Favorites Grid ──
+          // ── Favorites List (vertical, full‑width cards) ──────────────────
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                 child: Text(
                   "${docs.length} saved ${docs.length == 1 ? 'place' : 'places'}",
-                  style: const TextStyle(
-                    color: AppColors.darkGrey,
+                  style: GoogleFonts.poppins(
+                    color: _AppColors.grey,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
               Expanded(
-                child: GridView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 0.74,
-                  ),
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   itemCount: docs.length,
                   itemBuilder: (context, index) {
                     var favorite = docs[index];
@@ -397,17 +374,23 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         final name = data['name'] ?? data['title'] ?? 'Unknown';
                         final image = data['image'] ?? '';
                         final rating = (data['rating'] ?? 0).toDouble();
-                        final location = data['location'] ?? data['city'] ?? _getTypeLabel(type);
-                        final price = data['price'] ?? '';
 
-                        return _buildFavoriteCard(
-                          name: name,
-                          image: image,
-                          rating: rating,
-                          location: location,
-                          price: price,
-                          type: type,
-                          favoriteId: favorite.id,
+                        // ✅ Fix: Show a user‑friendly location label
+                        // If there's a 'cityName' field, use it; otherwise fallback to type.
+                        final location = data['cityName'] ?? _getDefaultLocation(type);
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _buildFullWidthCard(
+                            name: name,
+                            image: image,
+                            rating: rating,
+                            location: location,
+                            type: type,
+                            favoriteId: favorite.id,
+                            itemId: itemId,
+                            data: data,
+                          ),
                         );
                       },
                     );
@@ -421,210 +404,145 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  // ── Vertical Grid Favorite Card ──
-  Widget _buildFavoriteCard({
+  // ─── Helpers ──────────────────────────────────────────────────────────────
+
+  String _getDefaultLocation(String type) {
+    switch (type) {
+      case 'hotel': return 'Hotel';
+      case 'restaurant': return 'Restaurant';
+      case 'event': return 'Event';
+      default: return 'Attraction';
+    }
+  }
+
+  // ─── Full‑Width Card (like home screen) ──────────────────────────────────
+
+  Widget _buildFullWidthCard({
     required String name,
     required String image,
     required double rating,
     required String location,
-    required String price,
     required String type,
     required String favoriteId,
+    required String itemId,
+    required Map<String, dynamic> data,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.lightGrey.withValues(alpha: 0.6),
-        ),
-        boxShadow: AppColors.subtleShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image with Heart Icon Overlay
-          Expanded(
-            child: Stack(
-              children: [
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(15),
-                    ),
-                    color: AppColors.primarySurface,
-                    image: image.isNotEmpty
-                        ? DecorationImage(
-                            image: NetworkImage(image),
-                            fit: BoxFit.cover,
-                            onError: (_, __) {},
-                          )
-                        : null,
-                  ),
-                  child: image.isEmpty
-                      ? Icon(
-                          _getIconForType(type),
-                          color: _getTypeColor(type).withValues(alpha: 0.6),
-                          size: 32,
-                        )
-                      : null,
-                ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: GestureDetector(
-                    onTap: () => _showRemoveDialog(name, favoriteId),
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: const BoxDecoration(
-                        color: AppColors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 4,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.favorite_rounded,
-                        color: AppColors.error,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+    return GestureDetector(
+      onTap: () => _navigateToDetail(type, itemId, data),
+      child: Container(
+        decoration: BoxDecoration(
+          color: _AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: _AppColors.lightGrey.withOpacity(0.5),
           ),
-          // Info Section
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.dark,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  location,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: AppColors.darkGrey,
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Image (left) ──
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(15),
+                bottomLeft: Radius.circular(15),
+              ),
+              child: image.isNotEmpty
+                  ? Image.network(
+                      image,
+                      width: 120,
+                      height: 130,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        width: 120,
+                        height: 130,
+                        color: _AppColors.lightGrey,
+                        child: const Icon(Icons.broken_image, color: _AppColors.grey),
+                      ),
+                    )
+                  : Container(
+                      width: 120,
+                      height: 130,
+                      color: _AppColors.lightGrey,
+                      child: const Icon(Icons.place_rounded, color: _AppColors.grey),
+                    ),
+            ),
+            // ── Info (right) ──
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Icon(
-                          Icons.star_rounded,
-                          color: AppColors.warning,
-                          size: 14,
+                        Expanded(
+                          child: Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: _AppColors.dark,
+                            ),
+                          ),
                         ),
-                        const SizedBox(width: 2),
-                        Text(
-                          rating.toStringAsFixed(1),
-                          style: TextStyle(
-                            color: AppColors.darkGrey,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                        // Remove button (small heart)
+                        GestureDetector(
+                          onTap: () => _showRemoveDialog(name, favoriteId),
+                          child: const Icon(
+                            Icons.favorite_rounded,
+                            color: _AppColors.error,
+                            size: 20,
                           ),
                         ),
                       ],
                     ),
-                    if (price.isNotEmpty)
-                      Text(
-                        price,
-                        style: const TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                        ),
+                    const SizedBox(height: 4),
+                    Text(
+                      location,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: _AppColors.grey,
                       ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        ...List.generate(
+                          5,
+                          (i) => Icon(
+                            i < rating.floor()
+                                ? Icons.star_rounded
+                                : i < rating
+                                    ? Icons.star_half_rounded
+                                    : Icons.star_border_rounded,
+                            color: _AppColors.star,
+                            size: 16,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          rating.toStringAsFixed(1),
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: _AppColors.dark,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Unavailable Item Card ──
-  Widget _buildUnavailableCard(QueryDocumentSnapshot favorite) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.lightGrey.withValues(alpha: 0.4),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: AppColors.lightGrey.withValues(alpha: 0.3),
-              ),
-              child: const Icon(
-                Icons.hide_source_rounded,
-                color: AppColors.grey,
-                size: 24,
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              "Not available",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.darkGrey,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 12),
-            GestureDetector(
-              onTap: () async {
-                await favoriteService.removeFavorite(favorite.id);
-                if (!mounted) return;
-                _showRemovedSnackBar();
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text(
-                  "Remove",
-                  style: TextStyle(
-                    color: AppColors.error,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
                 ),
               ),
             ),
@@ -634,65 +552,51 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  // ── Loading Shimmer Card ──
-  Widget _buildShimmerCard() {
+  Widget _buildUnavailableCard(QueryDocumentSnapshot favorite) {
     return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: _AppColors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.lightGrey.withValues(alpha: 0.4),
-        ),
+        border: Border.all(color: _AppColors.lightGrey.withOpacity(0.5)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
+          const Icon(Icons.delete_outline_rounded, color: _AppColors.grey),
+          const SizedBox(width: 12),
           Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(15),
-                ),
-                color: AppColors.lightGrey.withValues(alpha: 0.4),
-              ),
-              child: Center(
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: AppColors.primary.withValues(alpha: 0.4),
-                  ),
-                ),
+            child: Text(
+              "Item not available",
+              style: GoogleFonts.poppins(
+                color: _AppColors.grey,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: double.infinity,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: AppColors.lightGrey.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Container(
-                  width: 60,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: AppColors.lightGrey.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ),
-              ],
-            ),
+          IconButton(
+            icon: const Icon(Icons.close_rounded, color: _AppColors.error),
+            onPressed: () => _showRemoveDialog('this item', favorite.id),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildShimmerCard() {
+    return Container(
+      height: 130,
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: _AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _AppColors.lightGrey.withOpacity(0.5)),
+      ),
+      child: const Center(
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: _AppColors.primary,
+        ),
       ),
     );
   }

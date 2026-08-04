@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// Make sure to update this import path to match your exact AppColors location
-import '../../core/constants/app_colors.dart'; 
 import '../../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {

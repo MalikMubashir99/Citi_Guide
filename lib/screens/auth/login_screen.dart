@@ -3,9 +3,6 @@ import 'package:app/admin/services/admin_service.dart';
 import 'package:app/screens/home/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-// Make sure to update this import path to match your exact AppColors location
-import '../../core/constants/app_colors.dart'; 
 import '../../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {

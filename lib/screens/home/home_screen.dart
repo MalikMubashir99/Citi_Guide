@@ -5,6 +5,7 @@ import 'package:app/model/hotel_model.dart';
 import 'package:app/model/restaurant_model.dart';
 import 'package:app/model/event_model.dart';
 import 'package:app/model/city_model.dart';
+import 'package:app/screens/home/attraction_details.dart';
 import 'package:app/screens/home/search_screen.dart';
 import 'package:app/screens/maps/open_street_map_screen.dart';
 import 'package:app/screens/profile/profile_screen.dart';
@@ -27,6 +28,7 @@ import 'package:app/widgets/restaurant_card.dart';
 import 'package:app/widgets/event_card.dart';
 import 'package:app/widgets/bottom_navbar.dart';
 import 'package:app/screens/profile/favorites_screen.dart';
+import 'dart:convert';
 
 // ─── Local Blue Theme ──────────────────────────────────────────────────────────
 class _AppColors {
@@ -218,7 +220,8 @@ class _HomeScreenState extends State<HomeScreen> {
   // ─── Search Results Screen (unchanged) ─────────────────────────────────────
 
   Widget _buildSearchResults() {
-    final totalResults = searchAttractions.length +
+    final totalResults =
+        searchAttractions.length +
         searchHotels.length +
         searchRestaurants.length +
         searchEvents.length;
@@ -302,8 +305,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 20),
 
                   if (searchAttractions.isNotEmpty) ...[
-                    _buildResultSection('Attractions', searchAttractions.length),
-                    ...searchAttractions.map((item) => AttractionCard(attraction: item)),
+                    _buildResultSection(
+                      'Attractions',
+                      searchAttractions.length,
+                    ),
+                    ...searchAttractions.map(
+                      (item) => AttractionCard(attraction: item),
+                    ),
                     const SizedBox(height: 16),
                   ],
 
@@ -314,8 +322,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
 
                   if (searchRestaurants.isNotEmpty) ...[
-                    _buildResultSection('Restaurants', searchRestaurants.length),
-                    ...searchRestaurants.map((item) => RestaurantCard(restaurant: item)),
+                    _buildResultSection(
+                      'Restaurants',
+                      searchRestaurants.length,
+                    ),
+                    ...searchRestaurants.map(
+                      (item) => RestaurantCard(restaurant: item),
+                    ),
                     const SizedBox(height: 16),
                   ],
 
@@ -373,9 +386,21 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Greeting ──────────────────────────────────────────────────────
+            // ── Greeting with Profile Image (supports base64) ────────────────────────
             Row(
               children: [
+                ClipOval(
+                  child: userImage.isNotEmpty
+                      ? Image.memory(
+                          base64Decode(userImage),
+                          width: 40,
+                          height: 40,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _buildFallbackAvatar(),
+                        )
+                      : _buildFallbackAvatar(),
+                ),
+                const SizedBox(width: 10),
                 Text(
                   'Good morning',
                   style: GoogleFonts.poppins(
@@ -393,8 +418,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: _AppColors.dark,
                   ),
                 ),
-                const SizedBox(width: 4),
-                const Text('🌟', style: TextStyle(fontSize: 22)),
               ],
             ),
             const SizedBox(height: 8),
@@ -402,8 +425,11 @@ class _HomeScreenState extends State<HomeScreen> {
             // ── Location ────────────────────────────────────────────────────
             Row(
               children: [
-                const Icon(Icons.location_on_rounded,
-                    color: _AppColors.primary, size: 18),
+                const Icon(
+                  Icons.location_on_rounded,
+                  color: _AppColors.primary,
+                  size: 18,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   'Paris, France', // You can make this dynamic later
@@ -434,8 +460,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 future: cityService.getCities(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator(
-                        strokeWidth: 2, color: _AppColors.primary));
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: _AppColors.primary,
+                      ),
+                    );
                   }
                   if (snapshot.hasError || !snapshot.hasData) {
                     return const SizedBox.shrink();
@@ -463,7 +493,10 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: const [
                 _CategoryItem(icon: Icons.place_rounded, label: 'Attractions'),
-                _CategoryItem(icon: Icons.restaurant_rounded, label: 'Restaurants'),
+                _CategoryItem(
+                  icon: Icons.restaurant_rounded,
+                  label: 'Restaurants',
+                ),
                 _CategoryItem(icon: Icons.hotel_rounded, label: 'Hotels'),
                 _CategoryItem(icon: Icons.event_rounded, label: 'Events'),
               ],
@@ -479,8 +512,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 future: attractionService.getAllAttractions(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator(
-                        strokeWidth: 2, color: _AppColors.primary));
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: _AppColors.primary,
+                      ),
+                    );
                   }
                   if (snapshot.hasError || !snapshot.hasData) {
                     return const SizedBox.shrink();
@@ -493,7 +530,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     separatorBuilder: (_, __) => const SizedBox(width: 16),
                     itemBuilder: (context, index) {
                       final attraction = attractions[index];
-                      return _NearbyCard(attraction: attraction);
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AttractionDetailScreen(
+                                attraction: attraction,
+                              ),
+                            ),
+                          );
+                        },
+                        child: _NearbyCard(attraction: attraction),
+                      );
                     },
                   );
                 },
@@ -510,8 +559,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 future: hotelService.getAllHotels(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator(
-                        strokeWidth: 2, color: _AppColors.primary));
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: _AppColors.primary,
+                      ),
+                    );
                   }
                   if (snapshot.hasError || !snapshot.hasData) {
                     return const SizedBox.shrink();
@@ -540,8 +593,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 future: restaurantService.getAllRestaurants(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator(
-                        strokeWidth: 2, color: _AppColors.primary));
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: _AppColors.primary,
+                      ),
+                    );
                   }
                   if (snapshot.hasError || !snapshot.hasData) {
                     return const SizedBox.shrink();
@@ -570,8 +627,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 future: eventService.getAllEvents(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator(
-                        strokeWidth: 2, color: _AppColors.primary));
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: _AppColors.primary,
+                      ),
+                    );
                   }
                   if (snapshot.hasError || !snapshot.hasData) {
                     return const SizedBox.shrink();
@@ -624,6 +685,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+Widget _buildFallbackAvatar() {
+  return Container(
+    width: 40,
+    height: 40,
+    color: _AppColors.primaryLight,
+    child: Icon(Icons.person, color: _AppColors.primary, size: 24),
+  );
+}
+
 // ─── Destination Card (for Popular Destinations) ────────────────────────────
 
 class _DestinationCard extends StatelessWidget {
@@ -654,10 +724,7 @@ class _DestinationCard extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.7),
-                    Colors.transparent,
-                  ],
+                  colors: [Colors.black.withOpacity(0.7), Colors.transparent],
                 ),
               ),
             ),
@@ -680,8 +747,11 @@ class _DestinationCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.star_rounded,
-                        color: _AppColors.star, size: 16),
+                    const Icon(
+                      Icons.star_rounded,
+                      color: _AppColors.star,
+                      size: 16,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       '4.9', // static rating – can be dynamic if you have it
@@ -772,15 +842,19 @@ class _NearbyCard extends StatelessWidget {
                     errorBuilder: (_, __, ___) => Container(
                       height: 140,
                       color: _AppColors.lightGrey,
-                      child: const Icon(Icons.broken_image,
-                          color: _AppColors.grey),
+                      child: const Icon(
+                        Icons.broken_image,
+                        color: _AppColors.grey,
+                      ),
                     ),
                   )
                 : Container(
                     height: 140,
                     color: _AppColors.lightGrey,
-                    child: const Icon(Icons.landscape_rounded,
-                        color: _AppColors.grey),
+                    child: const Icon(
+                      Icons.landscape_rounded,
+                      color: _AppColors.grey,
+                    ),
                   ),
           ),
           // Details
@@ -810,15 +884,18 @@ class _NearbyCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    ...List.generate(5, (i) => Icon(
-                      i < attraction.rating.floor()
-                          ? Icons.star_rounded
-                          : i < attraction.rating
-                              ? Icons.star_half_rounded
-                              : Icons.star_border_rounded,
-                      color: _AppColors.star,
-                      size: 16,
-                    )),
+                    ...List.generate(
+                      5,
+                      (i) => Icon(
+                        i < attraction.rating.floor()
+                            ? Icons.star_rounded
+                            : i < attraction.rating
+                            ? Icons.star_half_rounded
+                            : Icons.star_border_rounded,
+                        color: _AppColors.star,
+                        size: 16,
+                      ),
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       '(${_formatReviewCount(attraction.rating * 10000 ~/ 5)})', // dummy count

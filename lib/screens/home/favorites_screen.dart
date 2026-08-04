@@ -1,8 +1,29 @@
 // lib/screens/home/favorites_screen.dart
+import 'package:app/model/attraction_model.dart';
+import 'package:app/model/hotel_model.dart';
+import 'package:app/model/restaurant_model.dart';
+import 'package:app/model/event_model.dart';
+import 'package:app/screens/home/attraction_details.dart';
+import 'package:app/screens/home/hotel_detail_screen.dart';
+import 'package:app/screens/home/restaurant_detail_screen.dart';
+import 'package:app/screens/home/event_detail_screen.dart';
 import 'package:app/services/favorite_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+// ─── Local Blue Theme ──────────────────────────────────────────────────────────
+class _AppColors {
+  static const Color background = Color(0xFFF8FAFC);
+  static const Color white = Colors.white;
+  static const Color dark = Color(0xFF0F172A);
+  static const Color primary = Color(0xFF2563EB);
+  static const Color primaryLight = Color(0xFFEFF6FF);
+  static const Color error = Color(0xFFDC2626);
+  static const Color lightGrey = Color(0xFFE2E8F0);
+  static const Color grey = Color(0xFF64748B);
+  static const Color star = Color(0xFFF59E0B);
+}
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -14,53 +35,135 @@ class FavoritesScreen extends StatefulWidget {
 class _FavoritesScreenState extends State<FavoritesScreen> {
   final FavoriteService favoriteService = FavoriteService();
 
-  // Color Palette Constants
-  static const Color _bgWarmLinen = Color(0xFFFDFBF7);
-  static const Color _primaryCognac = Color(0xFF9C512C);
-  static const Color _secondarySand = Color(0xFFD4A373);
-  static const Color _darkText = Color(0xFF2C221E);
-  static const Color _darkGreyText = Color(0xFF6B7280);
-  static const Color _lightGrey = Color(0xFFE5E7EB);
-  static const Color _errorSienna = Color(0xFFC84B31);
-  static const Color _infoBlue = Color(0xFF5B82A6);
-  static const Color _accentTerracotta = Color(0xFFD97757);
-  static const Color _successSage = Color(0xFF7C9A92);
-
   Future<Map<String, dynamic>?> _getItemDetails(String itemId) async {
-    // Try attraction
     try {
       var doc = await favoriteService.getAttraction(itemId);
       if (doc.exists) {
         return {'type': 'attraction', 'data': doc.data() as Map<String, dynamic>};
       }
-    } catch (e) {
-      debugPrint('Attraction error: $e');
-    }
-
-    // Try hotel
+    } catch (e) {}
     try {
       var doc = await favoriteService.getHotel(itemId);
       if (doc.exists) {
         return {'type': 'hotel', 'data': doc.data() as Map<String, dynamic>};
       }
-    } catch (e) {
-      debugPrint('Hotel error: $e');
-    }
-
-    // Try restaurant
+    } catch (e) {}
     try {
       var doc = await favoriteService.getRestaurant(itemId);
       if (doc.exists) {
         return {'type': 'restaurant', 'data': doc.data() as Map<String, dynamic>};
       }
-    } catch (e) {
-      debugPrint('Restaurant error: $e');
-    }
-
+    } catch (e) {}
     return null;
   }
 
-  // Themed icons based on type
+  // ─── Build card from map ──────────────────────────────────────────────────
+
+  Widget _buildCardFromMap(Map<String, dynamic> data, String type, String favoriteId, String itemId) {
+    final name = data['name'] ?? data['title'] ?? 'Unknown';
+    final image = data['image'] ?? '';
+    final cityId = data['cityId'] ?? '';
+    final rating = (data['rating'] ?? 0).toDouble();
+
+    Widget card = Container(
+      decoration: BoxDecoration(
+        color: _AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _AppColors.lightGrey.withOpacity(0.5), width: 1),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(15),
+              bottomLeft: Radius.circular(15),
+            ),
+            child: image.isNotEmpty
+                ? Image.network(
+                    image,
+                    width: 120,
+                    height: 130,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      width: 120,
+                      height: 130,
+                      color: _AppColors.lightGrey,
+                      child: Icon(_getIconForType(type), color: _AppColors.grey),
+                    ),
+                  )
+                : Container(
+                    width: 120,
+                    height: 130,
+                    color: _AppColors.lightGrey,
+                    child: Icon(_getIconForType(type), color: _AppColors.grey),
+                  ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: _AppColors.dark,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    cityId.isNotEmpty ? cityId : _getDefaultLocation(type),
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      color: _AppColors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      ...List.generate(
+                        5,
+                        (i) => Icon(
+                          i < rating.floor()
+                              ? Icons.star_rounded
+                              : i < rating
+                                  ? Icons.star_half_rounded
+                                  : Icons.star_border_rounded,
+                          color: _AppColors.star,
+                          size: 16,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        rating.toStringAsFixed(1),
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: _AppColors.dark,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    // Wrap with GestureDetector for navigation
+    return GestureDetector(
+      onTap: () => _navigateToDetail(type, itemId, data),
+      child: card,
+    );
+  }
+
   IconData _getIconForType(String type) {
     switch (type) {
       case 'hotel': return Icons.hotel_rounded;
@@ -70,46 +173,53 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     }
   }
 
-  // Earthy theme colors based on type
-  Color _getColorForType(String type) {
+  String _getDefaultLocation(String type) {
     switch (type) {
-      case 'hotel': return _infoBlue;        // Dusty Blue
-      case 'restaurant': return _accentTerracotta; // Terracotta
-      case 'event': return _successSage;     // Sage Green
-      default: return _primaryCognac;        // Rich Cognac
+      case 'hotel': return 'Hotel';
+      case 'restaurant': return 'Restaurant';
+      case 'event': return 'Event';
+      default: return 'Landmark';
     }
   }
+
+  void _navigateToDetail(String type, String itemId, Map<String, dynamic> data) {
+  Widget screen;
+  switch (type) {
+    case 'attraction':
+      screen = AttractionDetailScreen(attraction: AttractionModel.fromFirestore(data, itemId));
+      break;
+    case 'hotel':
+      screen = HotelDetailScreen(hotel: HotelModel.fromFirestore(data, itemId));
+      break;
+    case 'restaurant':
+      screen = RestaurantDetailScreen(restaurant: RestaurantModel.fromFirestore(data, itemId));
+      break;
+    default:
+      return;
+  }
+  Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+}
+  // ─── Build ──────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bgWarmLinen, // Warm Linen
+      backgroundColor: _AppColors.background,
       appBar: AppBar(
-        title: Text(
-          "My Favorites",
-          style: GoogleFonts.poppins(
-            color: _darkText,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        backgroundColor: _bgWarmLinen,
+        title: Text("Favorites", style: GoogleFonts.poppins(color: _AppColors.dark, fontWeight: FontWeight.w600)),
+        backgroundColor: _AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: _darkText),
+          icon: const Icon(Icons.arrow_back_rounded, color: _AppColors.dark),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: favoriteService.getFavorites(),
         builder: (context, snapshot) {
-          // Loading State
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(color: _primaryCognac),
-            );
+            return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: _AppColors.primary));
           }
-
-          // Error State
           if (snapshot.hasError) {
             return Center(
               child: Padding(
@@ -120,22 +230,19 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: _errorSienna.withValues(alpha: 0.1),
+                        color: _AppColors.error.withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.error_outline_rounded, size: 60, color: _errorSienna),
+                      child: const Icon(Icons.error_outline_rounded, size: 60, color: _AppColors.error),
                     ),
                     const SizedBox(height: 16),
-                    Text(
-                      'Error loading favorites',
-                      style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600, color: _errorSienna),
-                    ),
+                    Text('Error loading favorites', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600, color: _AppColors.error)),
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: () => setState(() {}),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _primaryCognac,
-                        foregroundColor: Colors.white,
+                        backgroundColor: _AppColors.primary,
+                        foregroundColor: _AppColors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
@@ -146,8 +253,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               ),
             );
           }
-
-          // Empty State
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return Center(
               child: Column(
@@ -156,242 +261,155 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: _lightGrey.withValues(alpha: 0.3),
+                      color: _AppColors.lightGrey.withOpacity(0.3),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.favorite_border_rounded, size: 80, color: Colors.grey),
+                    child: const Icon(Icons.favorite_border_rounded, size: 80, color: _AppColors.grey),
                   ),
                   const SizedBox(height: 20),
-                  Text(
-                    "No Favorites Found",
-                    style: GoogleFonts.poppins(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w600,
-                      color: _darkText,
-                    ),
-                  ),
+                  Text("No Favorites Found", style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w600, color: _AppColors.dark)),
                   const SizedBox(height: 8),
-                  Text(
-                    "Start exploring and save your favorite places!",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
+                  Text("Start exploring and save your favorite places!", textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 14, color: _AppColors.grey)),
                 ],
               ),
             );
           }
 
-          // List State
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            itemCount: snapshot.data!.docs.length,
-            itemBuilder: (context, index) {
-              var favorite = snapshot.data!.docs[index];
-              final itemId = favorite['attractionId'];
+          final favorites = snapshot.data!.docs;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                child: Text('${favorites.length} saved places', style: GoogleFonts.poppins(fontSize: 16, color: _AppColors.grey, fontWeight: FontWeight.w500)),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  itemCount: favorites.length,
+                  itemBuilder: (context, index) {
+                    var favorite = favorites[index];
+                    final itemId = favorite['attractionId'];
+                    return FutureBuilder<Map<String, dynamic>?>(
+                      future: _getItemDetails(itemId),
+                      builder: (context, itemSnapshot) {
+                        if (itemSnapshot.connectionState == ConnectionState.waiting) {
+                          return Container(
+                            height: 130,
+                            margin: const EdgeInsets.only(bottom: 12),
+                            decoration: BoxDecoration(
+                              color: _AppColors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: _AppColors.lightGrey.withOpacity(0.5)),
+                            ),
+                            child: const Center(child: CircularProgressIndicator(strokeWidth: 2, color: _AppColors.primary)),
+                          );
+                        }
+                        if (itemSnapshot.hasError || !itemSnapshot.hasData || itemSnapshot.data == null) {
+                          return _buildUnavailableItem(favorite.id);
+                        }
 
-              return FutureBuilder<Map<String, dynamic>?>(
-                future: _getItemDetails(itemId),
-                builder: (context, itemSnapshot) {
-                  // Item Loading State
-                  if (itemSnapshot.connectionState == ConnectionState.waiting) {
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: _lightGrey.withValues(alpha: 0.5), width: 1),
-                      ),
-                      child: const Row(
-                        children: [
-                          SizedBox(
-                            width: 56, height: 56,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: _primaryCognac),
-                          ),
-                          SizedBox(width: 16),
-                          Text("Loading...", style: TextStyle(color: Colors.grey)),
-                        ],
-                      ),
-                    );
-                  }
-
-                  // Unavailable/Deleted Item State
-                  if (itemSnapshot.hasError || !itemSnapshot.hasData || itemSnapshot.data == null) {
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: _lightGrey.withValues(alpha: 0.5), width: 1),
-                      ),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: _lightGrey.withValues(alpha: 0.5),
-                          child: const Icon(Icons.delete_outline_rounded, color: Colors.grey),
-                        ),
-                        title: Text(
-                          "Item not available",
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: _darkGreyText),
-                        ),
-                        subtitle: Text("Tap to remove", style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey)),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete_outline_rounded, color: _errorSienna),
-                          onPressed: () async {
-                            await favoriteService.removeFavorite(favorite.id);
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text("Removed from favorites", style: GoogleFonts.poppins(color: Colors.white)),
-                                backgroundColor: _darkText,
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    );
-                  }
-
-                  // Valid Item State
-                  final item = itemSnapshot.data!;
-                  final data = item['data'];
-                  final type = item['type'];
-                  final name = data['name'] ?? data['title'] ?? 'Unknown';
-                  final image = data['image'] ?? '';
-                  final rating = (data['rating'] ?? 0).toDouble();
-                  final typeColor = _getColorForType(type);
-
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white, // Pure white surface
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: _lightGrey.withValues(alpha: 0.7), width: 1),
-                    ),
-                    child: Row(
-                      children: [
-                        // Image/Avatar
-                        CircleAvatar(
-                          radius: 28,
-                          backgroundColor: _lightGrey,
-                          backgroundImage: image.isNotEmpty ? NetworkImage(image) : null,
-                          onBackgroundImageError: (_, __) {},
-                          child: image.isEmpty
-                              ? Icon(_getIconForType(type), color: typeColor, size: 24)
-                              : null,
-                        ),
-                        const SizedBox(width: 14),
-                        
-                        // Content
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
+                        final item = itemSnapshot.data!;
+                        final data = item['data'];
+                        final type = item['type'];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Stack(
                             children: [
-                              Text(
-                                name,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: _darkText,
+                              _buildCardFromMap(data, type, favorite.id, itemId),
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: GestureDetector(
+                                  onTap: () => _confirmRemove(favorite.id, data['name'] ?? 'item'),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: const BoxDecoration(
+                                      color: _AppColors.error,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.close_rounded, color: _AppColors.white, size: 18),
+                                  ),
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  const Icon(Icons.star_rounded, color: _secondarySand, size: 16), // Warm Sand star
-                                  const SizedBox(width: 3),
-                                  Text(
-                                    rating > 0 ? rating.toStringAsFixed(1) : 'N/A',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 13,
-                                      color: _darkGreyText,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: typeColor.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      type.toUpperCase(),
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w700,
-                                        color: typeColor,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                  ),
-                                ],
                               ),
                             ],
                           ),
-                        ),
-                        
-                        // Remove button
-                        IconButton(
-                          icon: const Icon(Icons.favorite_rounded, color: _errorSienna, size: 28), // Burnt Sienna
-                          onPressed: () async {
-                            bool? confirm = await showDialog(
-                              context: context,
-                              builder: (_) => AlertDialog(
-                                backgroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                title: Text("Remove Favorite", style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: _darkText)),
-                                content: Text("Remove $name from favorites?", style: GoogleFonts.poppins(color: _darkGreyText)),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context, false),
-                                    child: Text("Cancel", style: GoogleFonts.poppins(color: _primaryCognac, fontWeight: FontWeight.w600)),
-                                  ),
-                                  ElevatedButton(
-                                    onPressed: () => Navigator.pop(context, true),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: _errorSienna,
-                                      foregroundColor: Colors.white,
-                                      elevation: 0,
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                    ),
-                                    child: Text("Remove", style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
-                                  ),
-                                ],
-                              ),
-                            );
-
-                            if (confirm == true) {
-                              await favoriteService.removeFavorite(favorite.id);
-                              if (!mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text("$name removed", style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w500)),
-                                  backgroundColor: _darkText,
-                                  behavior: SnackBarBehavior.floating,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
           );
         },
       ),
     );
+  }
+
+  Widget _buildUnavailableItem(String favoriteId) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _AppColors.lightGrey.withOpacity(0.5)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.delete_outline_rounded, color: _AppColors.grey),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text("Item not available", style: GoogleFonts.poppins(color: _AppColors.grey, fontWeight: FontWeight.w500)),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close_rounded, color: _AppColors.error),
+            onPressed: () => _confirmRemove(favoriteId, 'this item'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmRemove(String favoriteId, String name) async {
+    bool? confirm = await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: _AppColors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text("Remove Favorite", style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: _AppColors.dark)),
+        content: Text("Remove '$name' from favorites?", style: GoogleFonts.poppins(color: _AppColors.grey)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text("Cancel", style: GoogleFonts.poppins(color: _AppColors.primary, fontWeight: FontWeight.w600)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _AppColors.error,
+              foregroundColor: _AppColors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: Text("Remove", style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await favoriteService.removeFavorite(favoriteId);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("$name removed", style: GoogleFonts.poppins(color: _AppColors.white, fontWeight: FontWeight.w500)),
+          backgroundColor: _AppColors.dark,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    }
   }
 }
