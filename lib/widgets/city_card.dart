@@ -56,7 +56,7 @@ class CityCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(18),
       splashColor: Colors.blue.withOpacity(0.1),
       child: Container(
-        width: 160,
+        width: 230,
         margin: const EdgeInsets.only(right: 15),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

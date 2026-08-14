@@ -6,7 +6,7 @@ class ReviewService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-    /// Add Review
+  /// Add Review
   Future<void> addReview({
     required String attractionId,
     required String userName,
@@ -29,6 +29,39 @@ class ReviewService {
     });
   }
 
+  // lib/services/review_service.dart
+Future<List<ReviewModel>> getReviewsByUser(String userId) async {
+  try {
+    print('🔍 Fetching reviews for userId: $userId');
+    // Remove .orderBy() to avoid requiring an index
+    QuerySnapshot snapshot = await _firestore
+        .collection('reviews')
+        .where('userId', isEqualTo: userId)
+        .get();
+
+    print('📦 Found ${snapshot.docs.length} reviews');
+    final reviews = snapshot.docs.map((doc) {
+      return ReviewModel.fromFirestore(
+        doc.data() as Map<String, dynamic>,
+        doc.id,
+      );
+    }).toList();
+
+    // ✅ Sort in memory (newest first)
+    reviews.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    print('✅ Parsed ${reviews.length} reviews');
+    return reviews;
+  } catch (e) {
+    print('❌ Error fetching user reviews: $e');
+    return [];
+  }
+}
+  // Delete a review
+  Future<void> deleteReview(String reviewId) async {
+    await _firestore.collection('reviews').doc(reviewId).delete();
+  }
+
   // ✅ Check if user already reviewed
   Future<bool> hasUserReviewed(String attractionId) async {
     final user = _auth.currentUser;
@@ -44,29 +77,21 @@ class ReviewService {
   }
 
   /// Get Reviews of Attraction
-Stream<List<ReviewModel>> getReviews(String attractionId) {
-  return _firestore
-      .collection('reviews')
-      .where('attractionId', isEqualTo: attractionId)
-      .snapshots()
-      .map((snapshot) {
-    final reviews = snapshot.docs.map((doc) {
-      return ReviewModel.fromFirestore(doc.data(), doc.id);
-    }).toList();
-    
-    // ✅ Sort in Dart instead
-    reviews.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    
-    return reviews;
-  });
-}
-
-  /// Delete Review
-  Future<void> deleteReview(String reviewId) async {
-    await _firestore
+  Stream<List<ReviewModel>> getReviews(String attractionId) {
+    return _firestore
         .collection('reviews')
-        .doc(reviewId)
-        .delete();
+        .where('attractionId', isEqualTo: attractionId)
+        .snapshots()
+        .map((snapshot) {
+          final reviews = snapshot.docs.map((doc) {
+            return ReviewModel.fromFirestore(doc.data(), doc.id);
+          }).toList();
+
+          // ✅ Sort in Dart instead
+          reviews.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+          return reviews;
+        });
   }
 
   /// Calculate Average Rating
@@ -90,11 +115,11 @@ Stream<List<ReviewModel>> getReviews(String attractionId) {
   }
 
   Future<int> getReviewCount(String attractionId) async {
-  var snapshot = await FirebaseFirestore.instance
-      .collection('reviews')
-      .where('attractionId', isEqualTo: attractionId)
-      .get();
+    var snapshot = await FirebaseFirestore.instance
+        .collection('reviews')
+        .where('attractionId', isEqualTo: attractionId)
+        .get();
 
-  return snapshot.docs.length;
-}
+    return snapshot.docs.length;
+  }
 }

@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:app/model/user_model.dart';
 import 'package:app/screens/auth/login_screen.dart';
 import 'package:app/screens/profile/edit_profile_screen.dart';
+import 'package:app/screens/profile/my_reviews_screen.dart';
+import 'package:app/services/stats_service.dart';
 import 'package:app/services/user_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -18,12 +20,23 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final UserService userService = UserService();
+  final StatsService _statsService = StatsService();
 
-  late Future<UserModel> userFuture;
+  // Combined future for user + stats
+  late Future<Map<String, dynamic>> profileFuture;
 
   void refreshProfile() {
     setState(() {
-      userFuture = userService.getUser();
+      profileFuture =
+          Future.wait([
+            userService.getUser(),
+            _statsService.getUserStats(),
+          ]).then(
+            (values) => {
+              'user': values[0] as UserModel,
+              'stats': values[1] as Map<String, int>,
+            },
+          );
     });
     widget.onProfileUpdated?.call();
   }
@@ -31,16 +44,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    userFuture = userService.getUser();
+    // Load both user and stats at the same time
+    profileFuture =
+        Future.wait([userService.getUser(), _statsService.getUserStats()]).then(
+          (values) => {
+            'user': values[0] as UserModel,
+            'stats': values[1] as Map<String, int>,
+          },
+        );
   }
 
   Future<void> logout() async {
     bool? result = await showDialog(
       context: context,
       builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         backgroundColor: Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -51,7 +69,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFDC2626).withValues(alpha: 0.1),
+                  color: const Color(0xFFDC2626).withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -158,8 +176,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: FutureBuilder<UserModel>(
-        future: userFuture,
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: profileFuture,
         builder: (context, snapshot) {
           // ── Loading State ──
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -189,7 +207,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
 
           // ── Error State ──
-          if (snapshot.hasError) {
+          if (snapshot.hasError || !snapshot.hasData) {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -200,7 +218,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       width: 72,
                       height: 72,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFDC2626).withValues(alpha: 0.1),
+                        color: const Color(0xFFDC2626).withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -220,7 +238,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '${snapshot.error}',
+                      snapshot.error?.toString() ?? 'Unknown error',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
                         color: const Color(0xFF64748B),
@@ -250,31 +268,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             );
           }
 
-          // ── No Data ──
-          if (!snapshot.hasData) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.person_off_rounded,
-                    size: 48,
-                    color: Color(0xFF94A3B8),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    "User not found",
-                    style: GoogleFonts.poppins(
-                      color: const Color(0xFF64748B),
-                      fontSize: 15,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
+          // ── Success: extract data ──
+          final data = snapshot.data!;
+          final UserModel user = data['user'] as UserModel;
+          final Map<String, int> stats = data['stats'] as Map<String, int>;
 
-          UserModel user = snapshot.data!;
+          // Safe stats with fallback to 0
+          final reviews = stats['reviews'] ?? 0;
+          final favorites = stats['favorites'] ?? 0;
+          final cities = stats['cities'] ?? 0;
 
           return SafeArea(
             child: SingleChildScrollView(
@@ -283,7 +285,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   children: [
                     const SizedBox(height: 10),
-                    // ── Custom Header Bar (Profile Title & Edit Icon) ──
+                    // ── Custom Header Bar ──
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -337,7 +339,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF2563EB).withValues(alpha: 0.15),
+                            color: const Color(0xFF2563EB).withOpacity(0.15),
                             blurRadius: 20,
                             offset: const Offset(0, 8),
                           ),
@@ -351,12 +353,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ? Text(
                                 user.name.isNotEmpty
                                     ? user.name
-                                        .trim()
-                                        .split(' ')
-                                        .map((e) => e[0])
-                                        .take(2)
-                                        .join()
-                                        .toUpperCase()
+                                          .trim()
+                                          .split(' ')
+                                          .map((e) => e[0])
+                                          .take(2)
+                                          .join()
+                                          .toUpperCase()
                                     : "U",
                                 style: GoogleFonts.poppins(
                                   color: Colors.white,
@@ -429,7 +431,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     const SizedBox(height: 24),
 
-                    // ── Stats Container Card ──
+                    // ── DYNAMIC STATS CARD ──
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
@@ -441,7 +443,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.03),
+                            color: Colors.black.withOpacity(0.03),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -450,26 +452,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _buildStatItem("24", "Reviews"),
+                          _buildStatItem(reviews.toString(), "Reviews"),
                           Container(
                             height: 30,
                             width: 1,
                             color: const Color(0xFFF1F5F9),
                           ),
-                          _buildStatItem("18", "Favorites"),
+                          _buildStatItem(favorites.toString(), "Favorites"),
                           Container(
                             height: 30,
                             width: 1,
                             color: const Color(0xFFF1F5F9),
                           ),
-                          _buildStatItem("9", "Cities"),
+                          _buildStatItem(cities.toString(), "Cities"),
                         ],
                       ),
                     ),
 
                     const SizedBox(height: 24),
 
-                    // ── Menu List Section ──
+                    // ── Menu List ──
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -480,7 +482,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.03),
+                            color: Colors.black.withOpacity(0.03),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -529,7 +531,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             iconColor: const Color(0xFF16A34A),
                             title: "My Reviews",
                             showDivider: true,
-                            onTap: () {},
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const MyReviewsScreen(),
+                                ),
+                              );
+                            },
                           ),
                           _buildMenuItem(
                             icon: Icons.info_outline_rounded,
@@ -588,7 +597,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // ── Menu Item Builder inside unified card container ──
+  // ── Menu Item Builder ──
   Widget _buildMenuItem({
     required IconData icon,
     required Color iconBgColor,
@@ -607,10 +616,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             borderRadius: BorderRadius.circular(16),
             onTap: onTap,
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
                 children: [
                   Container(
@@ -620,11 +626,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: iconBgColor,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(
-                      icon,
-                      color: iconColor,
-                      size: 20,
-                    ),
+                    child: Icon(icon, color: iconColor, size: 20),
                   ),
                   const SizedBox(width: 16),
                   Expanded(

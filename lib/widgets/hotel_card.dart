@@ -16,32 +16,31 @@ class HotelCard extends StatelessWidget {
       if (i < fullStars) {
         stars.add(const Icon(
           Icons.star_rounded,
-          color: Color(0xFFF59E0B), // Amber/Gold
-          size: 13,
+          color: Color(0xFFF59E0B),
+          size: 12, // slightly smaller
         ));
       } else if (i == fullStars && hasHalfStar) {
         stars.add(const Icon(
           Icons.star_half_rounded,
-          color: Color(0xFFF59E0B), // Amber/Gold
-          size: 13,
+          color: Color(0xFFF59E0B),
+          size: 12,
         ));
       } else {
         stars.add(const Icon(
           Icons.star_outline_rounded,
-          color: Color(0xFFE2E8F0), // Light Grey
-          size: 13,
+          color: Color(0xFFE2E8F0),
+          size: 12,
         ));
       }
     }
     return Row(mainAxisSize: MainAxisSize.min, children: stars);
   }
 
-  // ✅ Placeholder Widget
   Widget _buildPlaceholder({bool isLoading = false}) {
     return Container(
       height: 120,
       width: double.infinity,
-      color: const Color(0xFFFDF6F0), // Warm off-white
+      color: const Color(0xFFFDF6F0),
       child: isLoading
           ? const Center(
               child: SizedBox(
@@ -49,14 +48,14 @@ class HotelCard extends StatelessWidget {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Color(0xFF2563EB), // Primary Blue
+                  color: Color(0xFF2563EB),
                 ),
               ),
             )
           : const Icon(
               Icons.hotel_outlined,
               size: 36,
-              color: Color(0xFF64748B), // Grey
+              color: Color(0xFF64748B),
             ),
     );
   }
@@ -64,7 +63,7 @@ class HotelCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 210,
+      width: 230, 
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         decoration: BoxDecoration(
@@ -76,7 +75,7 @@ class HotelCard extends StatelessWidget {
           ),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x1A000000), // Black with 10% opacity
+              color: Color(0x1A000000),
               blurRadius: 8,
               offset: Offset(0, 2),
             ),
@@ -98,7 +97,7 @@ class HotelCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Image Section
+                // Image
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(15),
@@ -117,34 +116,30 @@ class HotelCard extends StatelessWidget {
                           },
                         ),
                 ),
-                
-                // Content Section
+                // Content
                 Padding(
                   padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Title
                       Text(
                         hotel.name,
                         style: const TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF0F172A), // Dark
+                          color: Color(0xFF0F172A),
                           height: 1.3,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
-                      
-                      // Location
                       Row(
                         children: [
                           const Icon(
                             Icons.location_on_rounded,
                             size: 12,
-                            color: Color(0xFF2563EB), // Primary Blue
+                            color: Color(0xFF2563EB),
                           ),
                           const SizedBox(width: 3),
                           Expanded(
@@ -152,7 +147,7 @@ class HotelCard extends StatelessWidget {
                               hotel.cityId,
                               style: const TextStyle(
                                 fontSize: 11,
-                                color: Color(0xFF334155), // Dark Grey
+                                color: Color(0xFF334155),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -161,28 +156,24 @@ class HotelCard extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 6),
-                      
-                      // Description
                       Text(
                         hotel.description,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 11,
-                          color: Color(0xFF334155), // Dark Grey
+                          color: Color(0xFF334155),
                           height: 1.4,
                         ),
                       ),
                       const SizedBox(height: 10),
-                      
-                      // Bottom Row (Rating & Phone) - FIXED
+                      // ✅ FIXED BOTTOM ROW
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Rating - Wrapped in Flexible to prevent overflow
-                          Flexible(
+                          // Rating - takes 2/3 of space
+                          Expanded(
+                            flex: 2,
                             child: Row(
-                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 _buildRatingStars(hotel.rating),
                                 const SizedBox(width: 4),
@@ -191,16 +182,16 @@ class HotelCard extends StatelessWidget {
                                   style: const TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
-                                    color: Color(0xFF0F172A), // Dark
+                                    color: Color(0xFF0F172A),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          
-                          // Phone Tag - Keep as is or wrap in Flexible if needed
+                          // Phone tag - takes 1/3 of space
                           if (hotel.phone.isNotEmpty)
-                            Flexible(
+                            Expanded(
+                              flex: 1,
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 7,
@@ -220,16 +211,15 @@ class HotelCard extends StatelessWidget {
                                     const Icon(
                                       Icons.phone_rounded,
                                       size: 10,
-                                      color: Color(0xFF2563EB), // Primary Blue
+                                      color: Color(0xFF2563EB),
                                     ),
                                     const SizedBox(width: 3),
-                                    ConstrainedBox(
-                                      constraints: const BoxConstraints(maxWidth: 65),
+                                    Flexible(
                                       child: Text(
                                         hotel.phone,
                                         style: const TextStyle(
                                           fontSize: 9,
-                                          color: Color(0xFF2563EB), // Primary Blue
+                                          color: Color(0xFF2563EB),
                                           fontWeight: FontWeight.w600,
                                         ),
                                         maxLines: 1,

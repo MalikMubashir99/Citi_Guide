@@ -74,7 +74,7 @@ class AttractionCard extends StatelessWidget {
     final String cityId = attraction.cityId ?? '';
 
     return SizedBox(
-      width: 210,
+      width: 230,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         decoration: BoxDecoration(

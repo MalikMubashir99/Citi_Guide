@@ -40,7 +40,7 @@ class EventCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 210,
+      width: 230,
       child: Container(
         margin: const EdgeInsets.only(right: 15),
         decoration: BoxDecoration(
