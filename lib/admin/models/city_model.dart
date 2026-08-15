@@ -1,6 +1,3 @@
-// lib/admin/models/city_model.dart
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class CityModel {
   String id;
   String name;

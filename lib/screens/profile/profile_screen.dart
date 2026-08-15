@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:app/model/user_model.dart';
 import 'package:app/screens/auth/login_screen.dart';
+import 'package:app/screens/home/notification_screen.dart';
 import 'package:app/screens/profile/edit_profile_screen.dart';
 import 'package:app/screens/profile/my_reviews_screen.dart';
+import 'package:app/screens/settings/settings_screen.dart';
 import 'package:app/services/stats_service.dart';
 import 'package:app/services/user_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -515,7 +517,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             iconColor: const Color(0xFFD97706),
                             title: "Notifications",
                             showDivider: true,
-                            onTap: () {},
+                            onTap: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => NotificationScreen(),
+                                ),
+                              );
+                            },
                           ),
                           _buildMenuItem(
                             icon: Icons.settings_outlined,
@@ -523,7 +532,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             iconColor: const Color(0xFF9333EA),
                             title: "Settings",
                             showDivider: true,
-                            onTap: () {},
+                            onTap: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => SettingsScreen(),
+                                ),
+                              );
+                            },
                           ),
                           _buildMenuItem(
                             icon: Icons.star_outline_rounded,

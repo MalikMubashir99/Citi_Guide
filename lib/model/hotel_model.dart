@@ -62,6 +62,7 @@ class HotelModel {
       'rating': rating,
       'phone': phone,
       'website': website,
+      'createdAt': FieldValue.serverTimestamp(), 
     };
   }
 }

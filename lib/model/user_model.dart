@@ -6,6 +6,7 @@ class UserModel {
   String phone;
   String image;
   String role;
+  List<String> readNotifications;
 
   UserModel({
     required this.uid,
@@ -14,7 +15,13 @@ class UserModel {
     required this.phone,
     required this.image,
     required this.role,
+    this.readNotifications = const [],
+
   });
+
+    bool isNotificationRead(String notificationId) {
+    return readNotifications.contains(notificationId);
+  }
 
   factory UserModel.fromFirestore(
     Map<String, dynamic> data,
@@ -27,6 +34,7 @@ class UserModel {
       phone: data['phone'] ?? '',
       image: data['image'] ?? '',
       role: data['role'] ?? 'user',
+      readNotifications: List<String>.from(data['readNotifications'] ?? []),
     );
   }
 
@@ -37,6 +45,19 @@ class UserModel {
       'phone': phone,
       'image': image,
       'role': role,
+      'readNotifications': readNotifications,
     };
+  }
+   UserModel addReadNotification(String notificationId) {
+    if (readNotifications.contains(notificationId)) return this;
+    return UserModel(
+      uid: uid,
+      name: name,
+      email: email,
+      phone: phone,
+      image: image,
+      role: role,
+      readNotifications: [...readNotifications, notificationId],
+    );
   }
 }

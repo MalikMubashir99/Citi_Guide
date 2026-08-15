@@ -56,6 +56,7 @@ class EventModel {
       'date': date,
       'time': time,
       'location': location,
+       'createdAt': FieldValue.serverTimestamp(),
     };
   }
 }

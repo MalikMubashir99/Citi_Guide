@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class CityModel {
 
   String id;
@@ -35,7 +37,7 @@ class CityModel {
       "name": name,
       "image": image,
       "description": description,
-
+      'createdAt': FieldValue.serverTimestamp(), 
     };
 
   }

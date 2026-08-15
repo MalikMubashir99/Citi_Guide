@@ -37,4 +37,24 @@ class UserService {
 
     print('✅ User updated in Firestore');
   }
+
+    // ✅ Mark notification as read
+  Future<void> markNotificationAsRead(String notificationId) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    await firestore.collection('users').doc(uid).update({
+      'readNotifications': FieldValue.arrayUnion([notificationId]),
+    });
+  }
+
+  // ✅ Mark all as read
+  Future<void> markAllNotificationsAsRead(List<String> ids) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || ids.isEmpty) return;
+
+    await firestore.collection('users').doc(uid).update({
+      'readNotifications': FieldValue.arrayUnion(ids),
+    });
+  }
 }

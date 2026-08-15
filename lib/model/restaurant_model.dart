@@ -60,6 +60,7 @@ class RestaurantModel {
       'phone': phone,
       'latitude': latitude,
       'longitude': longitude,
+      'createdAt': FieldValue.serverTimestamp(), 
     };
   }
 }

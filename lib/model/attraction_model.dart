@@ -12,6 +12,7 @@ class AttractionModel {
   String website;
   double latitude;
   double longitude;
+  
 
   AttractionModel({
     required this.id,
@@ -68,6 +69,7 @@ class AttractionModel {
       'website': website,
       'latitude': latitude,
       'longitude': longitude,
+      'createdAt': FieldValue.serverTimestamp()
     };
   }
 }

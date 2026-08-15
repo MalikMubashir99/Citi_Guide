@@ -1,4 +1,5 @@
 // lib/screens/profile/settings_screen.dart
+import 'package:app/screens/home/notification_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -50,33 +51,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         iconTheme: const IconThemeData(color: _darkColor),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(
-            height: 1,
-            color: _lightGreyColor,
-          ),
+          child: Container(height: 1, color: _lightGreyColor),
         ),
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         children: [
-          // ── Appearance ──
-          _buildSectionHeader("Appearance"),
-          const SizedBox(height: 8),
-          _buildSwitchTile(
-            icon: Icons.dark_mode_outlined,
-            title: "Dark Mode",
-            subtitle: "Switch between light and dark theme",
-            value: isDarkMode,
-            onChanged: (value) {
-              setState(() {
-                isDarkMode = value;
-              });
-              // TODO: Apply theme
-            },
-          ),
-
-          const SizedBox(height: 20),
-
           // ── Account ──
           _buildSectionHeader("Account"),
           const SizedBox(height: 8),
@@ -122,8 +102,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: Icons.notifications_outlined,
             title: "Notifications",
             subtitle: "Manage notification settings",
-            onTap: () {
-              // Navigate to notification settings
+            onTap: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => NotificationScreen()),
+              );
             },
           ),
 
@@ -150,19 +133,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
 
           const SizedBox(height: 24),
-
-          // ── Logout ──
-          _buildSettingsTile(
-            icon: Icons.logout_rounded,
-            title: "Logout",
-            subtitle: "Sign out of your account",
-            onTap: () {
-              _showLogoutDialog(context);
-            },
-            isDestructive: true,
-          ),
-
-          const SizedBox(height: 30),
         ],
       ),
     );
@@ -220,10 +190,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           borderRadius: BorderRadius.circular(16),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
                 // Icon Container
@@ -234,11 +201,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: iconColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    icon,
-                    color: iconColor,
-                    size: 20,
-                  ),
+                  child: Icon(icon, color: iconColor, size: 20),
                 ),
                 const SizedBox(width: 14),
 
@@ -258,10 +221,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const SizedBox(height: 2),
                       Text(
                         subtitle,
-                        style: TextStyle(
-                          color: subtitleColor,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: subtitleColor, fontSize: 12),
                       ),
                     ],
                   ),
@@ -296,16 +256,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       decoration: BoxDecoration(
         color: _surfaceColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: _lightGreyColor.withValues(alpha: 0.5),
-        ),
+        border: Border.all(color: _lightGreyColor.withValues(alpha: 0.5)),
         boxShadow: _subtleShadow,
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 8,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Row(
           children: [
             // Icon Container
@@ -316,11 +271,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: _primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                color: _primaryColor,
-                size: 20,
-              ),
+              child: Icon(icon, color: _primaryColor, size: 20),
             ),
             const SizedBox(width: 14),
 
@@ -340,10 +291,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      color: _darkGreyColor,
-                      fontSize: 12,
-                    ),
+                    style: const TextStyle(color: _darkGreyColor, fontSize: 12),
                   ),
                 ],
               ),
@@ -369,9 +317,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         backgroundColor: _surfaceColor,
         child: Padding(
           padding: const EdgeInsets.all(24),

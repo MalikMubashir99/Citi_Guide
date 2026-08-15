@@ -63,7 +63,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
         content: Text(
           message,
           style: GoogleFonts.poppins(
-            color: const Color(0xFFFFFFFF),
+            color: Colors.white,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -76,7 +76,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   Future<void> submitReview() async {
     if (commentController.text.trim().isEmpty) {
-      _showSnackBar("Please write a review", const Color(0xFFBC4749));
+      _showSnackBar("Please write a review", const Color(0xFFDC2626));
       return;
     }
 
@@ -84,10 +84,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
     try {
       final alreadyReviewed = await reviewService.hasUserReviewed(widget.attraction.id);
-      
+
       if (alreadyReviewed) {
         if (!mounted) return;
-        _showSnackBar("⚠️ You have already reviewed this attraction", const Color(0xFFE09F3E));
+        _showSnackBar("⚠️ You have already reviewed this attraction", const Color(0xFFF59E0B));
         setState(() => isLoading = false);
         return;
       }
@@ -103,10 +103,16 @@ class _ReviewScreenState extends State<ReviewScreen> {
       commentController.clear();
       setState(() => rating = 5);
 
-      _showSnackBar("✅ Review Added Successfully!", const Color(0xFF6A994E));
+      _showSnackBar("✅ Review Added Successfully!", const Color(0xFF10B981));
+
+      // ✅ Auto pop after success
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (mounted) Navigator.pop(context);
+      });
+
     } catch (e) {
       if (!mounted) return;
-      _showSnackBar("Error: $e", const Color(0xFFBC4749));
+      _showSnackBar("Error: $e", const Color(0xFFDC2626));
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -115,20 +121,20 @@ class _ReviewScreenState extends State<ReviewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFDFBF7), // Warm Linen
+      backgroundColor: const Color(0xFFF8FAFC), // App background
       appBar: AppBar(
         title: Text(
           "Reviews",
           style: GoogleFonts.poppins(
-            color: const Color(0xFF2C221E),
+            color: const Color(0xFF0F172A),
             fontWeight: FontWeight.w600,
             letterSpacing: 0.3,
           ),
         ),
-        backgroundColor: const Color(0xFFFDFBF7),
+        backgroundColor: const Color(0xFFF8FAFC),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF2C221E)),
+          icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF0F172A)),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -137,15 +143,17 @@ class _ReviewScreenState extends State<ReviewScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Attraction Name Card (Flat)
+            // Attraction Name Card
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFFFFF), // Pure white
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE6E1DC).withValues(alpha: 0.7), width: 1),
-                // Removed shadow for flat design
+                border: Border.all(
+                  color: const Color(0xFFE2E8F0).withOpacity(0.7),
+                  width: 1,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,7 +162,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     "Rate & Review",
                     style: GoogleFonts.poppins(
                       fontSize: 12,
-                      color: const Color(0xFF8C827E),
+                      color: const Color(0xFF64748B),
                       fontWeight: FontWeight.w500,
                       letterSpacing: 0.5,
                     ),
@@ -165,23 +173,26 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     style: GoogleFonts.poppins(
                       fontSize: 22,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF2C221E),
+                      color: const Color(0xFF0F172A),
                       letterSpacing: 0.3,
                     ),
                   ),
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Rating Section
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFFFFF),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE6E1DC).withValues(alpha: 0.7), width: 1),
+                border: Border.all(
+                  color: const Color(0xFFE2E8F0).withOpacity(0.7),
+                  width: 1,
+                ),
               ),
               child: Column(
                 children: [
@@ -190,7 +201,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF2C221E),
+                      color: const Color(0xFF0F172A),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -203,7 +214,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     itemBuilder: (context, index) {
                       return const Icon(
                         Icons.star_rounded,
-                        color: Color(0xFFD4A373), // Warm Sand
+                        color: Color(0xFFF59E0B), // Amber star
                       );
                     },
                     onRatingUpdate: (value) {
@@ -217,22 +228,25 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     _getRatingLabel(rating),
                     style: GoogleFonts.poppins(
                       fontSize: 14,
-                      color: const Color(0xFF5C524E),
+                      color: const Color(0xFF64748B),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Comment Field
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFFFFFFF),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE6E1DC).withValues(alpha: 0.7), width: 1),
+                border: Border.all(
+                  color: const Color(0xFFE2E8F0).withOpacity(0.7),
+                  width: 1,
+                ),
               ),
               child: TextField(
                 controller: commentController,
@@ -240,13 +254,13 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 decoration: InputDecoration(
                   labelText: "Write your review",
                   labelStyle: GoogleFonts.poppins(
-                    color: const Color(0xFF5C524E),
+                    color: const Color(0xFF64748B),
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
                   hintText: "Share your experience...",
                   hintStyle: GoogleFonts.poppins(
-                    color: const Color(0xFF8C827E),
+                    color: const Color(0xFF64748B),
                     fontSize: 14,
                   ),
                   border: OutlineInputBorder(
@@ -256,32 +270,32 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: const BorderSide(
-                      color: Color(0xFFA0522D),
+                      color: Color(0xFF2563EB), // Primary blue
                       width: 2,
                     ),
                   ),
                   contentPadding: const EdgeInsets.all(16),
                   filled: true,
-                  fillColor: const Color(0xFFFFFFFF),
+                  fillColor: Colors.white,
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
-            // Submit Button (Flat)
+
+            // Submit Button
             SizedBox(
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
                 onPressed: isLoading ? null : submitReview,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFA0522D),
-                  foregroundColor: const Color(0xFFFFFFFF),
+                  backgroundColor: const Color(0xFF2563EB), // Primary blue
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  elevation: 0, // Flat design
+                  elevation: 0,
                 ),
                 child: isLoading
                     ? Row(
@@ -292,7 +306,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                             width: 24,
                             child: CircularProgressIndicator(
                               strokeWidth: 2.5,
-                              color: Color(0xFFFFFFFF),
+                              color: Colors.white,
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -301,7 +315,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFFFFFFFF),
+                              color: Colors.white,
                               letterSpacing: 0.3,
                             ),
                           ),
@@ -310,14 +324,14 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.send_rounded, color: Color(0xFFFFFFFF), size: 20),
+                          const Icon(Icons.send_rounded, color: Colors.white, size: 20),
                           const SizedBox(width: 10),
                           Text(
                             "Submit Review",
                             style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFFFFFFFF),
+                              color: Colors.white,
                               letterSpacing: 0.3,
                             ),
                           ),
@@ -325,9 +339,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
                       ),
               ),
             ),
-            
+
             const SizedBox(height: 30),
-            
+
             // User Reviews Section Header
             Row(
               children: [
@@ -335,7 +349,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   width: 4,
                   height: 28,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFA0522D),
+                    color: const Color(0xFF2563EB), // Primary blue
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -345,15 +359,15 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 22,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2C221E),
+                    color: const Color(0xFF0F172A),
                     letterSpacing: 0.3,
                   ),
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             buildReviews(),
           ],
         ),
@@ -375,7 +389,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-            child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFA0522D)),
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Color(0xFF2563EB),
+            ),
           );
         }
 
@@ -383,11 +400,15 @@ class _ReviewScreenState extends State<ReviewScreen> {
           return Center(
             child: Column(
               children: [
-                const Icon(Icons.error_outline_rounded, size: 40, color: Color(0xFFBC4749)),
+                const Icon(Icons.error_outline_rounded, size: 40, color: Color(0xFFDC2626)),
                 const SizedBox(height: 8),
                 Text(
                   'Error loading reviews',
-                  style: GoogleFonts.poppins(color: const Color(0xFFBC4749), fontSize: 14, fontWeight: FontWeight.w500),
+                  style: GoogleFonts.poppins(
+                    color: const Color(0xFFDC2626),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
@@ -398,20 +419,23 @@ class _ReviewScreenState extends State<ReviewScreen> {
           return Container(
             padding: const EdgeInsets.all(30),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFFFFF),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE6E1DC).withValues(alpha: 0.7), width: 1),
+              border: Border.all(
+                color: const Color(0xFFE2E8F0).withOpacity(0.7),
+                width: 1,
+              ),
             ),
             child: Column(
               children: [
-                const Icon(Icons.chat_bubble_outline_rounded, size: 60, color: Color(0xFF8C827E)),
+                const Icon(Icons.chat_bubble_outline_rounded, size: 60, color: Color(0xFF64748B)),
                 const SizedBox(height: 12),
                 Text(
                   "No Reviews Yet",
                   style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2C221E),
+                    color: const Color(0xFF0F172A),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -419,7 +443,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   "Be the first to review this attraction!",
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
-                    color: const Color(0xFF8C827E),
+                    color: const Color(0xFF64748B),
                     fontSize: 14,
                   ),
                 ),
@@ -434,10 +458,12 @@ class _ReviewScreenState extends State<ReviewScreen> {
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFFFFF),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE6E1DC).withValues(alpha: 0.7), width: 1),
-                // Removed shadow for flat design
+                border: Border.all(
+                  color: const Color(0xFFE2E8F0).withOpacity(0.7),
+                  width: 1,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -446,7 +472,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     children: [
                       CircleAvatar(
                         radius: 22,
-                        backgroundColor: const Color(0xFFA0522D).withValues(alpha: 0.1),
+                        backgroundColor: const Color(0xFF2563EB).withOpacity(0.1),
                         child: Text(
                           review.userName.isNotEmpty
                               ? review.userName[0].toUpperCase()
@@ -454,7 +480,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w600,
                             fontSize: 18,
-                            color: const Color(0xFFA0522D),
+                            color: const Color(0xFF2563EB),
                           ),
                         ),
                       ),
@@ -468,7 +494,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                               style: GoogleFonts.poppins(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: const Color(0xFF2C221E),
+                                color: const Color(0xFF0F172A),
                               ),
                             ),
                             const SizedBox(height: 2),
@@ -482,7 +508,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                                         : index < review.rating
                                             ? Icons.star_half_rounded
                                             : Icons.star_outline_rounded,
-                                    color: const Color(0xFFD4A373), // Warm Sand
+                                    color: const Color(0xFFF59E0B),
                                     size: 16,
                                   ),
                                 ),
@@ -492,7 +518,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                                   style: GoogleFonts.poppins(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF2C221E),
+                                    color: const Color(0xFF0F172A),
                                   ),
                                 ),
                               ],
@@ -504,7 +530,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                         _getTimeAgo(review.createdAt),
                         style: GoogleFonts.poppins(
                           fontSize: 11,
-                          color: const Color(0xFF8C827E),
+                          color: const Color(0xFF64748B),
                         ),
                       ),
                     ],
@@ -514,7 +540,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     review.comment,
                     style: GoogleFonts.poppins(
                       fontSize: 14,
-                      color: const Color(0xFF5C524E),
+                      color: const Color(0xFF334155),
                       height: 1.5,
                     ),
                   ),
@@ -529,9 +555,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   String _getTimeAgo(dynamic timestamp) {
     if (timestamp == null) return 'Just now';
-    
+
     DateTime dateTime;
-    
+
     if (timestamp is Timestamp) {
       dateTime = timestamp.toDate();
     } else if (timestamp is DateTime) {
@@ -539,10 +565,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
     } else {
       return 'Recently';
     }
-    
+
     final now = DateTime.now();
     final diff = now.difference(dateTime);
-    
+
     if (diff.inDays > 365) {
       return '${(diff.inDays / 365).floor()}y ago';
     } else if (diff.inDays > 30) {
