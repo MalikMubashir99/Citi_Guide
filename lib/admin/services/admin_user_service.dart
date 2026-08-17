@@ -21,6 +21,16 @@ class AdminUserService {
     });
   }
 
+  Future<void> updateUserStatus({
+    required String userId,
+    required bool isActive,
+  }) async {
+    await _firestore.collection('users').doc(userId).update({
+      'isActive': isActive,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   Stream<List<Map<String, dynamic>>> getUsersByFilter({
     String? searchQuery,
   }) {
@@ -76,15 +86,6 @@ class AdminUserService {
   }) async {
     await _firestore.collection(collection).doc(userId).update({
       'role': role,
-    });
-  }
-
-  Future<void> updateUserStatus({
-    required String userId,
-    required bool isActive,
-  }) async {
-    await _firestore.collection(collection).doc(userId).update({
-      'isActive': isActive,
     });
   }
 

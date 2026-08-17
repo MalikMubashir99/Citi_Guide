@@ -1,11 +1,27 @@
+// lib/admin/screens/attraction/add_attraction_screen.dart
 import 'dart:convert';
 import 'dart:io';
 import 'package:app/admin/services/attraction_service.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:app/model/city_model.dart';
 import 'package:app/services/city_service.dart';
+
+// ── Direct colors ──
+class _AdminColors {
+  static const Color primary = Color(0xFF2563EB);
+  static const Color primaryLight = Color(0xFFEFF6FF);
+  static const Color background = Color(0xFFF8FAFC);
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color dark = Color(0xFF0F172A);
+  static const Color darkGrey = Color(0xFF334155);
+  static const Color grey = Color(0xFF64748B);
+  static const Color lightGrey = Color(0xFFE2E8F0);
+  static const Color error = Color(0xFFDC2626);
+  static const Color success = Color(0xFF10B981);
+}
 
 class AddAttractionScreen extends StatefulWidget {
    AddAttractionScreen({super.key});
@@ -29,10 +45,8 @@ class _AddAttractionScreenState extends State<AddAttractionScreen> {
   final latitudeController = TextEditingController();
   final longitudeController = TextEditingController();
 
-  // ✅ Store image path only
-  String? _imagePath;  // Mobile: file path, Web: base64 or URL
-  File? _imageFile;    // Mobile only
-
+  String? _imagePath;
+  File? _imageFile;
   bool loading = false;
 
   @override
@@ -48,15 +62,12 @@ class _AddAttractionScreenState extends State<AddAttractionScreen> {
     super.dispose();
   }
 
-  // ✅ Pick Image - Store only path
   Future<void> pickImage() async {
     final picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
     if (image == null) return;
 
     if (kIsWeb) {
-      // ✅ Web: Store as base64 string (or URL)
       final bytes = await image.readAsBytes();
       final base64String = 'data:image/jpeg;base64,${base64Encode(bytes)}';
       setState(() {
@@ -64,16 +75,14 @@ class _AddAttractionScreenState extends State<AddAttractionScreen> {
         _imageFile = null;
       });
     } else {
-      // ✅ Mobile: Store file path only
       final File file = File(image.path);
       setState(() {
-        _imagePath = file.path;  // ✅ Only path, not uploading anywhere
+        _imagePath = file.path;
         _imageFile = file;
       });
     }
   }
 
-  // ✅ Remove image
   void removeImage() {
     setState(() {
       _imagePath = null;
@@ -84,22 +93,27 @@ class _AddAttractionScreenState extends State<AddAttractionScreen> {
   Future<void> saveAttraction() async {
     if (nameController.text.isEmpty || selectedCityId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill all required fields")),
+        SnackBar(
+          content: Text(
+            "Please fill all required fields",
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: _AdminColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       );
       return;
     }
 
-    setState(() {
-      loading = true;
-    });
+    setState(() => loading = true);
 
     try {
-      // ✅ Store the path in database (not the actual image)
       await attractionService.addAttraction(
         name: nameController.text.trim(),
         cityId: selectedCityId!,
         description: descriptionController.text.trim(),
-        image: _imagePath ?? '', // ✅ Store path only
+        image: _imagePath ?? '',
         rating: double.tryParse(ratingController.text) ?? 0,
         openingHours: openingHoursController.text.trim(),
         phone: phoneController.text.trim(),
@@ -111,14 +125,30 @@ class _AddAttractionScreenState extends State<AddAttractionScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Attraction Added Successfully ✅")),
+        SnackBar(
+          content: Text(
+            "✅ Attraction Added Successfully!",
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: _AdminColors.success,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       );
       Navigator.pop(context);
     } catch (e) {
       setState(() => loading = false);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
+        SnackBar(
+          content: Text(
+            "Error: $e",
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: _AdminColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       );
     }
   }
@@ -130,11 +160,21 @@ class _AddAttractionScreenState extends State<AddAttractionScreen> {
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
+        style: GoogleFonts.poppins(fontSize: 15, color: _AdminColors.dark),
         decoration: InputDecoration(
           labelText: label,
-          border: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(12)),
+          labelStyle: GoogleFonts.poppins(color: _AdminColors.grey, fontSize: 14),
+          filled: true,
+          fillColor: _AdminColors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: _AdminColors.lightGrey),
           ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: _AdminColors.primary, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
       ),
     );
@@ -143,61 +183,106 @@ class _AddAttractionScreenState extends State<AddAttractionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Add Attraction")),
+      backgroundColor: _AdminColors.background,
+      appBar: AppBar(
+        title: Text(
+          "Add Attraction",
+          style: GoogleFonts.poppins(
+            color: _AdminColors.dark,
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
+          ),
+        ),
+        backgroundColor: _AdminColors.background,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_rounded, color: _AdminColors.dark),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            buildField("Name", nameController),
+            // ── Name ──
+            buildField("Attraction Name", nameController),
 
+            // ── City Dropdown ──
             FutureBuilder<List<CityModel>>(
               future: widget.cityService.getCities(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator();
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: _AdminColors.primary,
+                    ),
+                  );
                 }
-                if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Text('No cities available');
+                if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      snapshot.hasData ? "No cities available" : "Error loading cities",
+                      style: GoogleFonts.poppins(color: _AdminColors.error),
+                    ),
+                  );
                 }
 
-                return DropdownButtonFormField<String>(
-                  initialValue: selectedCityId,
-                  decoration: const InputDecoration(
-                    labelText: "Select City",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 15),
+                  child: DropdownButtonFormField<String>(
+                    value: selectedCityId,
+                    style: GoogleFonts.poppins(fontSize: 15, color: _AdminColors.dark),
+                    decoration: InputDecoration(
+                      labelText: "Select City",
+                      labelStyle: GoogleFonts.poppins(color: _AdminColors.grey, fontSize: 14),
+                      filled: true,
+                      fillColor: _AdminColors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: _AdminColors.lightGrey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: _AdminColors.primary, width: 2),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     ),
+                    items: [
+                      const DropdownMenuItem<String>(
+                        value: null,
+                        child: Text("Select a city"),
+                      ),
+                      ...snapshot.data!.map((city) {
+                        return DropdownMenuItem(
+                          value: city.id,
+                          child: Text(city.name),
+                        );
+                      }),
+                    ],
+                    onChanged: (value) => setState(() => selectedCityId = value),
                   ),
-                  items: snapshot.data!.map((city) {
-                    return DropdownMenuItem(
-                      value: city.id,
-                      child: Text(city.name),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedCityId = value;
-                    });
-                  },
                 );
               },
             ),
 
+            // ── Description ──
             buildField("Description", descriptionController),
 
-            // ✅ Image Selection (Local Path Only)
+            // ── Image Section ──
             Container(
+              margin: const EdgeInsets.only(bottom: 15),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
+                color: _AdminColors.white,
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: _AdminColors.lightGrey.withOpacity(0.5)),
               ),
               child: Column(
                 children: [
-                  // ✅ Image Preview
+                  // Preview
                   if (_imagePath != null)
                     Stack(
                       children: [
@@ -206,13 +291,13 @@ class _AddAttractionScreenState extends State<AddAttractionScreen> {
                           child: kIsWeb
                               ? Image.memory(
                                   base64Decode(_imagePath!.split(',').last),
-                                  height: 180,
+                                  height: 160,
                                   width: double.infinity,
                                   fit: BoxFit.cover,
                                 )
                               : Image.file(
                                   File(_imagePath!),
-                                  height: 180,
+                                  height: 160,
                                   width: double.infinity,
                                   fit: BoxFit.cover,
                                 ),
@@ -220,13 +305,19 @@ class _AddAttractionScreenState extends State<AddAttractionScreen> {
                         Positioned(
                           top: 8,
                           right: 8,
-                          child: CircleAvatar(
-                            backgroundColor: Colors.red,
-                            radius: 16,
-                            child: IconButton(
-                              icon: const Icon(Icons.close, color: Colors.white, size: 16),
-                              onPressed: removeImage,
-                              padding: EdgeInsets.zero,
+                          child: GestureDetector(
+                            onTap: removeImage,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                color: _AdminColors.error,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.close_rounded,
+                                color: Colors.white,
+                                size: 16,
+                              ),
                             ),
                           ),
                         ),
@@ -236,77 +327,111 @@ class _AddAttractionScreenState extends State<AddAttractionScreen> {
                     Container(
                       height: 120,
                       width: double.infinity,
-                      color: Colors.grey.shade100,
-                      child: const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.image, size: 40, color: Colors.grey),
-                            SizedBox(height: 8),
-                            Text(
-                              "No image selected",
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                          ],
-                        ),
+                      decoration: BoxDecoration(
+                        color: _AdminColors.background,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.image_rounded, size: 40, color: _AdminColors.grey),
+                          const SizedBox(height: 8),
+                          Text(
+                            "No image selected",
+                            style: GoogleFonts.poppins(color: _AdminColors.grey, fontSize: 13),
+                          ),
+                        ],
                       ),
                     ),
+                  const SizedBox(height: 12),
 
-                  const SizedBox(height: 15),
-
-                  // ✅ Choose Image Button
+                  // Choose Image Button
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton.icon(
+                    child: OutlinedButton.icon(
                       onPressed: pickImage,
-                      icon: const Icon(Icons.photo_library),
-                      label: const Text("Choose Image"),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      icon: Icon(Icons.photo_library_rounded, color: _AdminColors.primary),
+                      label: Text(
+                        "Choose Image",
+                        style: GoogleFonts.poppins(
+                          color: _AdminColors.primary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        side: BorderSide(color: _AdminColors.lightGrey),
                       ),
                     ),
                   ),
-
-                  // ✅ Show path (for debugging)
-                  if (_imagePath != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        // ignore: prefer_interpolation_to_compose_strings
-                        "Path: ${_imagePath!.length > 50 ? _imagePath!.substring(0, 50) + '...' : _imagePath!}",
-                        style: const TextStyle(fontSize: 10, color: Colors.grey),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 15),
+            // ── Rating ──
+            buildField("Rating", ratingController, keyboardType: TextInputType.number),
 
-            buildField("Rating", ratingController,
-                keyboardType: TextInputType.number),
+            // ── Opening Hours ──
             buildField("Opening Hours", openingHoursController),
+
+            // ── Phone ──
             buildField("Phone", phoneController),
-            buildField("Website", websiteController,
-                keyboardType: TextInputType.url),
-            buildField("Latitude", latitudeController,
-                keyboardType: TextInputType.number),
-            buildField("Longitude", longitudeController,
-                keyboardType: TextInputType.number),
+
+            // ── Website ──
+            buildField("Website", websiteController, keyboardType: TextInputType.url),
+
+            // ── Location ──
+            Row(
+              children: [
+                Expanded(
+                  child: buildField("Latitude", latitudeController, keyboardType: TextInputType.number),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: buildField("Longitude", longitudeController, keyboardType: TextInputType.number),
+                ),
+              ],
+            ),
 
             const SizedBox(height: 20),
 
+            // ── Save Button ──
             SizedBox(
               width: double.infinity,
+              height: 54,
               child: ElevatedButton(
                 onPressed: loading ? null : saveAttraction,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _AdminColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
                 child: loading
-                    ? const CircularProgressIndicator()
-                    : const Text("Save"),
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(
+                        "Save Attraction",
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
               ),
             ),
+            const SizedBox(height: 20),
           ],
         ),
       ),

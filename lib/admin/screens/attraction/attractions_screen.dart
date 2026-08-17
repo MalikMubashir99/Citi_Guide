@@ -1,17 +1,15 @@
-
-
 // lib/admin/screens/attraction/attractions_screen.dart
 import 'package:app/admin/models/attraction_model.dart';
 import 'package:app/admin/models/city_model.dart';
-import 'package:app/admin/screens/attraction/add_attraction_screen.dart';
-import 'package:app/admin/screens/attraction/edit_attraction_screen.dart';
 import 'package:app/admin/services/attraction_service.dart';
 import 'package:app/admin/services/city_service.dart';
 import 'package:app/admin/widgets/attraction_card.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'add_attraction_screen.dart';
+import 'edit_attraction_screen.dart';
 
-// ── Direct colors ──
+// ── Direct colors (no AppColors) ──
 class _AdminColors {
   static const Color primary = Color(0xFF2563EB);
   static const Color primaryLight = Color(0xFFEFF6FF);
@@ -51,31 +49,31 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
           "Attractions",
           style: GoogleFonts.poppins(
             color: _AdminColors.dark,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
             fontSize: 20,
-            letterSpacing: -0.3,
+            letterSpacing: 0.3,
           ),
         ),
         backgroundColor: _AdminColors.background,
         elevation: 0,
-        centerTitle: false,
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh_rounded, color: _AdminColors.primary, size: 24),
-            onPressed: () => setState(() {}),
+            icon: Icon(Icons.refresh_rounded, color: _AdminColors.primary),
+            onPressed: () {
+              setState(() {});
+            },
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: _AdminColors.primary,
-        elevation: 4,
-        child: const Icon(Icons.add, color: Colors.white, size: 28),
+        child: const Icon(Icons.add, color: Colors.white),
         onPressed: _isLoading
             ? null
             : () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => AddAttractionScreen()),
+                  MaterialPageRoute(builder: (_) =>  AddAttractionScreen()),
                 ).then((_) => setState(() {}));
               },
       ),
@@ -85,85 +83,138 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
             children: [
               // ── Search & Filter Section ──
               Container(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
                   color: _AdminColors.white,
-                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(20),
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.04),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
                 child: Column(
                   children: [
-                    // ── Search Field (pill shape, no outline) ──
-                    Container(
-                      decoration: BoxDecoration(
-                        color: _AdminColors.background,
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: TextField(
-                        controller: searchController,
-                        style: GoogleFonts.poppins(fontSize: 15, color: _AdminColors.dark),
-                        decoration: InputDecoration(
-                          hintText: "Search attractions...",
-                          hintStyle: GoogleFonts.poppins(color: _AdminColors.grey, fontSize: 14),
-                          prefixIcon: Icon(Icons.search_rounded, color: _AdminColors.primary, size: 22),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                          suffixIcon: searchText.isNotEmpty
-                              ? IconButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      searchController.clear();
-                                      searchText = "";
-                                    });
-                                  },
-                                  icon: Icon(Icons.clear_rounded, color: _AdminColors.grey, size: 20),
-                                )
-                              : null,
+                    // Search field
+                    TextField(
+                      controller: searchController,
+                      decoration: InputDecoration(
+                        hintText: "Search Attractions...",
+                        hintStyle: GoogleFonts.poppins(
+                          color: _AdminColors.grey,
+                          fontSize: 14,
                         ),
-                        onChanged: (value) => setState(() => searchText = value.toLowerCase()),
+                        prefixIcon: Icon(
+                          Icons.search_rounded,
+                          color: _AdminColors.primary,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: _AdminColors.lightGrey,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: _AdminColors.primary,
+                            width: 2,
+                          ),
+                        ),
+                        filled: true,
+                        fillColor: _AdminColors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                        ),
                       ),
+                      onChanged: (value) {
+                        setState(() {
+                          searchText = value.toLowerCase();
+                        });
+                      },
                     ),
                     const SizedBox(height: 12),
-
-                    // ── City Filter Chips ──
+                    // City filter dropdown
                     StreamBuilder<List<CityModel>>(
                       stream: cityService.getCities(),
                       builder: (context, snapshot) {
-                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return const SizedBox.shrink();
+                        if (!snapshot.hasData) {
+                          return const SizedBox();
                         }
+
                         final cities = snapshot.data!;
-                        return SizedBox(
-                          height: 40,
-                          child: ListView(
-                            scrollDirection: Axis.horizontal,
-                            children: [
-                              _buildFilterChip(
-                                label: "All",
-                                isSelected: selectedCity == null,
-                                onTap: () => setState(() => selectedCity = null),
-                              ),
-                              const SizedBox(width: 8),
-                              ...cities.map((city) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 8),
-                                  child: _buildFilterChip(
-                                    label: city.name,
-                                    isSelected: selectedCity == city.id,
-                                    onTap: () => setState(() {
-                                      selectedCity = selectedCity == city.id ? null : city.id;
-                                    }),
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: DropdownButtonFormField<String>(
+                                value: selectedCity,
+                                isDense: true,
+                                decoration: InputDecoration(
+                                  labelText: "Filter by City",
+                                  labelStyle: GoogleFonts.poppins(
+                                    color: _AdminColors.grey,
+                                    fontSize: 13,
                                   ),
-                                );
-                              }),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      color: _AdminColors.lightGrey,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      color: _AdminColors.primary,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  filled: true,
+                                  fillColor: _AdminColors.white,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                ),
+                                items: [
+                                  const DropdownMenuItem<String>(
+                                    value: null,
+                                    child: Text("All Cities"),
+                                  ),
+                                  ...cities.map((city) {
+                                    return DropdownMenuItem<String>(
+                                      value: city.id,
+                                      child: Text(city.name),
+                                    );
+                                  }),
+                                ],
+                                onChanged: (value) {
+                                  setState(() {
+                                    selectedCity = value;
+                                  });
+                                },
+                              ),
+                            ),
+                            if (selectedCity != null) ...[
+                              const SizedBox(width: 8),
+                              IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    selectedCity = null;
+                                  });
+                                },
+                                icon: Icon(
+                                  Icons.clear_rounded,
+                                  color: _AdminColors.grey,
+                                  size: 20,
+                                ),
+                                tooltip: "Clear filter",
+                              ),
                             ],
-                          ),
+                          ],
                         );
                       },
                     ),
@@ -181,7 +232,7 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
                         child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
+                          strokeWidth: 2,
                           color: _AdminColors.primary,
                         ),
                       );
@@ -189,157 +240,152 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
 
                     if (snapshot.hasError) {
                       return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: _AdminColors.error.withOpacity(0.08),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(Icons.error_outline_rounded, size: 48, color: _AdminColors.error),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline_rounded,
+                              size: 48,
+                              color: _AdminColors.error,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Error loading attractions',
+                              style: GoogleFonts.poppins(
+                                color: _AdminColors.error,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
                               ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Error loading attractions',
-                                style: GoogleFonts.poppins(color: _AdminColors.dark, fontSize: 18, fontWeight: FontWeight.w600),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Please try again',
-                                style: GoogleFonts.poppins(color: _AdminColors.grey, fontSize: 14),
-                              ),
-                              const SizedBox(height: 16),
-                              ElevatedButton.icon(
-                                onPressed: () => setState(() {}),
-                                icon: Icon(Icons.refresh_rounded, size: 18, color: Colors.white),
-                                label: Text('Retry', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: _AdminColors.primary,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            ),
+                            const SizedBox(height: 12),
+                            ElevatedButton(
+                              onPressed: () => setState(() {}),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _AdminColors.primary,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
-                            ],
-                          ),
+                              child: Text(
+                                'Retry',
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     }
 
                     if (!snapshot.hasData || snapshot.data!.isEmpty) {
                       return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  color: _AdminColors.primaryLight,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.landscape_rounded,
-                                  size: 56,
-                                  color: _AdminColors.primary.withOpacity(0.5),
-                                ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.landscape_rounded,
+                              size: 64,
+                              color: _AdminColors.grey,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              "No Attractions",
+                              style: GoogleFonts.poppins(
+                                color: _AdminColors.grey,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
                               ),
-                              const SizedBox(height: 20),
-                              Text(
-                                "No Attractions Yet",
-                                style: GoogleFonts.poppins(color: _AdminColors.dark, fontSize: 20, fontWeight: FontWeight.w700),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              "Tap the + button to add an attraction",
+                              style: GoogleFonts.poppins(
+                                color: _AdminColors.grey,
+                                fontSize: 14,
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                "Tap the + button to add your first attraction",
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.poppins(color: _AdminColors.grey, fontSize: 14, height: 1.5),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       );
                     }
 
+                    // ── Apply filters ──
                     final filteredAttractions = snapshot.data!.where((item) {
-                      final matchesSearch = item.name.toLowerCase().contains(searchText);
-                      final matchesCity = selectedCity == null || item.cityId == selectedCity;
+                      final matchesSearch =
+                          item.name.toLowerCase().contains(searchText);
+                      final matchesCity =
+                          selectedCity == null || item.cityId == selectedCity;
                       return matchesSearch && matchesCity;
                     }).toList();
 
                     if (filteredAttractions.isEmpty) {
                       return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: _AdminColors.grey.withOpacity(0.08),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(Icons.search_off_rounded, size: 48, color: _AdminColors.grey),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.search_off_rounded,
+                              size: 48,
+                              color: _AdminColors.grey,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              "No matching attractions",
+                              style: GoogleFonts.poppins(
+                                color: _AdminColors.grey,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
                               ),
-                              const SizedBox(height: 16),
-                              Text(
-                                "No matching attractions",
-                                style: GoogleFonts.poppins(color: _AdminColors.dark, fontSize: 18, fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 8),
+                            TextButton.icon(
+                              onPressed: () {
+                                setState(() {
+                                  searchController.clear();
+                                  searchText = "";
+                                  selectedCity = null;
+                                });
+                              },
+                              icon: Icon(
+                                Icons.clear_all_rounded,
+                                color: _AdminColors.primary,
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                "Try adjusting your search or filters",
-                                style: GoogleFonts.poppins(color: _AdminColors.grey, fontSize: 14),
-                              ),
-                              const SizedBox(height: 16),
-                              TextButton.icon(
-                                onPressed: () {
-                                  setState(() {
-                                    searchController.clear();
-                                    searchText = "";
-                                    selectedCity = null;
-                                  });
-                                },
-                                icon: Icon(Icons.clear_all_rounded, color: _AdminColors.primary, size: 18),
-                                label: Text(
-                                  'Clear all filters',
-                                  style: GoogleFonts.poppins(color: _AdminColors.primary, fontWeight: FontWeight.w600),
+                              label: Text(
+                                'Clear filters',
+                                style: GoogleFonts.poppins(
+                                  color: _AdminColors.primary,
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       );
                     }
 
-                    final sortedAttractions = List.from(filteredAttractions)
-                      ..sort((a, b) => b.rating.compareTo(a.rating));
+                    // ── Sort by rating (highest first) ──
+                    final sortedAttractions =
+                        List.from(filteredAttractions)
+                          ..sort((a, b) => b.rating.compareTo(a.rating));
 
                     return ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: sortedAttractions.length,
                       itemBuilder: (context, index) {
                         final attraction = sortedAttractions[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: AttractionCard(
-                            attraction: attraction,
-                            onEdit: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => EditAttractionScreen(attraction: attraction),
-                                ),
-                              ).then((_) => setState(() {}));
-                            },
-                            onDelete: () => _confirmDelete(attraction),
-                          ),
+                        return AttractionCard(
+                          attraction: attraction,
+                          onEdit: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    EditAttractionScreen(attraction: attraction),
+                              ),
+                            ).then((_) => setState(() {}));
+                          },
+                          onDelete: () => _confirmDelete(attraction),
                         );
                       },
                     );
@@ -348,29 +394,13 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
               ),
             ],
           ),
+          // ── Loading overlay ──
           if (_isLoading)
             Container(
-              color: Colors.black.withOpacity(0.35),
+              color: Colors.black.withOpacity(0.3),
               child: const Center(
-                child: Card(
-                  elevation: 8,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(16)),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircularProgressIndicator(strokeWidth: 3, color: _AdminColors.primary),
-                        SizedBox(height: 16),
-                        Text(
-                          'Deleting...',
-                          style: TextStyle(color: _AdminColors.dark, fontSize: 14, fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    ),
-                  ),
+                child: CircularProgressIndicator(
+                  color: _AdminColors.primary,
                 ),
               ),
             ),
@@ -379,48 +409,7 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
     );
   }
 
-  Widget _buildFilterChip({
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? _AdminColors.primary : _AdminColors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? _AdminColors.primary : _AdminColors.lightGrey.withOpacity(0.6),
-            width: 1.5,
-          ),
-          boxShadow: isSelected
-              ? [BoxShadow(color: _AdminColors.primary.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 4))]
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isSelected)
-              Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: Icon(Icons.check_rounded, size: 14, color: Colors.white),
-              ),
-            Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? Colors.white : _AdminColors.darkGrey,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
+  // ── Delete Confirmation Dialog with local loading ──
   void _confirmDelete(AttractionModel attraction) {
     showDialog(
       context: context,
@@ -429,106 +418,111 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
         bool isDeleting = false;
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            return Dialog(
+            return AlertDialog(
               backgroundColor: _AdminColors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-              elevation: 8,
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: _AdminColors.error.withOpacity(0.08),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(Icons.delete_outline_rounded, size: 40, color: _AdminColors.error),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Row(
+                children: [
+                  Icon(Icons.warning_rounded, color: _AdminColors.error),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Delete Attraction',
+                    style: GoogleFonts.poppins(
+                      color: _AdminColors.dark,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 18,
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Delete Attraction',
-                      style: GoogleFonts.poppins(color: _AdminColors.dark, fontWeight: FontWeight.w700, fontSize: 20),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Are you sure you want to delete "${attraction.name}"?',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(color: _AdminColors.darkGrey, fontSize: 14, height: 1.5),
-                    ),
-                    Text(
-                      'This action cannot be undone.',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(color: _AdminColors.grey, fontSize: 12),
-                    ),
-                    const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextButton(
-                            onPressed: isDeleting ? null : () => Navigator.pop(context),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                            child: Text(
-                              'Cancel',
-                              style: GoogleFonts.poppins(color: _AdminColors.grey, fontWeight: FontWeight.w600, fontSize: 15),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: isDeleting
-                                ? null
-                                : () async {
-                                    setDialogState(() => isDeleting = true);
-                                    try {
-                                      await attractionService.deleteAttraction(attraction.id);
-                                      if (!mounted) return;
-                                      Navigator.pop(context);
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text('✅ ${attraction.name} deleted'),
-                                          backgroundColor: _AdminColors.success,
-                                          behavior: SnackBarBehavior.floating,
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                          duration: const Duration(seconds: 2),
-                                        ),
-                                      );
-                                      setState(() {});
-                                    } catch (e) {
-                                      setDialogState(() => isDeleting = false);
-                                      if (!mounted) return;
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text('❌ Error: $e'),
-                                          backgroundColor: _AdminColors.error,
-                                          behavior: SnackBarBehavior.floating,
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                        ),
-                                      );
-                                    }
-                                  },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: isDeleting ? _AdminColors.grey : _AdminColors.error,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              elevation: 0,
-                            ),
-                            child: isDeleting
-                                ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
-                                : Text('Delete', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 15)),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
+                ],
+              ),
+              content: Text(
+                'Are you sure you want to delete "${attraction.name}"? This action cannot be undone.',
+                style: GoogleFonts.poppins(
+                  color: _AdminColors.darkGrey,
+                  fontSize: 14,
+                  height: 1.5,
                 ),
               ),
+              actions: [
+                TextButton(
+                  onPressed: isDeleting ? null : () => Navigator.pop(context),
+                  child: Text(
+                    'Cancel',
+                    style: GoogleFonts.poppins(
+                      color: _AdminColors.grey,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: isDeleting
+                      ? null
+                      : () async {
+                          setDialogState(() => isDeleting = true);
+                          try {
+                            await attractionService.deleteAttraction(
+                              attraction.id,
+                            );
+                            if (!mounted) return;
+                            Navigator.pop(context); // close dialog
+
+                            // Show success
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  '✅ ${attraction.name} deleted successfully',
+                                ),
+                                backgroundColor: _AdminColors.success,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                            // Force refresh list
+                            setState(() {});
+                          } catch (e) {
+                            setDialogState(() => isDeleting = false);
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('❌ Error: $e'),
+                                backgroundColor: _AdminColors.error,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _AdminColors.error,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: isDeleting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          'Delete',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                ),
+              ],
             );
           },
         );

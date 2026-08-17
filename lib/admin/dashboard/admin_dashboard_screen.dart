@@ -79,7 +79,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           content: Text('Error loading data: $e'),
           backgroundColor: _AdminColors.error,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
     }
@@ -191,9 +193,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       ),
       body: isLoading
           ? const Center(
-              child: CircularProgressIndicator(
-                color: _AdminColors.primary,
-              ),
+              child: CircularProgressIndicator(color: _AdminColors.primary),
             )
           : _buildBody(),
     );
@@ -211,7 +211,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         screen = CityListScreen();
         break;
       case '/attractions':
-        screen = const AttractionsScreen();
+        screen = AttractionsScreen();
         break;
       case '/hotels':
         screen = const HotelsScreen();
@@ -220,7 +220,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         screen = const RestaurantsScreen();
         break;
       case '/events':
-        screen = const EventsScreen();
+        screen = EventsScreen();
         break;
       default:
         return;
@@ -233,7 +233,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           const begin = Offset(1.0, 0.0);
           const end = Offset.zero;
           const curve = Curves.easeInOut;
-          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var tween = Tween(
+            begin: begin,
+            end: end,
+          ).chain(CurveTween(curve: curve));
           return SlideTransition(
             position: animation.drive(tween),
             child: child,
@@ -273,10 +276,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF2563EB),
-            Color(0xFF3B82F6),
-          ],
+          colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
@@ -313,7 +313,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ),
                 const SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: _AdminColors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
@@ -346,188 +349,181 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       ),
     );
   }
-Widget _buildStatsGrid() {
-  final cards = [
-    _DashboardCardData(
-      title: 'Users',
-      count: users,
-      icon: Icons.people_rounded,
-      gradient: const [Color(0xFF4FACFE), Color(0xFF00F2FE)],
-      route: '/users',
-    ),
-    _DashboardCardData(
-      title: 'Cities',
-      count: cities,
-      icon: Icons.location_city_rounded,
-      gradient: const [Color(0xFF43E97B), Color(0xFF38F9D7)],
-      route: '/cities',
-    ),
-    _DashboardCardData(
-      title: 'Attractions',
-      count: attractions,
-      icon: Icons.place_rounded,
-      gradient: const [Color(0xFFFA709A), Color(0xFFFEE140)],
-      route: '/attractions',
-    ),
-    _DashboardCardData(
-      title: 'Hotels',
-      count: hotels,
-      icon: Icons.hotel_rounded,
-      gradient: const [Color(0xFFA18CD1), Color(0xFFFBC2EB)],
-      route: '/hotels',
-    ),
-    _DashboardCardData(
-      title: 'Restaurants',
-      count: restaurants,
-      icon: Icons.restaurant_rounded,
-      gradient: const [Color(0xFFF093FB), Color(0xFFF5576C)],
-      route: '/restaurants',
-    ),
-    _DashboardCardData(
-      title: 'Events',
-      count: events,
-      icon: Icons.event_rounded,
-      gradient: const [Color(0xFF4FACFE), Color(0xFF00F2FE)],
-      route: '/events',
-    ),
-  ];
 
-  return GridView.builder(
-    shrinkWrap: true,
-    physics: const NeverScrollableScrollPhysics(),
-    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-      crossAxisCount: 3, // 3 columns for a cleaner look
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      childAspectRatio: 1.2,
-    ),
-    itemCount: cards.length,
-    itemBuilder: (context, index) {
-      return TweenAnimationBuilder<double>(
-        duration: Duration(milliseconds: 400 + (index * 80)),
-        tween: Tween(begin: 0.0, end: 1.0),
-        curve: Curves.easeOutBack,
-        builder: (context, value, child) {
-          return Transform.scale(
-            scale: value,
-            child: child,
-          );
-        },
-        child: _buildStatCard(cards[index]),
-      );
-    },
-  );
-}
-
-Widget _buildStatCard(_DashboardCardData card) {
-  return InkWell(
-    onTap: () {
-      setState(() => selectedRoute = card.route);
-      _navigateToRoute(card.route);
-    },
-    borderRadius: BorderRadius.circular(16),
-    child: Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: card.gradient,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: card.gradient.first.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
+  Widget _buildStatsGrid() {
+    final cards = [
+      _DashboardCardData(
+        title: 'Users',
+        count: users,
+        icon: Icons.people_rounded,
+        gradient: const [Color(0xFF4FACFE), Color(0xFF00F2FE)],
+        route: '/users',
       ),
-      child: Stack(
-        children: [
-          // Background pattern (subtle)
-          Positioned(
-            right: -10,
-            bottom: -10,
-            child: Opacity(
-              opacity: 0.08,
-              child: Icon(
-                card.icon,
-                size: 80,
-                color: Colors.white,
+      _DashboardCardData(
+        title: 'Cities',
+        count: cities,
+        icon: Icons.location_city_rounded,
+        gradient: const [Color(0xFF43E97B), Color(0xFF38F9D7)],
+        route: '/cities',
+      ),
+      _DashboardCardData(
+        title: 'Attractions',
+        count: attractions,
+        icon: Icons.place_rounded,
+        gradient: const [Color(0xFFFA709A), Color(0xFFFEE140)],
+        route: '/attractions',
+      ),
+      _DashboardCardData(
+        title: 'Hotels',
+        count: hotels,
+        icon: Icons.hotel_rounded,
+        gradient: const [Color(0xFFA18CD1), Color(0xFFFBC2EB)],
+        route: '/hotels',
+      ),
+      _DashboardCardData(
+        title: 'Restaurants',
+        count: restaurants,
+        icon: Icons.restaurant_rounded,
+        gradient: const [Color(0xFFF093FB), Color(0xFFF5576C)],
+        route: '/restaurants',
+      ),
+      _DashboardCardData(
+        title: 'Events',
+        count: events,
+        icon: Icons.event_rounded,
+        gradient: const [Color(0xFF4FACFE), Color(0xFF00F2FE)],
+        route: '/events',
+      ),
+    ];
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3, // 3 columns for a cleaner look
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 1.2,
+      ),
+      itemCount: cards.length,
+      itemBuilder: (context, index) {
+        return TweenAnimationBuilder<double>(
+          duration: Duration(milliseconds: 400 + (index * 80)),
+          tween: Tween(begin: 0.0, end: 1.0),
+          curve: Curves.easeOutBack,
+          builder: (context, value, child) {
+            return Transform.scale(scale: value, child: child);
+          },
+          child: _buildStatCard(cards[index]),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatCard(_DashboardCardData card) {
+    return InkWell(
+      onTap: () {
+        setState(() => selectedRoute = card.route);
+        _navigateToRoute(card.route);
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: card.gradient,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: card.gradient.first.withOpacity(0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            // Background pattern (subtle)
+            Positioned(
+              right: -10,
+              bottom: -10,
+              child: Opacity(
+                opacity: 0.08,
+                child: Icon(card.icon, size: 80, color: Colors.white),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Icon and badge row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.25),
-                        borderRadius: BorderRadius.circular(12),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Icon and badge row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.25),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(card.icon, color: Colors.white, size: 22),
                       ),
-                      child: Icon(
-                        card.icon,
-                        color: Colors.white,
-                        size: 22,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '+${card.count > 0 ? card.count : 0}',
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '+${card.count > 0 ? card.count : 0}',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                // Count and Title
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      card.count.toString(),
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
+                    ],
+                  ),
+                  // Count and Title
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        card.count.toString(),
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      card.title,
-                      style: GoogleFonts.poppins(
-                        color: Colors.white.withOpacity(0.85),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                      const SizedBox(height: 2),
+                      Text(
+                        card.title,
+                        style: GoogleFonts.poppins(
+                          color: Colors.white.withOpacity(0.85),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildQuickActions() {
     return Column(
@@ -608,11 +604,7 @@ Widget _buildStatCard(_DashboardCardData card) {
                   color: color.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 24,
-                ),
+                child: Icon(icon, color: color, size: 24),
               ),
               const SizedBox(height: 6),
               Text(
@@ -635,9 +627,7 @@ Widget _buildStatCard(_DashboardCardData card) {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: _AdminColors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
             Icon(Icons.logout_rounded, color: _AdminColors.error),
@@ -684,9 +674,7 @@ Widget _buildStatCard(_DashboardCardData card) {
             ),
             child: Text(
               'Logout',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-              ),
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
             ),
           ),
         ],

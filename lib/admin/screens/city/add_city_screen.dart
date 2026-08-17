@@ -3,10 +3,24 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:app/admin/models/city_model.dart';
 import 'package:app/admin/services/city_service.dart';
-import 'package:app/core/constants/app_colors.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+
+// ── Direct colors ──
+class _AdminColors {
+  static const Color primary = Color(0xFF2563EB);
+  static const Color primaryLight = Color(0xFFEFF6FF);
+  static const Color background = Color(0xFFF8FAFC);
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color dark = Color(0xFF0F172A);
+  static const Color darkGrey = Color(0xFF334155);
+  static const Color grey = Color(0xFF64748B);
+  static const Color lightGrey = Color(0xFFE2E8F0);
+  static const Color error = Color(0xFFDC2626);
+  static const Color success = Color(0xFF10B981);
+}
 
 class AddCityScreen extends StatefulWidget {
   const AddCityScreen({super.key});
@@ -22,12 +36,9 @@ class _AddCityScreenState extends State<AddCityScreen> {
   final TextEditingController descriptionController = TextEditingController();
 
   bool loading = false;
+  String? _imagePath;
+  File? _imageFile;
 
-  // ✅ Store image path only (like AddAttractionScreen)
-  String? _imagePath;  // Mobile: file path, Web: base64 data URL
-  File? _imageFile;    // Mobile only
-
-  // ✅ Pick image from gallery
   Future<void> pickImage(ImageSource source) async {
     try {
       final ImagePicker picker = ImagePicker();
@@ -37,11 +48,9 @@ class _AddCityScreenState extends State<AddCityScreen> {
         maxHeight: 1024,
         imageQuality: 85,
       );
-
       if (image == null) return;
 
       if (kIsWeb) {
-        // ✅ Web: Store as base64 data URL
         final bytes = await image.readAsBytes();
         final base64String = 'data:image/jpeg;base64,${base64Encode(bytes)}';
         setState(() {
@@ -49,7 +58,6 @@ class _AddCityScreenState extends State<AddCityScreen> {
           _imageFile = null;
         });
       } else {
-        // ✅ Mobile: Store file path only
         final File file = File(image.path);
         setState(() {
           _imagePath = file.path;
@@ -61,7 +69,6 @@ class _AddCityScreenState extends State<AddCityScreen> {
     }
   }
 
-  // ✅ Remove selected image
   void _removeImage() {
     setState(() {
       _imagePath = null;
@@ -69,7 +76,6 @@ class _AddCityScreenState extends State<AddCityScreen> {
     });
   }
 
-  // ✅ Show image picker options
   void _showImagePickerOptions() {
     showModalBottomSheet(
       context: context,
@@ -82,25 +88,26 @@ class _AddCityScreenState extends State<AddCityScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
+              Text(
                 "Select Image",
-                style: TextStyle(
+                style: GoogleFonts.poppins(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
+                  color: _AdminColors.dark,
                 ),
               ),
               const SizedBox(height: 20),
               ListTile(
-                leading: const Icon(Icons.camera_alt_rounded, color: AppColors.primary),
-                title: const Text("Take Photo"),
+                leading: Icon(Icons.camera_alt_rounded, color: _AdminColors.primary),
+                title: Text("Take Photo", style: GoogleFonts.poppins()),
                 onTap: () {
                   Navigator.pop(context);
                   pickImage(ImageSource.camera);
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.photo_library_rounded, color: AppColors.primary),
-                title: const Text("Choose from Gallery"),
+                leading: Icon(Icons.photo_library_rounded, color: _AdminColors.primary),
+                title: Text("Choose from Gallery", style: GoogleFonts.poppins()),
                 onTap: () {
                   Navigator.pop(context);
                   pickImage(ImageSource.gallery);
@@ -113,32 +120,27 @@ class _AddCityScreenState extends State<AddCityScreen> {
     );
   }
 
-  // ✅ Show error message
   void _showError(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
+        content: Text(message, style: GoogleFonts.poppins()),
+        backgroundColor: _AdminColors.error,
         behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
 
   Future<void> saveCity() async {
-    // Validate name
     if (nameController.text.trim().isEmpty) {
       _showError("Please enter city name");
       return;
     }
-
-    // Validate description
     if (descriptionController.text.trim().isEmpty) {
       _showError("Please enter description");
       return;
     }
-
-    // Validate image
     if (_imagePath == null || _imagePath!.isEmpty) {
       _showError("Please select an image");
       return;
@@ -147,34 +149,30 @@ class _AddCityScreenState extends State<AddCityScreen> {
     setState(() => loading = true);
 
     try {
-      // ✅ Store path only (like AddAttractionScreen)
       final city = CityModel(
         id: '',
         name: nameController.text.trim(),
-        image: _imagePath!, // ✅ Store path only
+        image: _imagePath!,
         description: descriptionController.text.trim(),
       );
-
       await cityService.addCity(city);
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("✅ City Added Successfully"),
-          backgroundColor: Colors.green,
+        SnackBar(
+          content: Text("✅ City Added Successfully", style: GoogleFonts.poppins()),
+          backgroundColor: _AdminColors.success,
           behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
-
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
       _showError("❌ Error: $e");
     } finally {
-      if (mounted) {
-        setState(() => loading = false);
-      }
+      if (mounted) setState(() => loading = false);
     }
   }
 
@@ -188,19 +186,20 @@ class _AddCityScreenState extends State<AddCityScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: _AdminColors.background,
       appBar: AppBar(
         title: Text(
           "Add City",
-          style: TextStyle(
-            color: AppColors.dark,
-            fontWeight: FontWeight.bold,
+          style: GoogleFonts.poppins(
+            color: _AdminColors.dark,
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
           ),
         ),
-        backgroundColor: AppColors.background,
+        backgroundColor: _AdminColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded, color: AppColors.dark),
+          icon: Icon(Icons.arrow_back_rounded, color: _AdminColors.dark),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -209,28 +208,27 @@ class _AddCityScreenState extends State<AddCityScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ Image Picker Section
+            // ── Image Picker ──
             Text(
               "City Image",
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: AppColors.dark,
+                color: _AdminColors.dark,
               ),
             ),
             const SizedBox(height: 10),
 
-            // Image preview or picker button
             GestureDetector(
               onTap: _showImagePickerOptions,
               child: Container(
                 width: double.infinity,
                 height: 200,
                 decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  color: _AdminColors.white,
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: _imagePath != null ? AppColors.primary : AppColors.lightGrey,
+                    color: _imagePath != null ? _AdminColors.primary : _AdminColors.lightGrey,
                     width: 2,
                   ),
                 ),
@@ -238,36 +236,20 @@ class _AddCityScreenState extends State<AddCityScreen> {
                     ? Stack(
                         fit: StackFit.expand,
                         children: [
-                          // ✅ Image Preview
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(14),
                             child: kIsWeb
                                 ? Image.memory(
                                     base64Decode(_imagePath!.split(',').last),
                                     fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => Container(
-                                      color: Colors.grey.shade200,
-                                      child: const Icon(
-                                        Icons.broken_image,
-                                        size: 50,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
+                                    errorBuilder: (_, __, ___) => _buildImagePlaceholder(),
                                   )
                                 : Image.file(
                                     File(_imagePath!),
                                     fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => Container(
-                                      color: Colors.grey.shade200,
-                                      child: const Icon(
-                                        Icons.broken_image,
-                                        size: 50,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
+                                    errorBuilder: (_, __, ___) => _buildImagePlaceholder(),
                                   ),
                           ),
-                          // ✅ Remove button
                           Positioned(
                             top: 8,
                             right: 8,
@@ -275,14 +257,14 @@ class _AddCityScreenState extends State<AddCityScreen> {
                               onTap: _removeImage,
                               child: Container(
                                 padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.6),
+                                decoration: const BoxDecoration(
+                                  color: _AdminColors.error,
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
                                   Icons.close_rounded,
                                   color: Colors.white,
-                                  size: 20,
+                                  size: 18,
                                 ),
                               ),
                             ),
@@ -292,26 +274,15 @@ class _AddCityScreenState extends State<AddCityScreen> {
                     : Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.add_photo_alternate_rounded,
-                            size: 60,
-                            color: Colors.grey.shade400,
-                          ),
+                          Icon(Icons.add_photo_alternate_rounded, size: 60, color: _AdminColors.grey.withOpacity(0.5)),
                           const SizedBox(height: 12),
                           Text(
                             "Tap to select image",
-                            style: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 14,
-                            ),
+                            style: GoogleFonts.poppins(color: _AdminColors.grey, fontSize: 14),
                           ),
-                          const SizedBox(height: 4),
                           Text(
                             "Supports JPG, PNG",
-                            style: TextStyle(
-                              color: Colors.grey.shade400,
-                              fontSize: 12,
-                            ),
+                            style: GoogleFonts.poppins(color: _AdminColors.grey.withOpacity(0.6), fontSize: 12),
                           ),
                         ],
                       ),
@@ -320,112 +291,127 @@ class _AddCityScreenState extends State<AddCityScreen> {
 
             const SizedBox(height: 24),
 
-            // ✅ City Name Field
+            // ── City Name ──
             Text(
               "City Name",
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: AppColors.dark,
+                color: _AdminColors.dark,
               ),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: nameController,
+              style: GoogleFonts.poppins(fontSize: 15, color: _AdminColors.dark),
               decoration: InputDecoration(
                 hintText: "Enter city name",
-                prefixIcon: Icon(Icons.location_city_rounded, color: AppColors.primary),
+                hintStyle: GoogleFonts.poppins(color: _AdminColors.grey, fontSize: 14),
+                prefixIcon: Icon(Icons.location_city_rounded, color: _AdminColors.primary),
+                filled: true,
+                fillColor: _AdminColors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.lightGrey),
+                  borderSide: BorderSide(color: _AdminColors.lightGrey),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.primary, width: 2),
+                  borderSide: BorderSide(color: _AdminColors.primary, width: 2),
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.lightGrey),
-                ),
-                filled: true,
-                fillColor: AppColors.white,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               ),
             ),
 
             const SizedBox(height: 24),
 
-            // ✅ Description Field
+            // ── Description ──
             Text(
               "Description",
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: AppColors.dark,
+                color: _AdminColors.dark,
               ),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: descriptionController,
               maxLines: 4,
+              style: GoogleFonts.poppins(fontSize: 15, color: _AdminColors.dark),
               decoration: InputDecoration(
                 hintText: "Enter city description",
+                hintStyle: GoogleFonts.poppins(color: _AdminColors.grey, fontSize: 14),
                 prefixIcon: Padding(
                   padding: const EdgeInsets.only(bottom: 60),
-                  child: Icon(Icons.description_rounded, color: AppColors.primary),
+                  child: Icon(Icons.description_rounded, color: _AdminColors.primary),
                 ),
+                filled: true,
+                fillColor: _AdminColors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.lightGrey),
+                  borderSide: BorderSide(color: _AdminColors.lightGrey),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.primary, width: 2),
+                  borderSide: BorderSide(color: _AdminColors.primary, width: 2),
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.lightGrey),
-                ),
-                filled: true,
-                fillColor: AppColors.white,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               ),
             ),
 
             const SizedBox(height: 30),
 
-            // ✅ Save Button
+            // ── Save Button ──
             SizedBox(
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
                 onPressed: loading ? null : saveCity,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.white,
+                  backgroundColor: _AdminColors.primary,
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  elevation: 2,
+                  elevation: 0,
                 ),
                 child: loading
                     ? const SizedBox(
                         height: 24,
                         width: 24,
                         child: CircularProgressIndicator(
-                          strokeWidth: 2,
+                          strokeWidth: 2.5,
                           color: Colors.white,
                         ),
                       )
-                    : const Text(
+                    : Text(
                         "Save City",
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Container(
+      color: _AdminColors.background,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.broken_image, size: 50, color: _AdminColors.grey),
+          const SizedBox(height: 8),
+          Text(
+            "Image not available",
+            style: GoogleFonts.poppins(color: _AdminColors.grey, fontSize: 13),
+          ),
+        ],
       ),
     );
   }

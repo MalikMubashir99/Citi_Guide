@@ -1,8 +1,19 @@
 // lib/admin/widgets/event_card.dart
 import 'package:app/admin/models/event_model.dart';
-import 'package:app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
+// ── Direct colors ──
+class _CardColors {
+  static const Color primary = Color(0xFF2563EB);
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color dark = Color(0xFF0F172A);
+  static const Color darkGrey = Color(0xFF334155);
+  static const Color grey = Color(0xFF64748B);
+  static const Color lightGrey = Color(0xFFE2E8F0);
+  static const Color error = Color(0xFFDC2626);
+  static const Color warning = Color(0xFFF59E0B);
+}
 
 class EventCard extends StatelessWidget {
   final EventModel event;
@@ -19,30 +30,38 @@ class EventCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: _CardColors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.lightGrey, width: 1),
-        boxShadow: AppColors.subtleShadow,
+        border: Border.all(
+          color: _CardColors.lightGrey.withOpacity(0.5),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          // Image
+          // ── Image ──
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Container(
-              width: 80,
-              height: 80,
-              color: AppColors.lightGrey,
+              width: 70,
+              height: 70,
+              color: _CardColors.lightGrey.withOpacity(0.4),
               child: event.image.isNotEmpty
                   ? Image.network(
                       event.image,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Icon(
                         Icons.broken_image,
-                        color: AppColors.grey,
+                        color: _CardColors.grey,
                         size: 30,
                       ),
                       loadingBuilder: (_, child, progress) {
@@ -53,7 +72,7 @@ class EventCard extends StatelessWidget {
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: AppColors.primary,
+                              color: _CardColors.primary,
                             ),
                           ),
                         );
@@ -61,84 +80,109 @@ class EventCard extends StatelessWidget {
                     )
                   : Icon(
                       Icons.event_rounded,
-                      color: AppColors.grey,
-                      size: 40,
+                      color: _CardColors.grey,
+                      size: 36,
                     ),
             ),
           ),
           const SizedBox(width: 12),
-          // Info
+          // ── Info ──
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   event.title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.dark,
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: _CardColors.dark,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Row(
                   children: [
                     Icon(
                       Icons.calendar_today_rounded,
-                      size: 14,
-                      color: AppColors.primary,
+                      size: 13,
+                      color: _CardColors.primary,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       event.date.isNotEmpty ? event.date : 'No date',
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         fontSize: 12,
-                        color: AppColors.grey,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Icon(
-                      Icons.location_on_rounded,
-                      size: 14,
-                      color: AppColors.primary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      event.cityId,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.grey,
+                        color: _CardColors.grey,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  event.location.isNotEmpty ? event.location : 'No location',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.grey,
+                if (event.location.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on_rounded,
+                        size: 13,
+                        color: _CardColors.primary,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          event.location,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: _CardColors.grey,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                ],
               ],
             ),
           ),
-          // Actions
+          // ── Edit & Delete ──
           Row(
             children: [
-              IconButton(
-                icon: Icon(Icons.edit_rounded, color: AppColors.primary),
-                onPressed: onEdit,
-                tooltip: 'Edit',
+              Container(
+                decoration: BoxDecoration(
+                  color: _CardColors.primary.withOpacity(0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: Icon(
+                    Icons.edit_rounded,
+                    color: _CardColors.primary,
+                    size: 20,
+                  ),
+                  onPressed: onEdit,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  tooltip: 'Edit',
+                ),
               ),
-              IconButton(
-                icon: Icon(Icons.delete_rounded, color: AppColors.error),
-                onPressed: onDelete,
-                tooltip: 'Delete',
+              const SizedBox(width: 4),
+              Container(
+                decoration: BoxDecoration(
+                  color: _CardColors.error.withOpacity(0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: Icon(
+                    Icons.delete_outline_rounded,
+                    color: _CardColors.error,
+                    size: 20,
+                  ),
+                  onPressed: onDelete,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  tooltip: 'Delete',
+                ),
               ),
             ],
           ),

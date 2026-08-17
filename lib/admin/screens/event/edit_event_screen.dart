@@ -1,15 +1,29 @@
+// lib/admin/screens/event/edit_event_screen.dart
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:app/model/city_model.dart';
-import 'package:app/model/event_model.dart';
-import 'package:app/services/city_service.dart';
-import 'package:app/services/event_service.dart';
+import 'package:app/admin/models/city_model.dart';   // ✅ admin model
+import 'package:app/admin/models/event_model.dart';  // ✅ admin model
+import 'package:app/admin/services/city_service.dart';
+import 'package:app/admin/services/event_service.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
+class _AdminColors {
+  static const Color primary = Color(0xFF2563EB);
+  static const Color background = Color(0xFFF8FAFC);
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color dark = Color(0xFF0F172A);
+  static const Color darkGrey = Color(0xFF334155);
+  static const Color grey = Color(0xFF64748B);
+  static const Color lightGrey = Color(0xFFE2E8F0);
+  static const Color error = Color(0xFFDC2626);
+  static const Color success = Color(0xFF10B981);
+}
+
 class EditEventScreen extends StatefulWidget {
-  final EventModel event;
+  final EventModel event; // ✅ admin EventModel
 
   const EditEventScreen({
     super.key,
@@ -33,7 +47,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
   String? selectedCity;
   bool loading = false;
 
-  // ✅ Local image only
   String? _imagePath;
   File? _imageFile;
   String? _existingImageUrl;
@@ -41,13 +54,11 @@ class _EditEventScreenState extends State<EditEventScreen> {
   @override
   void initState() {
     super.initState();
-
     titleController = TextEditingController(text: widget.event.title);
     descriptionController = TextEditingController(text: widget.event.description);
     locationController = TextEditingController(text: widget.event.location);
     dateController = TextEditingController(text: widget.event.date);
     timeController = TextEditingController(text: widget.event.time);
-
     selectedCity = widget.event.cityId;
     _existingImageUrl = widget.event.image;
   }
@@ -62,13 +73,10 @@ class _EditEventScreenState extends State<EditEventScreen> {
     super.dispose();
   }
 
-  // ✅ Pick Image - Local only
   Future<void> pickImage() async {
     final picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
     if (image == null) return;
-
     if (kIsWeb) {
       final bytes = await image.readAsBytes();
       final base64String = 'data:image/jpeg;base64,${base64Encode(bytes)}';
@@ -85,7 +93,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
     }
   }
 
-  // ✅ Remove image
   void removeImage() {
     setState(() {
       _imagePath = null;
@@ -97,24 +104,33 @@ class _EditEventScreenState extends State<EditEventScreen> {
   Future<void> updateEvent() async {
     if (selectedCity == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select a city")),
+        SnackBar(
+          content: Text("Please select a city", style: GoogleFonts.poppins()),
+          backgroundColor: _AdminColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       );
       return;
     }
-
-    setState(() {
-      loading = true;
-    });
-
+    if (titleController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Please enter event title", style: GoogleFonts.poppins()),
+          backgroundColor: _AdminColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      return;
+    }
+    setState(() => loading = true);
     try {
-      // ✅ Use new image if selected, otherwise keep existing
       String finalImageUrl = _existingImageUrl ?? '';
-      
       if (_imagePath != null) {
         finalImageUrl = _imagePath!;
       }
-
-      EventModel event = EventModel(
+      final event = EventModel(
         id: widget.event.id,
         title: titleController.text.trim(),
         cityId: selectedCity!,
@@ -124,15 +140,14 @@ class _EditEventScreenState extends State<EditEventScreen> {
         time: timeController.text.trim(),
         location: locationController.text.trim(),
       );
-
       await eventService.updateEvent(event);
-
       if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Event Updated Successfully ✅"),
-          backgroundColor: Colors.green,
+        SnackBar(
+          content: Text("✅ Event Updated Successfully!", style: GoogleFonts.poppins()),
+          backgroundColor: _AdminColors.success,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
       Navigator.pop(context);
@@ -141,130 +156,144 @@ class _EditEventScreenState extends State<EditEventScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Error: $e"),
-          backgroundColor: Colors.red,
+          content: Text("Error: $e", style: GoogleFonts.poppins()),
+          backgroundColor: _AdminColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
     }
   }
 
+  Widget buildField(String label, TextEditingController controller,
+      {TextInputType keyboardType = TextInputType.text}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        style: GoogleFonts.poppins(fontSize: 15, color: _AdminColors.dark),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: GoogleFonts.poppins(color: _AdminColors.grey, fontSize: 14),
+          filled: true,
+          fillColor: _AdminColors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: _AdminColors.lightGrey),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: _AdminColors.primary, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: _AdminColors.background,
       appBar: AppBar(
-        title: const Text("Edit Event"),
+        title: Text(
+          "Edit Event",
+          style: GoogleFonts.poppins(
+            color: _AdminColors.dark,
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
+          ),
+        ),
+        backgroundColor: _AdminColors.background,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_rounded, color: _AdminColors.dark),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FutureBuilder<List<CityModel>>(
-              future: cityService.getCities(),
+            // ── City Dropdown (StreamBuilder) ──
+            StreamBuilder<List<CityModel>>(
+              stream: cityService.getCities(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator();
-                }
-
-                if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                }
-
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Text("No cities available");
-                }
-
-                return DropdownButtonFormField<String>(
-                  initialValue: selectedCity,
-                  decoration: const InputDecoration(
-                    labelText: "City",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: _AdminColors.primary,
                     ),
+                  );
+                }
+                if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      snapshot.hasData ? "No cities available" : "Error loading cities",
+                      style: GoogleFonts.poppins(color: _AdminColors.error),
+                    ),
+                  );
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 15),
+                  child: DropdownButtonFormField<String>(
+                    value: selectedCity,
+                    style: GoogleFonts.poppins(fontSize: 15, color: _AdminColors.dark),
+                    decoration: InputDecoration(
+                      labelText: "Select City",
+                      labelStyle: GoogleFonts.poppins(color: _AdminColors.grey, fontSize: 14),
+                      filled: true,
+                      fillColor: _AdminColors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: _AdminColors.lightGrey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: _AdminColors.primary, width: 2),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                    items: snapshot.data!.map((city) {
+                      return DropdownMenuItem(
+                        value: city.id,
+                        child: Text(city.name),
+                      );
+                    }).toList(),
+                    onChanged: (value) => setState(() => selectedCity = value),
                   ),
-                  items: snapshot.data!.map((city) {
-                    return DropdownMenuItem(
-                      value: city.id,
-                      child: Text(city.name),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedCity = value;
-                    });
-                  },
                 );
               },
             ),
 
-            const SizedBox(height: 15),
+            // ── Title ──
+            buildField("Event Title", titleController),
 
-            TextField(
-              controller: titleController,
-              decoration: const InputDecoration(
-                labelText: "Event Title",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
-                ),
-              ),
-            ),
+            // ── Description ──
+            buildField("Description", descriptionController),
 
-            const SizedBox(height: 15),
+            // ── Location ──
+            buildField("Location", locationController),
 
-            TextField(
-              controller: descriptionController,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: "Description",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
-                ),
-              ),
-            ),
+            // ── Date ──
+            buildField("Date", dateController),
 
-            const SizedBox(height: 15),
+            // ── Time ──
+            buildField("Time", timeController),
 
-            TextField(
-              controller: locationController,
-              decoration: const InputDecoration(
-                labelText: "Location",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 15),
-
-            TextField(
-              controller: dateController,
-              decoration: const InputDecoration(
-                labelText: "Date",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 15),
-
-            TextField(
-              controller: timeController,
-              decoration: const InputDecoration(
-                labelText: "Time",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // ✅ Image Section
+            // ── Image Section ──
             Container(
+              margin: const EdgeInsets.only(bottom: 15),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
+                color: _AdminColors.white,
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: _AdminColors.lightGrey.withOpacity(0.5)),
               ),
               child: Column(
                 children: [
@@ -276,13 +305,13 @@ class _EditEventScreenState extends State<EditEventScreen> {
                           child: kIsWeb
                               ? Image.memory(
                                   base64Decode(_imagePath!.split(',').last),
-                                  height: 180,
+                                  height: 160,
                                   width: double.infinity,
                                   fit: BoxFit.cover,
                                 )
                               : Image.file(
                                   File(_imagePath!),
-                                  height: 180,
+                                  height: 160,
                                   width: double.infinity,
                                   fit: BoxFit.cover,
                                 ),
@@ -290,13 +319,19 @@ class _EditEventScreenState extends State<EditEventScreen> {
                         Positioned(
                           top: 8,
                           right: 8,
-                          child: CircleAvatar(
-                            backgroundColor: Colors.red,
-                            radius: 16,
-                            child: IconButton(
-                              icon: const Icon(Icons.close, color: Colors.white, size: 16),
-                              onPressed: removeImage,
-                              padding: EdgeInsets.zero,
+                          child: GestureDetector(
+                            onTap: removeImage,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                color: _AdminColors.error,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.close_rounded,
+                                color: Colors.white,
+                                size: 16,
+                              ),
                             ),
                           ),
                         ),
@@ -309,14 +344,22 @@ class _EditEventScreenState extends State<EditEventScreen> {
                           borderRadius: BorderRadius.circular(12),
                           child: Image.network(
                             _existingImageUrl!,
-                            height: 180,
+                            height: 160,
                             width: double.infinity,
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => Container(
-                              height: 180,
-                              color: Colors.grey.shade300,
-                              child: const Center(
-                                child: Icon(Icons.broken_image, color: Colors.grey, size: 40),
+                              height: 160,
+                              color: _AdminColors.background,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.broken_image, size: 40, color: _AdminColors.grey),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    "Image not available",
+                                    style: GoogleFonts.poppins(color: _AdminColors.grey, fontSize: 13),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -324,13 +367,19 @@ class _EditEventScreenState extends State<EditEventScreen> {
                         Positioned(
                           top: 8,
                           right: 8,
-                          child: CircleAvatar(
-                            backgroundColor: Colors.red,
-                            radius: 16,
-                            child: IconButton(
-                              icon: const Icon(Icons.close, color: Colors.white, size: 16),
-                              onPressed: removeImage,
-                              padding: EdgeInsets.zero,
+                          child: GestureDetector(
+                            onTap: removeImage,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                color: _AdminColors.error,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.close_rounded,
+                                color: Colors.white,
+                                size: 16,
+                              ),
                             ),
                           ),
                         ),
@@ -340,33 +389,43 @@ class _EditEventScreenState extends State<EditEventScreen> {
                     Container(
                       height: 120,
                       width: double.infinity,
-                      color: Colors.grey.shade100,
-                      child: const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.image, size: 40, color: Colors.grey),
-                            SizedBox(height: 8),
-                            Text(
-                              "No image selected",
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                          ],
-                        ),
+                      decoration: BoxDecoration(
+                        color: _AdminColors.background,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.image_rounded, size: 40, color: _AdminColors.grey),
+                          const SizedBox(height: 8),
+                          Text(
+                            "No image selected",
+                            style: GoogleFonts.poppins(color: _AdminColors.grey, fontSize: 13),
+                          ),
+                        ],
                       ),
                     ),
+                  const SizedBox(height: 12),
 
-                  const SizedBox(height: 15),
-
-                  // ✅ Fixed: Removed extra semicolon
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton.icon(
+                    child: OutlinedButton.icon(
                       onPressed: pickImage,
-                      icon: const Icon(Icons.photo_library),
-                      label: const Text("Change Image"),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      icon: Icon(Icons.photo_library_rounded, color: _AdminColors.primary),
+                      label: Text(
+                        "Change Image",
+                        style: GoogleFonts.poppins(
+                          color: _AdminColors.primary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        side: BorderSide(color: _AdminColors.lightGrey),
                       ),
                     ),
                   ),
@@ -374,17 +433,41 @@ class _EditEventScreenState extends State<EditEventScreen> {
               ),
             ),
 
-            const SizedBox(height: 25),
+            const SizedBox(height: 20),
 
+            // ── Update Button ──
             SizedBox(
               width: double.infinity,
+              height: 54,
               child: ElevatedButton(
                 onPressed: loading ? null : updateEvent,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _AdminColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
                 child: loading
-                    ? const CircularProgressIndicator()
-                    : const Text("Update Event"),
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(
+                        "Update Event",
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
               ),
             ),
+            const SizedBox(height: 20),
           ],
         ),
       ),

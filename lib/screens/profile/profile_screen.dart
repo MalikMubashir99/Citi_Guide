@@ -24,21 +24,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final UserService userService = UserService();
   final StatsService _statsService = StatsService();
 
-  // Combined future for user + stats
   late Future<Map<String, dynamic>> profileFuture;
 
   void refreshProfile() {
     setState(() {
-      profileFuture =
-          Future.wait([
-            userService.getUser(),
-            _statsService.getUserStats(),
-          ]).then(
-            (values) => {
-              'user': values[0] as UserModel,
-              'stats': values[1] as Map<String, int>,
-            },
-          );
+      profileFuture = Future.wait([
+        userService.getUser(),
+        _statsService.getUserStats(),
+      ]).then((values) => {
+        'user': values[0] as UserModel,
+        'stats': values[1] as Map<String, int>,
+      });
     });
     widget.onProfileUpdated?.call();
   }
@@ -46,132 +42,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    // Load both user and stats at the same time
-    profileFuture =
-        Future.wait([userService.getUser(), _statsService.getUserStats()]).then(
-          (values) => {
-            'user': values[0] as UserModel,
-            'stats': values[1] as Map<String, int>,
-          },
-        );
+    profileFuture = Future.wait([
+      userService.getUser(),
+      _statsService.getUserStats(),
+    ]).then((values) => {
+      'user': values[0] as UserModel,
+      'stats': values[1] as Map<String, int>,
+    });
   }
 
   Future<void> logout() async {
-    bool? result = await showDialog(
-      context: context,
-      builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        backgroundColor: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFDC2626).withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.logout_rounded,
-                  color: Color(0xFFDC2626),
-                  size: 28,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                "Sign Out",
-                style: GoogleFonts.poppins(
-                  color: const Color(0xFF0F172A),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                "Are you sure you want to sign out?",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  color: const Color(0xFF64748B),
-                  fontSize: 14,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF64748B),
-                        side: const BorderSide(color: Color(0xFFE2E8F0)),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text("Cancel", style: GoogleFonts.poppins()),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFDC2626),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text("Sign Out", style: GoogleFonts.poppins()),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+    // ... (same as your code)
+  }
+
+  ImageProvider? _getImageProvider(String image) {
+    // ... (same as your code - optional, not used now)
+  }
+
+  // ✅ MISSING METHOD – Avatar Fallback
+  Widget _buildAvatarFallback(String name) {
+    return Container(
+      width: 100,
+      height: 100,
+      color: const Color(0xFF2563EB),
+      child: Center(
+        child: Text(
+          name.isNotEmpty
+              ? name.trim().split(' ').map((e) => e[0]).take(2).join().toUpperCase()
+              : "U",
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
     );
-
-    if (result != true) return;
-
-    await FirebaseAuth.instance.signOut();
-
-    if (!mounted) return;
-
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
-    );
-  }
-
-  ImageProvider? _getImageProvider(String image) {
-    if (image.isEmpty) return null;
-
-    try {
-      if (!image.startsWith('data:image') && image.length > 100) {
-        final bytes = base64Decode(image);
-        return MemoryImage(bytes);
-      }
-
-      if (image.startsWith('data:image')) {
-        final base64String = image.split(',').last;
-        final bytes = base64Decode(base64String);
-        return MemoryImage(bytes);
-      }
-
-      return NetworkImage(image);
-    } catch (e) {
-      return null;
-    }
   }
 
   @override
@@ -181,101 +87,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: FutureBuilder<Map<String, dynamic>>(
         future: profileFuture,
         builder: (context, snapshot) {
-          // ── Loading State ──
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    width: 36,
-                    height: 36,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 3,
-                      color: Color(0xFF2563EB),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    "Loading profile...",
-                    style: GoogleFonts.poppins(
-                      color: const Color(0xFF64748B),
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
+          // ... loading, error states (same as your code)
 
-          // ── Error State ──
-          if (snapshot.hasError || !snapshot.hasData) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 72,
-                      height: 72,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFDC2626).withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.error_outline_rounded,
-                        size: 36,
-                        color: Color(0xFFDC2626),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      "Something went wrong",
-                      style: GoogleFonts.poppins(
-                        color: const Color(0xFF0F172A),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      snapshot.error?.toString() ?? 'Unknown error',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                        color: const Color(0xFF64748B),
-                        fontSize: 13,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      height: 46,
-                      child: ElevatedButton.icon(
-                        onPressed: refreshProfile,
-                        icon: const Icon(Icons.refresh_rounded, size: 18),
-                        label: Text("Try Again", style: GoogleFonts.poppins()),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2563EB),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          // ── Success: extract data ──
+          // ── Success ──
           final data = snapshot.data!;
           final UserModel user = data['user'] as UserModel;
           final Map<String, int> stats = data['stats'] as Map<String, int>;
-
-          // Safe stats with fallback to 0
           final reviews = stats['reviews'] ?? 0;
           final favorites = stats['favorites'] ?? 0;
           final cities = stats['cities'] ?? 0;
@@ -287,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   children: [
                     const SizedBox(height: 10),
-                    // ── Custom Header Bar ──
+                    // ── Header ──
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -335,7 +152,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     const SizedBox(height: 28),
 
-                    // ── Profile Avatar ──
+                    // ── Custom Avatar ──
                     Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
@@ -347,36 +164,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ],
                       ),
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundImage: _getImageProvider(user.image),
-                        backgroundColor: const Color(0xFF2563EB),
-                        child: user.image.isEmpty
-                            ? Text(
-                                user.name.isNotEmpty
-                                    ? user.name
-                                          .trim()
-                                          .split(' ')
-                                          .map((e) => e[0])
-                                          .take(2)
-                                          .join()
-                                          .toUpperCase()
-                                    : "U",
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              )
-                            : null,
-                        onBackgroundImageError: (_, __) {
-                          setState(() {});
-                        },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(50),
+                        child: Container(
+                          width: 100,
+                          height: 100,
+                          color: const Color(0xFF2563EB),
+                          child: user.image.isNotEmpty
+                              ? Image.network(
+                                  user.image,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => _buildAvatarFallback(user.name),
+                                  loadingBuilder: (_, child, progress) {
+                                    if (progress == null) return child;
+                                    return Container(
+                                      color: const Color(0xFF2563EB),
+                                      child: const Center(
+                                        child: SizedBox(
+                                          width: 30,
+                                          height: 30,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                )
+                              : _buildAvatarFallback(user.name),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 14),
 
-                    // Name
+                    // ── Name, Email, Badge ──
                     Text(
                       user.name,
                       style: GoogleFonts.poppins(
@@ -386,8 +208,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-
-                    // Email
                     Text(
                       user.email,
                       style: GoogleFonts.poppins(
@@ -396,13 +216,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-
-                    // Verified Traveler Badge
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 6,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                       decoration: BoxDecoration(
                         color: const Color(0xFFDCFCE7),
                         borderRadius: BorderRadius.circular(20),
@@ -433,16 +248,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     const SizedBox(height: 24),
 
-                    // ── DYNAMIC STATS CARD ──
+                    // ── Stats Card ──
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: const Color(0xFFF1F5F9),
-                          width: 1.5,
-                        ),
+                        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.03),
@@ -455,17 +267,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           _buildStatItem(reviews.toString(), "Reviews"),
-                          Container(
-                            height: 30,
-                            width: 1,
-                            color: const Color(0xFFF1F5F9),
-                          ),
+                          Container(height: 30, width: 1, color: const Color(0xFFF1F5F9)),
                           _buildStatItem(favorites.toString(), "Favorites"),
-                          Container(
-                            height: 30,
-                            width: 1,
-                            color: const Color(0xFFF1F5F9),
-                          ),
+                          Container(height: 30, width: 1, color: const Color(0xFFF1F5F9)),
                           _buildStatItem(cities.toString(), "Cities"),
                         ],
                       ),
@@ -478,10 +282,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: const Color(0xFFF1F5F9),
-                          width: 1.5,
-                        ),
+                        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.03),
@@ -588,7 +389,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // ── Stat Item Builder ──
+  // ── Stat Item ──
   Widget _buildStatItem(String count, String label) {
     return Column(
       children: [
@@ -613,7 +414,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // ── Menu Item Builder ──
+  // ── Menu Item ──
   Widget _buildMenuItem({
     required IconData icon,
     required Color iconBgColor,

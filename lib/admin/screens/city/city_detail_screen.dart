@@ -1,21 +1,35 @@
 // lib/admin/screens/city/city_detail_screen.dart
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:app/admin/models/city_model.dart';
 import 'package:app/admin/models/attraction_model.dart';
 import 'package:app/admin/models/hotel_model.dart';
-import 'package:app/admin/models/restaurant_model.dart'; // ✅ Use admin RestaurantModel
-import 'package:app/admin/models/event_model.dart'; // ✅ Use admin EventModel
+import 'package:app/admin/models/restaurant_model.dart';
+import 'package:app/admin/models/event_model.dart';
 import 'package:app/admin/services/city_service.dart';
 import 'package:app/admin/services/attraction_service.dart';
 import 'package:app/admin/services/hotel_service.dart';
 import 'package:app/admin/services/restaurant_service.dart';
 import 'package:app/admin/services/event_service.dart';
-import 'package:app/core/constants/app_colors.dart';
 import 'package:app/admin/widgets/attraction_card.dart';
 import 'package:app/admin/widgets/hotel_card.dart';
 import 'package:app/admin/widgets/restaurant_card.dart';
 import 'package:app/admin/widgets/event_card.dart';
 import 'edit_city_screen.dart';
+
+// ── Direct colors ──
+class _AdminColors {
+  static const Color primary = Color(0xFF2563EB);
+  static const Color primaryLight = Color(0xFFEFF6FF);
+  static const Color background = Color(0xFFF8FAFC);
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color dark = Color(0xFF0F172A);
+  static const Color darkGrey = Color(0xFF334155);
+  static const Color grey = Color(0xFF64748B);
+  static const Color lightGrey = Color(0xFFE2E8F0);
+  static const Color error = Color(0xFFDC2626);
+  static const Color success = Color(0xFF10B981);
+}
 
 class CityDetailScreen extends StatefulWidget {
   final CityModel city;
@@ -38,56 +52,80 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
 
   bool _isLoading = false;
   String _selectedTab = 'attractions';
+  int _attractionCount = 0;
+  int _hotelCount = 0;
+  int _restaurantCount = 0;
+  int _eventCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCounts();
+  }
+
+  Future<void> _loadCounts() async {
+    final results = await Future.wait([
+      _attractionService.getAttractionsByCity(widget.city.id),
+      _hotelService.getHotelsByCity(widget.city.id),
+      _restaurantService.getRestaurantsByCity(widget.city.id),
+      _eventService.getEventsByCity(widget.city.id),
+    ]);
+
+    setState(() {
+      _attractionCount = (results[0] as List).length;
+      _hotelCount = (results[1] as List).length;
+      _restaurantCount = (results[2] as List).length;
+      _eventCount = (results[3] as List).length;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: _AdminColors.background,
       appBar: AppBar(
         title: Text(
           widget.city.name,
-          style: TextStyle(
-            color: AppColors.dark,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.3,
+          style: GoogleFonts.poppins(
+            color: _AdminColors.dark,
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
+            letterSpacing: -0.3,
           ),
         ),
-        backgroundColor: AppColors.background,
+        backgroundColor: _AdminColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded, color: AppColors.dark),
+          icon: Icon(Icons.arrow_back_rounded, color: _AdminColors.dark),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.edit_rounded, color: AppColors.primary),
+            icon: Icon(Icons.edit_rounded, color: _AdminColors.primary),
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => EditCityScreen(city: widget.city),
                 ),
-              );
+              ).then((_) => setState(() {}));
             },
           ),
           IconButton(
-            icon: Icon(Icons.delete_rounded, color: AppColors.error),
+            icon: Icon(Icons.delete_rounded, color: _AdminColors.error),
             onPressed: () => _confirmDelete(),
           ),
         ],
       ),
       body: Column(
         children: [
-          // City Header
+          // ── City Header ──
           _buildCityHeader(),
-          
-          // Stats
+          // ── Stats ──
           _buildStats(),
-          
-          // Tab Bar
+          // ── Tab Bar ──
           _buildTabBar(),
-          
-          // Tab Content
+          // ── Tab Content ──
           Expanded(
             child: _buildTabContent(),
           ),
@@ -101,7 +139,7 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
       height: 180,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        color: _AdminColors.primary,
         image: widget.city.image.isNotEmpty
             ? DecorationImage(
                 image: NetworkImage(widget.city.image),
@@ -115,9 +153,9 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Colors.black.withValues(alpha: 0.1),
-              Colors.black.withValues(alpha: 0.4),
-              Colors.black.withValues(alpha: 0.7),
+              Colors.black.withOpacity(0.1),
+              Colors.black.withOpacity(0.4),
+              Colors.black.withOpacity(0.7),
             ],
           ),
         ),
@@ -129,14 +167,14 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
             children: [
               Text(
                 widget.city.name,
-                style: TextStyle(
+                style: GoogleFonts.poppins(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.white,
+                  color: _AdminColors.white,
                   letterSpacing: 0.5,
                   shadows: [
                     Shadow(
-                      color: Colors.black.withValues(alpha: 0.3),
+                      color: Colors.black.withOpacity(0.3),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -146,9 +184,9 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
               const SizedBox(height: 4),
               Text(
                 widget.city.description,
-                style: TextStyle(
+                style: GoogleFonts.poppins(
                   fontSize: 14,
-                  color: AppColors.white.withValues(alpha: 0.85),
+                  color: _AdminColors.white.withOpacity(0.85),
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -165,10 +203,16 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: _AdminColors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.lightGrey, width: 1),
-        boxShadow: AppColors.subtleShadow,
+        border: Border.all(color: _AdminColors.lightGrey.withOpacity(0.5), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -176,37 +220,37 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
           _buildStatItem(
             icon: Icons.landscape_rounded,
             label: 'Attractions',
-            count: 0,
+            count: _attractionCount,
           ),
           Container(
             width: 1,
             height: 40,
-            color: AppColors.lightGrey,
+            color: _AdminColors.lightGrey,
           ),
           _buildStatItem(
             icon: Icons.hotel_rounded,
             label: 'Hotels',
-            count: 0,
+            count: _hotelCount,
           ),
           Container(
             width: 1,
             height: 40,
-            color: AppColors.lightGrey,
+            color: _AdminColors.lightGrey,
           ),
           _buildStatItem(
             icon: Icons.restaurant_rounded,
             label: 'Restaurants',
-            count: 0,
+            count: _restaurantCount,
           ),
           Container(
             width: 1,
             height: 40,
-            color: AppColors.lightGrey,
+            color: _AdminColors.lightGrey,
           ),
           _buildStatItem(
             icon: Icons.event_rounded,
             label: 'Events',
-            count: 0,
+            count: _eventCount,
           ),
         ],
       ),
@@ -220,21 +264,22 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
   }) {
     return Column(
       children: [
-        Icon(icon, color: AppColors.primary, size: 24),
+        Icon(icon, color: _AdminColors.primary, size: 24),
         const SizedBox(height: 4),
         Text(
-          '0',
-          style: TextStyle(
+          count.toString(),
+          style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: AppColors.dark,
+            color: _AdminColors.dark,
           ),
         ),
         Text(
           label,
-          style: TextStyle(
+          style: GoogleFonts.poppins(
             fontSize: 11,
-            color: AppColors.grey,
+            color: _AdminColors.grey,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],
@@ -242,59 +287,55 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
   }
 
   Widget _buildTabBar() {
+    final tabs = [
+      {'key': 'attractions', 'icon': Icons.landscape_rounded, 'label': 'Attractions'},
+      {'key': 'hotels', 'icon': Icons.hotel_rounded, 'label': 'Hotels'},
+      {'key': 'restaurants', 'icon': Icons.restaurant_rounded, 'label': 'Restaurants'},
+      {'key': 'events', 'icon': Icons.event_rounded, 'label': 'Events'},
+    ];
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: _AdminColors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.lightGrey, width: 1),
+        border: Border.all(color: _AdminColors.lightGrey.withOpacity(0.5), width: 1),
       ),
       child: Row(
-        children: [
-          _buildTabItem('Attractions', 'attractions', Icons.landscape_rounded),
-          _buildTabItem('Hotels', 'hotels', Icons.hotel_rounded),
-          _buildTabItem('Restaurants', 'restaurants', Icons.restaurant_rounded),
-          _buildTabItem('Events', 'events', Icons.event_rounded),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabItem(String label, String tab, IconData icon) {
-    final isSelected = _selectedTab == tab;
-    return Expanded(
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            _selectedTab = tab;
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                color: isSelected ? AppColors.primary : AppColors.grey,
-                size: 20,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isSelected ? AppColors.primary : AppColors.grey,
+        children: tabs.map((tab) {
+          final isSelected = _selectedTab == tab['key'];
+          return Expanded(
+            child: InkWell(
+              onTap: () => setState(() => _selectedTab = tab['key'] as String),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: isSelected ? _AdminColors.primaryLight : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      tab['icon'] as IconData,
+                      color: isSelected ? _AdminColors.primary : _AdminColors.grey,
+                      size: 20,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      tab['label'] as String,
+                      style: GoogleFonts.poppins(
+                        fontSize: 10,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                        color: isSelected ? _AdminColors.primary : _AdminColors.grey,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -314,7 +355,6 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
     }
   }
 
-  // ✅ Attractions List - Using FutureBuilder
   Widget _buildAttractionsList() {
     return FutureBuilder<List<AttractionModel>>(
       future: _attractionService.getAttractionsByCity(widget.city.id),
@@ -323,42 +363,28 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
           return const Center(
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: AppColors.primary,
+              color: _AdminColors.primary,
             ),
           );
         }
-
         if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              'Error: ${snapshot.error}',
-              style: TextStyle(color: AppColors.error),
-            ),
-          );
+          return _buildErrorState('Error loading attractions');
         }
-
         final attractions = snapshot.data ?? [];
         if (attractions.isEmpty) {
-          return _buildEmptyState(
-            icon: Icons.landscape_rounded,
-            title: 'No Attractions',
-            subtitle: 'Add attractions to this city',
-          );
+          return _buildEmptyState(Icons.landscape_rounded, 'No Attractions', 'Add attractions to this city');
         }
-
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: attractions.length,
           itemBuilder: (context, index) {
-            final attraction = attractions[index];
-            return AttractionCard(
-              attraction: attraction,
-              onEdit: () {
-                // Navigate to edit attraction
-              },
-              onDelete: () {
-                // Delete attraction
-              },
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: AttractionCard(
+                attraction: attractions[index],
+                onEdit: () {},
+                onDelete: () {},
+              ),
             );
           },
         );
@@ -366,7 +392,6 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
     );
   }
 
-  // ✅ Hotels List - Using FutureBuilder
   Widget _buildHotelsList() {
     return FutureBuilder<List<HotelModel>>(
       future: _hotelService.getHotelsByCity(widget.city.id),
@@ -375,42 +400,28 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
           return const Center(
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: AppColors.primary,
+              color: _AdminColors.primary,
             ),
           );
         }
-
         if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              'Error: ${snapshot.error}',
-              style: TextStyle(color: AppColors.error),
-            ),
-          );
+          return _buildErrorState('Error loading hotels');
         }
-
         final hotels = snapshot.data ?? [];
         if (hotels.isEmpty) {
-          return _buildEmptyState(
-            icon: Icons.hotel_rounded,
-            title: 'No Hotels',
-            subtitle: 'Add hotels to this city',
-          );
+          return _buildEmptyState(Icons.hotel_rounded, 'No Hotels', 'Add hotels to this city');
         }
-
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: hotels.length,
           itemBuilder: (context, index) {
-            final hotel = hotels[index];
-            return HotelCard(
-              hotel: hotel,
-              onEdit: () {
-                // Navigate to edit hotel
-              },
-              onDelete: () {
-                // Delete hotel
-              },
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: HotelCard(
+                hotel: hotels[index],
+                onEdit: () {},
+                onDelete: () {},
+              ),
             );
           },
         );
@@ -418,7 +429,6 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
     );
   }
 
-  // ✅ Restaurants List - Using FutureBuilder with admin RestaurantModel
   Widget _buildRestaurantsList() {
     return FutureBuilder<List<RestaurantModel>>(
       future: _restaurantService.getRestaurantsByCity(widget.city.id),
@@ -427,42 +437,28 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
           return const Center(
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: AppColors.primary,
+              color: _AdminColors.primary,
             ),
           );
         }
-
         if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              'Error: ${snapshot.error}',
-              style: TextStyle(color: AppColors.error),
-            ),
-          );
+          return _buildErrorState('Error loading restaurants');
         }
-
         final restaurants = snapshot.data ?? [];
         if (restaurants.isEmpty) {
-          return _buildEmptyState(
-            icon: Icons.restaurant_rounded,
-            title: 'No Restaurants',
-            subtitle: 'Add restaurants to this city',
-          );
+          return _buildEmptyState(Icons.restaurant_rounded, 'No Restaurants', 'Add restaurants to this city');
         }
-
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: restaurants.length,
           itemBuilder: (context, index) {
-            final restaurant = restaurants[index];
-            return RestaurantCard(
-              restaurant: restaurant,
-              onEdit: () {
-                // Navigate to edit restaurant
-              },
-              onDelete: () {
-                // Delete restaurant
-              },
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: RestaurantCard(
+                restaurant: restaurants[index],
+                onEdit: () {},
+                onDelete: () {},
+              ),
             );
           },
         );
@@ -470,7 +466,6 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
     );
   }
 
-  // ✅ Events List - Using FutureBuilder with admin EventModel
   Widget _buildEventsList() {
     return FutureBuilder<List<EventModel>>(
       future: _eventService.getEventsByCity(widget.city.id),
@@ -479,42 +474,28 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
           return const Center(
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: AppColors.primary,
+              color: _AdminColors.primary,
             ),
           );
         }
-
         if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              'Error: ${snapshot.error}',
-              style: TextStyle(color: AppColors.error),
-            ),
-          );
+          return _buildErrorState('Error loading events');
         }
-
         final events = snapshot.data ?? [];
         if (events.isEmpty) {
-          return _buildEmptyState(
-            icon: Icons.event_rounded,
-            title: 'No Events',
-            subtitle: 'Add events to this city',
-          );
+          return _buildEmptyState(Icons.event_rounded, 'No Events', 'Add events to this city');
         }
-
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: events.length,
           itemBuilder: (context, index) {
-            final event = events[index];
-            return EventCard(
-              event: event,
-              onEdit: () {
-                // Navigate to edit event
-              },
-              onDelete: () {
-                // Delete event
-              },
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: EventCard(
+                event: events[index],
+                onEdit: () {},
+                onDelete: () {},
+              ),
             );
           },
         );
@@ -522,45 +503,70 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
     );
   }
 
-  Widget _buildEmptyState({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-  }) {
+  Widget _buildEmptyState(IconData icon, String title, String subtitle) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppColors.lightGrey.withValues(alpha: 0.3),
-              shape: BoxShape.circle,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: _AdminColors.primaryLight,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 48, color: _AdminColors.primary.withOpacity(0.5)),
             ),
-            child: Icon(
-              icon,
-              size: 48,
-              color: AppColors.grey,
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                color: _AdminColors.dark,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.dark,
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: GoogleFonts.poppins(
+                color: _AdminColors.grey,
+                fontSize: 14,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.grey,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: _AdminColors.error.withOpacity(0.08),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.error_outline_rounded, size: 48, color: _AdminColors.error),
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            Text(
+              message,
+              style: GoogleFonts.poppins(
+                color: _AdminColors.dark,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -568,80 +574,136 @@ class _CityDetailScreenState extends State<CityDetailScreen> {
   void _confirmDelete() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.white,
+      builder: (context) => Dialog(
+        backgroundColor: _AdminColors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(24),
         ),
-        title: Row(
-          children: [
-            Icon(Icons.warning_rounded, color: AppColors.error),
-            const SizedBox(width: 8),
-            Text(
-              'Delete City',
-              style: TextStyle(
-                color: AppColors.dark,
-                fontWeight: FontWeight.bold,
+        elevation: 8,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: _AdminColors.error.withOpacity(0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.delete_outline_rounded, size: 40, color: _AdminColors.error),
               ),
-            ),
-          ],
-        ),
-        content: Text(
-          'Are you sure you want to delete "${widget.city.name}"? This will also remove all associated data.',
-          style: TextStyle(color: AppColors.darkGrey),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.grey),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              setState(() => _isLoading = true);
-              try {
-                await _cityService.deleteCity(widget.city.id);
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('✅ ${widget.city.name} deleted successfully'),
-                    backgroundColor: AppColors.success,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              const SizedBox(height: 16),
+              Text(
+                'Delete City',
+                style: GoogleFonts.poppins(
+                  color: _AdminColors.dark,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 20,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Are you sure you want to delete "${widget.city.name}"?',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  color: _AdminColors.darkGrey,
+                  fontSize: 14,
+                  height: 1.5,
+                ),
+              ),
+              Text(
+                'This will also remove all associated data.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  color: _AdminColors.grey,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: GoogleFonts.poppins(
+                          color: _AdminColors.grey,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
                     ),
                   ),
-                );
-                Navigator.pop(context);
-              } catch (e) {
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('❌ Error deleting city: $e'),
-                    backgroundColor: AppColors.error,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        setState(() => _isLoading = true);
+                        try {
+                          await _cityService.deleteCity(widget.city.id);
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '✅ ${widget.city.name} deleted successfully',
+                                style: GoogleFonts.poppins(),
+                              ),
+                              backgroundColor: _AdminColors.success,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          );
+                          Navigator.pop(context);
+                        } catch (e) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('❌ Error: $e', style: GoogleFonts.poppins()),
+                              backgroundColor: _AdminColors.error,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          );
+                        } finally {
+                          if (mounted) setState(() => _isLoading = false);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _AdminColors.error,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'Delete',
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
                     ),
                   ),
-                );
-              } finally {
-                if (mounted) setState(() => _isLoading = false);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: AppColors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+                ],
               ),
-            ),
-            child: const Text('Delete'),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
